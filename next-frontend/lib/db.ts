@@ -6,12 +6,7 @@ const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUP
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Only log connection info in development
-if (process.env.NODE_ENV === "development") {
-  console.log(`🔧 Next.js DB Config:`);
-  console.log(`   Supabase URL: ${supabaseUrl}`);
-  console.log(`   Environment: ${process.env.NODE_ENV || "development"}`);
-}
+// Database connection logging removed for production security
 
 // Type definitions
 export interface Member {
