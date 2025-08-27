@@ -36,8 +36,10 @@ A modern, production-ready web application for managing worship team availabilit
 ## 🚀 Quick Setup
 
 ### Prerequisites
-- Node.js 16+ installed
+- Node.js 20+ installed (required for Supabase compatibility)
 - Supabase account (free tier available)
+
+> **⚠️ Node.js Version:** This project requires Node.js 20 or later due to Supabase dependencies. If you're using an older version, please upgrade to avoid deprecation warnings.
 
 ### 1. Clone the Repository
 ```bash
