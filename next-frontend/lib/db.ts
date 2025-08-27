@@ -185,8 +185,7 @@ export async function setAvailability(date: string, personId: string, state: 'A'
     .upsert([{
       date,
       person_id: personId,
-      state,
-      updated_at: new Date().toISOString()
+      state
     }], {
       onConflict: 'date,person_id'
     });
