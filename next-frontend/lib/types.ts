@@ -4,7 +4,7 @@ export type Role = "bassist" | "pianist" | "drummer" | "lead" | "bv" | "admin";
 
 export type AvailabilityState = "A" | "U" | "?";
 
-export type EventType = "service" | "rehearsal" | "special";
+export type EventType = "service" | "band-only" | "jam-session" | "special-event";
 
 // Member interface
 export interface Member {
@@ -141,6 +141,62 @@ export interface ExportData {
   events: Event[];
   availability: AvailabilityRecord[];
   exportedAt: string;
+}
+
+// Coverage analysis types
+export type CoverageStatus = "fully-covered" | "partially-covered" | "not-covered";
+
+export interface RoleCoverage {
+  required: number;
+  available: number;
+  members: Array<{
+    id: string;
+    name: string;
+    state: AvailabilityState;
+  }>;
+}
+
+export interface EventCoverage {
+  eventId: string | number;
+  date: string;
+  title: string;
+  type: EventType;
+  status: CoverageStatus;
+  coverageByRole: {
+    [K in Role]?: RoleCoverage;
+  };
+  coverageScore: number; // 0-100%
+}
+
+export interface CoverageRequirements {
+  service: {
+    bassist: number;
+    pianist: number;
+    drummer: number;
+    lead: number;
+    bv: number;
+  };
+  "band-only": {
+    bassist: number;
+    pianist: number;
+    drummer: number;
+    lead: number;
+    bv: number;
+  };
+  "jam-session": {
+    bassist: number;
+    pianist: number;
+    drummer: number;
+    lead: number;
+    bv: number;
+  };
+  "special-event": {
+    bassist: number;
+    pianist: number;
+    drummer: number;
+    lead: number;
+    bv: number;
+  };
 }
 
 // Statistics types

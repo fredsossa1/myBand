@@ -9,8 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { getAvailabilityIconOrDefault, getAvailabilityDisplayNameOrDefault, getRoleDisplayName, formatDate } from '@/lib/constants';
-import { groupMembersByRole } from '@/lib/utils';
-import { Role, AvailabilityState, Member } from '@/lib/types';
+import { groupMembersByRole, calculateEventCoverage, getCoverageStatusIcon, getCoverageStatusColor, formatEventType } from '@/lib/utils';
+import { Role, AvailabilityState, Member, EventType } from '@/lib/types';
 
 interface BulkActionModalProps {
   isOpen: boolean;
@@ -204,10 +204,9 @@ function AddEventModal({ isOpen, onClose, onAdd }: AddEventModalProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="service">Service</SelectItem>
-                <SelectItem value="practice">Practice</SelectItem>
-                <SelectItem value="concert">Concert</SelectItem>
-                <SelectItem value="special">Special Event</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+                <SelectItem value="band-only">Band Only</SelectItem>
+                <SelectItem value="jam-session">Jam Session</SelectItem>
+                <SelectItem value="special-event">Special Event</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -710,6 +709,9 @@ export default function AvailabilityPage() {
               const dayAvail = availabilityByDate[event.date] || {};
               const hasResponses = Object.keys(dayAvail).length > 0;
               
+              // Calculate coverage for this event
+              const coverage = calculateEventCoverage(event, members || [], availabilityByDate);
+              
               return (
                 <Card 
                   key={event.id} 
@@ -720,13 +722,24 @@ export default function AvailabilityPage() {
                 >
                   <CardHeader>
                     <CardTitle className="text-white flex items-center justify-between">
-                      <div>
-                        {event.title}
-                        {needsResponse && <span className="ml-2">⚠️</span>}
+                      <div className="flex items-center gap-2">
+                        <span>{event.title}</span>
+                        {needsResponse && <span>⚠️</span>}
+                        <Badge 
+                          variant="outline" 
+                          className={`${getCoverageStatusColor(coverage.status)} text-xs`}
+                        >
+                          {getCoverageStatusIcon(coverage.status)} {coverage.coverageScore}%
+                        </Badge>
                       </div>
-                      <Badge variant="outline" className="border-white/20 text-white">
-                        {formatDate(event.date)}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="border-white/20 text-white text-xs">
+                          {formatEventType(event.type as EventType)}
+                        </Badge>
+                        <Badge variant="outline" className="border-white/20 text-white">
+                          {formatDate(event.date)}
+                        </Badge>
+                      </div>
                     </CardTitle>
                     {event.description && (
                       <p className="text-white/70">{event.description}</p>
@@ -734,6 +747,28 @@ export default function AvailabilityPage() {
                   </CardHeader>
                   
                   <CardContent className="space-y-6">
+                    {/* Coverage Summary */}
+                    <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <h4 className="text-white font-medium mb-3 flex items-center gap-2">
+                        🎼 Band Coverage 
+                        <Badge variant="outline" className={getCoverageStatusColor(coverage.status)}>
+                          {getCoverageStatusIcon(coverage.status)} {coverage.status.replace('-', ' ')}
+                        </Badge>
+                      </h4>
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+                        {Object.entries(coverage.coverageByRole).map(([role, roleCoverage]) => (
+                          <div key={role} className="text-center">
+                            <div className="text-white/70 capitalize">{getRoleDisplayName(role as Role)}</div>
+                            <div className={`font-medium ${
+                              roleCoverage!.available >= roleCoverage!.required ? 'text-green-400' : 'text-red-400'
+                            }`}>
+                              {roleCoverage!.available}/{roleCoverage!.required}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
                     {/* User's availability */}
                     {currentUser && (
                       <div className="space-y-3">

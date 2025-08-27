@@ -7,7 +7,12 @@ import {
   AvailabilityByRole, 
   Role, 
   AvailabilityState,
-  AvailabilityStats 
+  AvailabilityStats,
+  CoverageRequirements,
+  EventCoverage,
+  CoverageStatus,
+  RoleCoverage,
+  EventType
 } from './types';
 import { getAllRoles, sortMembersByRole, sortDateStrings } from './constants';
 import { type ClassValue, clsx } from "clsx";
@@ -408,4 +413,165 @@ export function getUniqueDatesFromAvailability(
 ): string[] {
   const dates = new Set(availability.map((record) => record.date));
   return sortDateStrings(Array.from(dates));
+}
+
+// Coverage Analysis Utilities
+
+// Define coverage requirements for different event types
+export const COVERAGE_REQUIREMENTS: CoverageRequirements = {
+  service: {
+    bassist: 1,
+    pianist: 1,
+    drummer: 1,
+    lead: 1,
+    bv: 2,
+  },
+  "band-only": {
+    bassist: 1,
+    pianist: 1,
+    drummer: 1,
+    lead: 0,
+    bv: 0,
+  },
+  "jam-session": {
+    bassist: 1,
+    pianist: 1,
+    drummer: 1,
+    lead: 1,
+    bv: 1,
+  },
+  "special-event": {
+    bassist: 1,
+    pianist: 1,
+    drummer: 1,
+    lead: 1,
+    bv: 2,
+  },
+};
+
+export function calculateRoleCoverage(
+  members: Member[],
+  role: Role,
+  date: string,
+  availabilityByDate: AvailabilityByDate,
+  required: number
+): RoleCoverage {
+  const roleMembers = members.filter(member => member.role === role);
+  const availableMembers = roleMembers
+    .map(member => ({
+      id: member.id,
+      name: member.name,
+      state: availabilityByDate[date]?.[member.id] || null
+    }))
+    .filter(member => member.state === 'A');
+
+  return {
+    required,
+    available: availableMembers.length,
+    members: roleMembers.map(member => ({
+      id: member.id,
+      name: member.name,
+      state: availabilityByDate[date]?.[member.id] || null
+    }))
+  };
+}
+
+export function calculateEventCoverage(
+  event: Event,
+  members: Member[],
+  availabilityByDate: AvailabilityByDate
+): EventCoverage {
+  const requirements = COVERAGE_REQUIREMENTS[event.type as keyof CoverageRequirements] || COVERAGE_REQUIREMENTS.service;
+  
+  const coverageByRole: EventCoverage['coverageByRole'] = {};
+  let totalRequired = 0;
+  let totalMet = 0;
+
+  // Calculate coverage for each role
+  (Object.keys(requirements) as Role[]).forEach(role => {
+    if (role === 'admin') return; // Skip admin role for coverage
+    
+    const required = requirements[role];
+    if (required > 0) {
+      const roleCoverage = calculateRoleCoverage(members, role, event.date, availabilityByDate, required);
+      coverageByRole[role] = roleCoverage;
+      
+      totalRequired += required;
+      totalMet += Math.min(roleCoverage.available, required);
+    }
+  });
+
+  // Calculate overall coverage score
+  const coverageScore = totalRequired > 0 ? Math.round((totalMet / totalRequired) * 100) : 100;
+  
+  // Determine coverage status
+  let status: CoverageStatus;
+  if (coverageScore >= 100) {
+    status = 'fully-covered';
+  } else if (coverageScore >= 50) {
+    status = 'partially-covered';
+  } else {
+    status = 'not-covered';
+  }
+
+  return {
+    eventId: event.id,
+    date: event.date,
+    title: event.title,
+    type: event.type as EventType,
+    status,
+    coverageByRole,
+    coverageScore
+  };
+}
+
+export function calculateAllEventsCoverage(
+  events: Event[],
+  members: Member[],
+  availabilityByDate: AvailabilityByDate
+): EventCoverage[] {
+  return events.map(event => 
+    calculateEventCoverage(event, members, availabilityByDate)
+  );
+}
+
+export function getCoverageStatusIcon(status: CoverageStatus): string {
+  switch (status) {
+    case 'fully-covered':
+      return '✅';
+    case 'partially-covered':
+      return '⚠️';
+    case 'not-covered':
+      return '❌';
+    default:
+      return '❓';
+  }
+}
+
+export function getCoverageStatusColor(status: CoverageStatus): string {
+  switch (status) {
+    case 'fully-covered':
+      return 'text-green-400 border-green-500/50';
+    case 'partially-covered':
+      return 'text-yellow-400 border-yellow-500/50';
+    case 'not-covered':
+      return 'text-red-400 border-red-500/50';
+    default:
+      return 'text-gray-400 border-gray-500/50';
+  }
+}
+
+export function formatEventType(type: EventType): string {
+  switch (type) {
+    case 'service':
+      return 'Service';
+    case 'band-only':
+      return 'Band Only';
+    case 'jam-session':
+      return 'Jam Session';
+    case 'special-event':
+      return 'Special Event';
+    default:
+      return type;
+  }
 }
