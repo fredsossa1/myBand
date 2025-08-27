@@ -57,8 +57,16 @@ app.get("/api/members/by-role", async (req, res) => {
   try {
     console.log("📥 GET /api/members/by-role request received");
     const membersByRole = await getMembersByRole();
-    console.log("📤 Sending members by role response:", Object.keys(membersByRole), "- total entries:", Object.keys(membersByRole).length);
-    console.log("🔍 Full membersByRole data:", JSON.stringify(membersByRole, null, 2));
+    console.log(
+      "📤 Sending members by role response:",
+      Object.keys(membersByRole),
+      "- total entries:",
+      Object.keys(membersByRole).length
+    );
+    console.log(
+      "🔍 Full membersByRole data:",
+      JSON.stringify(membersByRole, null, 2)
+    );
     res.json(membersByRole);
   } catch (error) {
     console.error("❌ Error in /api/members/by-role:", error);

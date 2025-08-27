@@ -45,18 +45,21 @@ function populateMemberSelect() {
   console.log("🎯 populateMemberSelect called");
   const select = document.getElementById("memberSelect");
   console.log("🔍 memberSelect element:", select);
-  
+
   if (!select) {
     console.error("❌ Could not find memberSelect element!");
     return;
   }
-  
+
   console.log("🧹 Clearing existing options...");
   select.innerHTML = '<option value="">Select your name...</option>';
 
   console.log("📋 Processing membersByRole:", Object.keys(membersByRole));
   Object.entries(membersByRole).forEach(([role, people]) => {
-    console.log(`👥 Processing role ${role} with ${people.length} people:`, people);
+    console.log(
+      `👥 Processing role ${role} with ${people.length} people:`,
+      people
+    );
     const optgroup = document.createElement("optgroup");
     optgroup.label = role.toUpperCase();
     people.forEach((person) => {
@@ -68,8 +71,12 @@ function populateMemberSelect() {
     });
     select.appendChild(optgroup);
   });
-  
-  console.log("✅ populateMemberSelect completed. Select now has", select.children.length, "child elements");
+
+  console.log(
+    "✅ populateMemberSelect completed. Select now has",
+    select.children.length,
+    "child elements"
+  );
 }
 
 // API functions
@@ -79,20 +86,20 @@ async function setAvailabilityLocal(date, personId, state) {
     date,
     personId,
     state,
-    previousState: availability[date]?.[personId]?.state || "?"
+    previousState: availability[date]?.[personId]?.state || "?",
   });
-  
+
   // Update local availability for immediate UI feedback
   if (!availability[date]) availability[date] = {};
   if (!availability[date][personId]) availability[date][personId] = {};
-  
+
   availability[date][personId] = {
     state,
     name: currentUser.name,
     role: currentUser.role,
-    isPending: true // Mark as unsaved
+    isPending: true, // Mark as unsaved
   };
-  
+
   hasUnsavedChanges = true;
   renderEvents();
   updateStats();
@@ -103,16 +110,18 @@ async function setAvailability(date, personId, state) {
   try {
     console.log("🎯 setAvailability called:", { date, personId, state });
     console.log("🔍 currentUser:", currentUser);
-    
+
     // Add loading state to button
-    const button = document.querySelector(`button[data-date="${date}"][data-person="${personId}"]`);
+    const button = document.querySelector(
+      `button[data-date="${date}"][data-person="${personId}"]`
+    );
     if (button) {
-      button.classList.add('loading');
+      button.classList.add("loading");
       button.disabled = true;
       const originalText = button.textContent;
       button.textContent = "Saving...";
     }
-    
+
     // Store for undo
     const previousState = availability[date]?.[personId]?.state || "?";
     lastAction = {
@@ -129,18 +138,18 @@ async function setAvailability(date, personId, state) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ date, personId, state }),
     });
-    
+
     console.log("📥 Response status:", response.status);
     if (response.ok) {
       console.log("✅ Availability set successfully");
       await refresh();
       showUndoNotification();
-      
+
       // Show success feedback
       if (button) {
         button.textContent = "✓ Saved!";
         setTimeout(() => {
-          button.classList.remove('loading');
+          button.classList.remove("loading");
           button.disabled = false;
         }, 800);
       }
@@ -148,49 +157,50 @@ async function setAvailability(date, personId, state) {
       console.error("❌ Failed to set availability - response not ok");
       if (button) {
         button.textContent = "❌ Error";
-        button.classList.remove('loading');
+        button.classList.remove("loading");
         button.disabled = false;
       }
     }
   } catch (error) {
     console.error("❌ Failed to set availability:", error);
   }
-}async function submitAllChanges() {
+}
+async function submitAllChanges() {
   if (!hasUnsavedChanges || pendingChanges.size === 0) {
     return;
   }
 
-  const submitBtn = document.getElementById('submitChangesBtn');
+  const submitBtn = document.getElementById("submitChangesBtn");
   if (submitBtn) {
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting...';
-    submitBtn.classList.add('loading');
+    submitBtn.textContent = "Submitting...";
+    submitBtn.classList.add("loading");
   }
 
   try {
-    const promises = Array.from(pendingChanges.values()).map(change => 
+    const promises = Array.from(pendingChanges.values()).map((change) =>
       fetch("/api/availability", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           date: change.date,
           personId: change.personId,
-          state: change.state
+          state: change.state,
         }),
       })
     );
 
     const results = await Promise.all(promises);
-    const allSuccessful = results.every(response => response.ok);
+    const allSuccessful = results.every((response) => response.ok);
 
     if (allSuccessful) {
       // Clear pending changes
       pendingChanges.clear();
       hasUnsavedChanges = false;
-      
+
       // Remove pending indicators from availability data
-      Object.values(availability).forEach(dateAvail => {
-        Object.values(dateAvail).forEach(personAvail => {
+      Object.values(availability).forEach((dateAvail) => {
+        Object.values(dateAvail).forEach((personAvail) => {
           if (personAvail.isPending) {
             delete personAvail.isPending;
           }
@@ -199,34 +209,38 @@ async function setAvailability(date, personId, state) {
 
       await refresh();
       hidePendingChangesIndicator();
-      showSuccessNotification(`✅ Successfully submitted ${results.length} availability updates!`);
+      showSuccessNotification(
+        `✅ Successfully submitted ${results.length} availability updates!`
+      );
     } else {
-      throw new Error('Some submissions failed');
+      throw new Error("Some submissions failed");
     }
   } catch (error) {
-    console.error('Failed to submit changes:', error);
-    showErrorNotification('❌ Failed to submit some changes. Please try again.');
+    console.error("Failed to submit changes:", error);
+    showErrorNotification(
+      "❌ Failed to submit some changes. Please try again."
+    );
   } finally {
     if (submitBtn) {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit All Changes';
-      submitBtn.classList.remove('loading');
+      submitBtn.textContent = "Submit All Changes";
+      submitBtn.classList.remove("loading");
     }
   }
 }
 
 function showPendingChangesIndicator() {
-  const existing = document.getElementById('pendingChangesBar');
+  const existing = document.getElementById("pendingChangesBar");
   if (existing) {
     // Update count
     const count = pendingChanges.size;
-    existing.querySelector('.pending-count').textContent = count;
+    existing.querySelector(".pending-count").textContent = count;
     return;
   }
 
-  const indicator = el('div', {
-    id: 'pendingChangesBar',
-    class: 'fade-in',
+  const indicator = el("div", {
+    id: "pendingChangesBar",
+    class: "fade-in",
     style: `
       position: fixed;
       bottom: 0;
@@ -239,7 +253,7 @@ function showPendingChangesIndicator() {
       z-index: 999;
       backdrop-filter: blur(10px);
       border-top: 1px solid rgba(255, 255, 255, 0.2);
-    `
+    `,
   });
 
   const count = pendingChanges.size;
@@ -248,7 +262,9 @@ function showPendingChangesIndicator() {
       <div style="display: flex; align-items: center; gap: 12px;">
         <span style="font-size: 1.2em;">⏳</span>
         <span style="font-weight: 500;">
-          <span class="pending-count">${count}</span> unsaved change${count !== 1 ? 's' : ''}
+          <span class="pending-count">${count}</span> unsaved change${
+    count !== 1 ? "s" : ""
+  }
         </span>
       </div>
       <div style="display: flex; gap: 12px;">
@@ -279,25 +295,29 @@ function showPendingChangesIndicator() {
   document.body.appendChild(indicator);
 
   // Bind events
-  document.getElementById('submitChangesBtn').addEventListener('click', submitAllChanges);
-  document.getElementById('discardChangesBtn').addEventListener('click', discardAllChanges);
+  document
+    .getElementById("submitChangesBtn")
+    .addEventListener("click", submitAllChanges);
+  document
+    .getElementById("discardChangesBtn")
+    .addEventListener("click", discardAllChanges);
 }
 
 function hidePendingChangesIndicator() {
-  const indicator = document.getElementById('pendingChangesBar');
+  const indicator = document.getElementById("pendingChangesBar");
   if (indicator) {
-    indicator.classList.add('slide-out');
+    indicator.classList.add("slide-out");
     setTimeout(() => indicator.remove(), 300);
   }
 }
 
 function discardAllChanges() {
-  if (confirm('Are you sure you want to discard all unsaved changes?')) {
+  if (confirm("Are you sure you want to discard all unsaved changes?")) {
     pendingChanges.clear();
     hasUnsavedChanges = false;
     hidePendingChangesIndicator();
     refresh(); // Reload original data
-    showSuccessNotification('📝 Changes discarded');
+    showSuccessNotification("📝 Changes discarded");
   }
 }
 
@@ -337,7 +357,7 @@ function showSuccessNotification(message) {
   document.body.appendChild(notification);
 
   setTimeout(() => {
-    notification.classList.add('slide-out');
+    notification.classList.add("slide-out");
     setTimeout(() => notification.remove(), 300);
   }, 4000);
 }
@@ -347,7 +367,7 @@ function showErrorNotification(message) {
   if (existing) existing.remove();
 
   const notification = el("div", {
-    id: "errorNotification", 
+    id: "errorNotification",
     class: "fade-in",
     style: `
       position: fixed;
@@ -378,7 +398,7 @@ function showErrorNotification(message) {
   document.body.appendChild(notification);
 
   setTimeout(() => {
-    notification.classList.add('slide-out');
+    notification.classList.add("slide-out");
     setTimeout(() => notification.remove(), 300);
   }, 5000);
 }
@@ -786,9 +806,9 @@ function renderEvents() {
   }
 
   events.forEach((event, index) => {
-    const eventCard = el("div", { 
+    const eventCard = el("div", {
       class: "event-card fade-in",
-      style: `animation-delay: ${index * 0.1}s`
+      style: `animation-delay: ${index * 0.1}s`,
     });
 
     // Check if user has responded
@@ -834,7 +854,8 @@ function renderEvents() {
 
       const currentState =
         availability[event.date]?.[currentUser.id]?.state || "?";
-      const isPending = availability[event.date]?.[currentUser.id]?.isPending || false;
+      const isPending =
+        availability[event.date]?.[currentUser.id]?.isPending || false;
       const buttonContainer = el("div", { style: "text-align: center;" });
 
       const button = el(
@@ -847,13 +868,15 @@ function renderEvents() {
               ? "unavailable"
               : "uncertain"
           } ${isPending ? "pending" : ""}`,
-          dataset: { 
+          dataset: {
             state: currentState,
             date: event.date,
-            person: currentUser.id
+            person: currentUser.id,
           },
         },
-        isPending ? `${getStateText(currentState)} (Unsaved)` : getStateText(currentState)
+        isPending
+          ? `${getStateText(currentState)} (Unsaved)`
+          : getStateText(currentState)
       );
 
       button.addEventListener("click", () => {
@@ -959,10 +982,10 @@ function handleMemberSelect(event) {
   const selectedId = event.target.value;
   if (selectedId) {
     currentUser = allMembers.find((m) => m.id === selectedId);
-    
+
     // Show welcome notification
     showWelcomeNotification(currentUser.name);
-    
+
     updateUserInfo();
     renderEvents();
     updateStats();
@@ -1013,7 +1036,7 @@ function showWelcomeNotification(userName) {
 
   // Auto-hide after 4 seconds
   setTimeout(() => {
-    notification.classList.add('slide-out');
+    notification.classList.add("slide-out");
     setTimeout(() => notification.remove(), 300);
   }, 4000);
 }
