@@ -55,19 +55,21 @@ The Band Availability System has been successfully migrated from Express + vanil
 
 ## 🌍 Environment Variables
 
-Set these in Railway dashboard:
+**CRITICAL:** Set these in Railway dashboard to avoid localhost URLs in production:
 
 ```bash
 # Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=https://rwcsctgzntxyadmpsllj.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3Y3NjdGd6bnR4eWFkbXBzbGxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyNTY5MTIsImV4cCI6MjA3MTgzMjkxMn0.eavNz7m8wUSJYBGRLk5tpmR7JAomAfWD9egXdOu-ZVk
 
-# API Base (leave empty for relative URLs in production)
+# API Base (MUST be empty for relative URLs - do not set to localhost!)
 NEXT_PUBLIC_API_BASE=
 
 # Node Environment
 NODE_ENV=production
 ```
+
+**⚠️ Important:** Do NOT set `NEXT_PUBLIC_API_BASE` to any localhost URL in Railway. Leave it completely empty to use relative URLs.
 
 ---
 
