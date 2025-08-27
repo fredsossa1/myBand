@@ -42,7 +42,9 @@ async function apiRequest<T>(
   };
 
   try {
-    console.log(`🌐 API Request: ${options.method || "GET"} ${url}`);
+    if (process.env.NODE_ENV === "development") {
+      console.log(`🌐 API Request: ${options.method || "GET"} ${url}`);
+    }
 
     const response = await fetch(url, defaultOptions);
 
@@ -63,7 +65,9 @@ async function apiRequest<T>(
       throw new ApiError(errorMessage, response.status, data);
     }
 
-    console.log(`✅ API Response: ${response.status}`, data);
+    if (process.env.NODE_ENV === "development") {
+      console.log(`✅ API Response: ${response.status}`, typeof data === 'object' ? '[Object]' : data);
+    }
     return data;
   } catch (error) {
     if (error instanceof ApiError) {

@@ -3,9 +3,13 @@ import { getMembers } from '@/lib/db';
 
 export async function GET() {
   try {
-    console.log("📥 GET /api/members request received");
+    if (process.env.NODE_ENV === "development") {
+      console.log("📥 GET /api/members request received");
+    }
     const members = await getMembers();
-    console.log("📤 Sending members response:", members.length, "members");
+    if (process.env.NODE_ENV === "development") {
+      console.log("📤 Sending members response:", members.length, "members");
+    }
     return NextResponse.json(members);
   } catch (error) {
     console.error("❌ Error in /api/members:", error);

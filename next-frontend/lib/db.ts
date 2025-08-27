@@ -6,9 +6,12 @@ const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUP
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-console.log(`🔧 Next.js DB Config:`);
-console.log(`   Supabase URL: ${supabaseUrl}`);
-console.log(`   Environment: ${process.env.NODE_ENV || "development"}`);
+// Only log connection info in development
+if (process.env.NODE_ENV === "development") {
+  console.log(`🔧 Next.js DB Config:`);
+  console.log(`   Supabase URL: ${supabaseUrl}`);
+  console.log(`   Environment: ${process.env.NODE_ENV || "development"}`);
+}
 
 // Type definitions
 export interface Member {
@@ -38,7 +41,9 @@ export interface AvailabilityRecord {
 
 // Initialize schema
 export async function initSchema(defaultMembers: Member[]): Promise<void> {
-  console.log("🔧 Initializing Supabase schema...");
+  if (process.env.NODE_ENV === "development") {
+    console.log("🔧 Initializing Supabase schema...");
+  }
 
   try {
     // Check if members exist
@@ -54,7 +59,9 @@ export async function initSchema(defaultMembers: Member[]): Promise<void> {
 
     // If no members exist, insert default members
     if (!existingMembers || existingMembers.length === 0) {
-      console.log("📥 Inserting default members...");
+      if (process.env.NODE_ENV === "development") {
+        console.log("📥 Inserting default members...");
+      }
       const { error: insertError } = await supabase
         .from('members')
         .insert(defaultMembers);
@@ -63,7 +70,9 @@ export async function initSchema(defaultMembers: Member[]): Promise<void> {
         console.error("❌ Error inserting default members:", insertError);
         throw new Error("Failed to initialize default members");
       }
-      console.log("✅ Default members inserted successfully");
+      if (process.env.NODE_ENV === "development") {
+        console.log("✅ Default members inserted successfully");
+      }
     }
 
     console.log("✅ Database initialization complete");

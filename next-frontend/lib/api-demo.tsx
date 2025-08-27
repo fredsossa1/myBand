@@ -68,7 +68,9 @@ export function ApiDemo() {
   const handleDirectApiCall = async () => {
     try {
       const members = await BandApi.getMembers();
-      console.log("Direct API call result:", members);
+      if (process.env.NODE_ENV === "development") {
+        console.log("Direct API call result:", members.length, "members");
+      }
       alert(`Found ${members.length} members via direct API call`);
     } catch (error) {
       console.error("Direct API call failed:", error);
