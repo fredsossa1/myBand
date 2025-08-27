@@ -26,6 +26,7 @@ export function groupMembersByRole(members: Member[] | undefined): MembersByRole
     drummer: [],
     lead: [],
     bv: [],
+    admin: [],
   } as MembersByRole;
 
   // Handle case where members data hasn't loaded yet

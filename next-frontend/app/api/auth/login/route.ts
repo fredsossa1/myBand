@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getMemberById } from '@/lib/db';
-import { UserContext } from '@/lib/types';
+import { UserContext, Role } from '@/lib/types';
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,12 +25,16 @@ export async function POST(request: NextRequest) {
     
     const member = members[0];
     
+    // Validate that the role is a valid Role type
+    const validRoles: Role[] = ["bassist", "pianist", "drummer", "lead", "bv", "admin"];
+    const memberRole = validRoles.includes(member.role as Role) ? member.role as Role : "bv";
+    
     // Create user context
     const userContext: UserContext = {
       id: member.id,
       name: member.name,
-      role: member.role,
-      isAdmin: member.role === 'admin'
+      role: memberRole,
+      isAdmin: memberRole === 'admin'
     };
     
     return NextResponse.json({ user: userContext });

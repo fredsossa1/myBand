@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAvailability, useBandKeyboardShortcuts } from '@/hooks';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -115,12 +115,136 @@ function BulkActionModal({ isOpen, onClose, onApply, events, state }: BulkAction
   );
 }
 
+interface AddEventModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onAdd: (eventData: { date: string; title: string; description?: string; type?: string }) => void;
+}
+
+function AddEventModal({ isOpen, onClose, onAdd }: AddEventModalProps) {
+  const [eventData, setEventData] = useState({
+    date: '',
+    title: 'Service',
+    description: '',
+    type: 'service'
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const handleSubmit = async () => {
+    if (!eventData.date || !eventData.title) return;
+    
+    setIsSubmitting(true);
+    try {
+      await onAdd(eventData);
+      setEventData({ date: '', title: 'Service', description: '', type: 'service' });
+      onClose();
+    } catch (error) {
+      console.error('Error adding event:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  const today = new Date().toISOString().split('T')[0];
+  
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="glass border-white/20 max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-white">
+            📅 Add New Event
+          </DialogTitle>
+          <DialogDescription className="text-white/70">
+            Create a new event for the band to respond to
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="text-white text-sm font-medium">Date</label>
+            <Input
+              type="date"
+              value={eventData.date}
+              min={today}
+              onChange={(e) => setEventData(prev => ({ ...prev, date: e.target.value }))}
+              className="bg-white/10 border-white/20 text-white mt-1"
+            />
+          </div>
+          
+          <div>
+            <label className="text-white text-sm font-medium">Event Title</label>
+            <Input
+              type="text"
+              value={eventData.title}
+              onChange={(e) => setEventData(prev => ({ ...prev, title: e.target.value }))}
+              placeholder="e.g., Sunday Service, Practice, Concert"
+              className="bg-white/10 border-white/20 text-white mt-1"
+            />
+          </div>
+          
+          <div>
+            <label className="text-white text-sm font-medium">Description (Optional)</label>
+            <Input
+              type="text"
+              value={eventData.description}
+              onChange={(e) => setEventData(prev => ({ ...prev, description: e.target.value }))}
+              placeholder="Additional details about the event"
+              className="bg-white/10 border-white/20 text-white mt-1"
+            />
+          </div>
+          
+          <div>
+            <label className="text-white text-sm font-medium">Event Type</label>
+            <Select 
+              value={eventData.type} 
+              onValueChange={(value) => setEventData(prev => ({ ...prev, type: value }))}
+            >
+              <SelectTrigger className="bg-white/10 border-white/20 text-white mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="service">Service</SelectItem>
+                <SelectItem value="practice">Practice</SelectItem>
+                <SelectItem value="concert">Concert</SelectItem>
+                <SelectItem value="special">Special Event</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex gap-2 pt-4">
+            <Button 
+              variant="outline" 
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSubmit}
+              disabled={!eventData.date || !eventData.title || isSubmitting}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {isSubmitting ? 'Adding...' : 'Add Event'}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function AvailabilityPage() {
   const [bulkModal, setBulkModal] = useState<{ isOpen: boolean; state: AvailabilityState }>({
     isOpen: false,
     state: 'A'
   });
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const [addEventModal, setAddEventModal] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
   
   const {
     members,
@@ -144,6 +268,14 @@ export default function AvailabilityPage() {
     setBulkAvailability,
   } = useAvailability();
   
+  // Check for existing admin session on component mount
+  useEffect(() => {
+    const savedAdminSession = localStorage.getItem('adminSession');
+    if (savedAdminSession === 'worship2024') {
+      setIsAdmin(true);
+    }
+  }, []);
+  
   // Setup keyboard shortcuts
   useBandKeyboardShortcuts({
     refresh: refetch,
@@ -152,6 +284,75 @@ export default function AvailabilityPage() {
     toggleUser: () => setCurrentUser(currentUser ? null : members?.[0] || null),
     openHelp: () => setShowKeyboardHelp(true),
   });
+  
+  // Admin functions
+  const handleAdminLogin = async () => {
+    try {
+      const response = await fetch('/api/admin/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: adminPassword })
+      });
+      
+      if (response.ok) {
+        setIsAdmin(true);
+        setShowAdminLogin(false);
+        localStorage.setItem('adminSession', adminPassword);
+        setAdminPassword('');
+      } else {
+        alert('Invalid admin password');
+      }
+    } catch (error) {
+      console.error('Admin login error:', error);
+      alert('Login failed');
+    }
+  };
+  
+  const handleAdminLogout = () => {
+    setIsAdmin(false);
+    setAdminPassword('');
+    localStorage.removeItem('adminSession');
+  };
+  
+  const handleAddEvent = async (eventData: { date: string; title: string; description?: string; type?: string }) => {
+    if (!isAdmin) {
+      alert('Admin access required');
+      return;
+    }
+    
+    const adminSession = localStorage.getItem('adminSession');
+    if (!adminSession) {
+      alert('Admin session expired. Please login again.');
+      setIsAdmin(false);
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/admin/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          password: adminSession,
+          event: eventData 
+        })
+      });
+      
+      if (response.ok) {
+        await refetch(); // Refresh events list
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to add event');
+        
+        // If admin access is denied, logout
+        if (response.status === 403) {
+          handleAdminLogout();
+        }
+      }
+    } catch (error) {
+      console.error('Error adding event:', error);
+      alert('Failed to add event');
+    }
+  };
   
   const membersByRole = groupMembersByRole(members);
   
@@ -256,6 +457,83 @@ export default function AvailabilityPage() {
               </div>
             </div>
           </CardHeader>
+        </Card>
+        
+        {/* Admin Section */}
+        <Card className="glass border-white/20">
+          <CardContent className="p-6">
+            {!isAdmin ? (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="text-white">
+                    <div className="font-semibold">🔑 Admin Access</div>
+                    <div className="text-sm text-white/70">Login to manage events</div>
+                  </div>
+                  {showAdminLogin && (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="password"
+                        placeholder="Admin password"
+                        value={adminPassword}
+                        onChange={(e) => setAdminPassword(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleAdminLogin()}
+                        className="w-48 bg-white/10 border-white/20 text-white"
+                      />
+                      <Button 
+                        onClick={handleAdminLogin}
+                        disabled={!adminPassword}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        Login
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        onClick={() => setShowAdminLogin(false)}
+                        className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                {!showAdminLogin && (
+                  <Button 
+                    variant="outline"
+                    onClick={() => setShowAdminLogin(true)}
+                    className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                  >
+                    🔓 Admin Login
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <Badge variant="secondary" className="bg-green-500/20 text-green-300 border-green-500/30">
+                    🔑 Admin Access Granted
+                  </Badge>
+                  <div className="text-white text-sm">
+                    You can now manage events and view statistics
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => setAddEventModal(true)}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    📅 Add Event
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={handleAdminLogout}
+                    className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                  >
+                    🚪 Logout
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
         </Card>
         
         {/* User Selection */}
@@ -577,6 +855,12 @@ export default function AvailabilityPage() {
           }}
           events={events || []}
           state={bulkModal.state}
+        />
+        
+        <AddEventModal
+          isOpen={addEventModal}
+          onClose={() => setAddEventModal(false)}
+          onAdd={handleAddEvent}
         />
         
         <Dialog open={showKeyboardHelp} onOpenChange={setShowKeyboardHelp}>
