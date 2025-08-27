@@ -1,25 +1,30 @@
-'use client';
+"use client";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 interface LoadingSpinnerProps {
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
   className?: string;
 }
 
-export function LoadingSpinner({ size = 'md', className }: LoadingSpinnerProps) {
+export function LoadingSpinner({
+  size = "md",
+  className,
+}: LoadingSpinnerProps) {
   const sizeClasses = {
-    sm: 'w-4 h-4',
-    md: 'w-6 h-6', 
-    lg: 'w-8 h-8'
+    sm: "w-4 h-4",
+    md: "w-6 h-6",
+    lg: "w-8 h-8",
   };
 
   return (
-    <div className={cn(
-      "animate-spin rounded-full border-2 border-white/20 border-t-white/80",
-      sizeClasses[size],
-      className
-    )} />
+    <div
+      className={cn(
+        "animate-spin rounded-full border-2 border-white/20 border-t-white/80",
+        sizeClasses[size],
+        className
+      )}
+    />
   );
 }
 
@@ -29,19 +34,18 @@ interface LoadingCardProps {
   className?: string;
 }
 
-export function LoadingCard({ title = "Loading...", message, className }: LoadingCardProps) {
+export function LoadingCard({
+  title = "Loading...",
+  message,
+  className,
+}: LoadingCardProps) {
   return (
-    <div className={cn(
-      "glass rounded-xl p-8 text-center fade-in",
-      className
-    )}>
+    <div className={cn("glass rounded-xl p-8 text-center fade-in", className)}>
       <div className="flex flex-col items-center gap-4">
         <LoadingSpinner size="lg" />
         <div>
           <h3 className="text-white font-semibold text-lg">{title}</h3>
-          {message && (
-            <p className="text-white/60 text-sm mt-1">{message}</p>
-          )}
+          {message && <p className="text-white/60 text-sm mt-1">{message}</p>}
         </div>
       </div>
     </div>
@@ -80,17 +84,14 @@ interface ErrorStateProps {
   className?: string;
 }
 
-export function ErrorState({ 
-  title = "Something went wrong", 
-  message, 
-  onRetry, 
-  className 
+export function ErrorState({
+  title = "Something went wrong",
+  message,
+  onRetry,
+  className,
 }: ErrorStateProps) {
   return (
-    <div className={cn(
-      "glass rounded-xl p-8 text-center fade-in",
-      className
-    )}>
+    <div className={cn("glass rounded-xl p-8 text-center fade-in", className)}>
       <div className="flex flex-col items-center gap-4">
         <div className="text-4xl">❌</div>
         <div>
@@ -121,18 +122,15 @@ interface EmptyStateProps {
   className?: string;
 }
 
-export function EmptyState({ 
-  title = "No data found", 
-  message, 
+export function EmptyState({
+  title = "No data found",
+  message,
   icon = "📭",
   action,
-  className 
+  className,
 }: EmptyStateProps) {
   return (
-    <div className={cn(
-      "glass rounded-xl p-8 text-center fade-in",
-      className
-    )}>
+    <div className={cn("glass rounded-xl p-8 text-center fade-in", className)}>
       <div className="flex flex-col items-center gap-4">
         <div className="text-4xl">{icon}</div>
         <div>

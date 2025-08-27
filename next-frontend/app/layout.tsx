@@ -25,11 +25,9 @@ export default function RootLayout({
           <div className="container mx-auto px-4 pt-4">
             <Navigation />
           </div>
-          
+
           {/* Main Content */}
-          <main className="pb-8">
-            {children}
-          </main>
+          <main className="pb-8">{children}</main>
         </div>
       </body>
     </html>

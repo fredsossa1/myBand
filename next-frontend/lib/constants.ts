@@ -82,7 +82,9 @@ export function getAvailabilityIcon(state: AvailabilityState): string {
   return AVAILABILITY_ICONS[state];
 }
 
-export function getAvailabilityIconOrDefault(state: AvailabilityState | null): string {
+export function getAvailabilityIconOrDefault(
+  state: AvailabilityState | null
+): string {
   return state ? AVAILABILITY_ICONS[state] : "⭕"; // Circle for untouched
 }
 
@@ -90,7 +92,9 @@ export function getAvailabilityDisplayName(state: AvailabilityState): string {
   return AVAILABILITY_STATES[state];
 }
 
-export function getAvailabilityDisplayNameOrDefault(state: AvailabilityState | null): string {
+export function getAvailabilityDisplayNameOrDefault(
+  state: AvailabilityState | null
+): string {
   return state ? AVAILABILITY_STATES[state] : "Not Responded";
 }
 

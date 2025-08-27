@@ -1,8 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
 
 // Use environment variables for Supabase credentials
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "https://rwcsctgzntxyadmpsllj.supabase.co";
-const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3Y3NjdGd6bnR4eWFkbXBzbGxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyNTY5MTIsImV4cCI6MjA3MTgzMjkxMn0.eavNz7m8wUSJYBGRLk5tpmR7JAomAfWD9egXdOu-ZVk";
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  process.env.SUPABASE_URL ||
+  "https://rwcsctgzntxyadmpsllj.supabase.co";
+const supabaseKey =
+  process.env.SUPABASE_ANON_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3Y3NjdGd6bnR4eWFkbXBzbGxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyNTY5MTIsImV4cCI6MjA3MTgzMjkxMn0.eavNz7m8wUSJYBGRLk5tpmR7JAomAfWD9egXdOu-ZVk";
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -29,7 +35,7 @@ export interface AvailabilityRecord {
   id?: number;
   date: string;
   person_id: string;
-  state: 'A' | 'U' | '?';
+  state: "A" | "U" | "?";
   created_at?: string;
   updated_at?: string;
 }
@@ -43,13 +49,15 @@ export async function initSchema(defaultMembers: Member[]): Promise<void> {
   try {
     // Check if members exist
     const { data: existingMembers, error: membersError } = await supabase
-      .from('members')
-      .select('id')
+      .from("members")
+      .select("id")
       .limit(1);
 
     if (membersError) {
       console.error("❌ Error checking members table:", membersError);
-      throw new Error("Database connection failed. Please ensure Supabase tables are created.");
+      throw new Error(
+        "Database connection failed. Please ensure Supabase tables are created."
+      );
     }
 
     // If no members exist, insert default members
@@ -58,7 +66,7 @@ export async function initSchema(defaultMembers: Member[]): Promise<void> {
         console.log("📥 Inserting default members...");
       }
       const { error: insertError } = await supabase
-        .from('members')
+        .from("members")
         .insert(defaultMembers);
 
       if (insertError) {
@@ -80,30 +88,30 @@ export async function initSchema(defaultMembers: Member[]): Promise<void> {
 // Member functions
 export async function getMembers(): Promise<Member[]> {
   const { data: members, error } = await supabase
-    .from('members')
-    .select('*')
-    .order('role', { ascending: true })
-    .order('name', { ascending: true });
-  
+    .from("members")
+    .select("*")
+    .order("role", { ascending: true })
+    .order("name", { ascending: true });
+
   if (error) {
-    console.error('❌ Error fetching members:', error);
+    console.error("❌ Error fetching members:", error);
     throw new Error(`Failed to fetch members: ${error.message}`);
   }
-  
+
   return members || [];
 }
 
 export async function getMemberById(id: string): Promise<Member[]> {
   const { data: members, error } = await supabase
-    .from('members')
-    .select('*')
-    .eq('id', id);
-  
+    .from("members")
+    .select("*")
+    .eq("id", id);
+
   if (error) {
-    console.error('❌ Error fetching member by ID:', error);
+    console.error("❌ Error fetching member by ID:", error);
     throw new Error(`Failed to fetch member: ${error.message}`);
   }
-  
+
   return members || [];
 }
 
@@ -111,7 +119,7 @@ export async function getMembersByRole(): Promise<Record<string, Member[]>> {
   const members = await getMembers();
   const membersByRole: Record<string, Member[]> = {};
 
-  members.forEach(member => {
+  members.forEach((member) => {
     if (!membersByRole[member.role]) {
       membersByRole[member.role] = [];
     }
@@ -123,13 +131,13 @@ export async function getMembersByRole(): Promise<Record<string, Member[]>> {
 
 export async function getPersonById(id: string): Promise<Member | null> {
   const { data, error } = await supabase
-    .from('members')
-    .select('*')
-    .eq('id', id)
+    .from("members")
+    .select("*")
+    .eq("id", id)
     .single();
 
   if (error) {
-    if (error.code === 'PGRST116') {
+    if (error.code === "PGRST116") {
       return null; // Person not found
     }
     console.error("❌ Error fetching person:", error);
@@ -142,9 +150,9 @@ export async function getPersonById(id: string): Promise<Member | null> {
 // Event functions
 export async function getEvents(): Promise<Event[]> {
   const { data, error } = await supabase
-    .from('events')
-    .select('*')
-    .order('date');
+    .from("events")
+    .select("*")
+    .order("date");
 
   if (error) {
     console.error("❌ Error fetching events:", error);
@@ -156,24 +164,24 @@ export async function getEvents(): Promise<Event[]> {
 
 export async function getDates(): Promise<string[]> {
   const events = await getEvents();
-  return events.map(event => event.date);
+  return events.map((event) => event.date);
 }
 
-export async function addEvent(event: Omit<Event, 'id' | 'created_at'>): Promise<void> {
+export async function addEvent(
+  event: Omit<Event, "id" | "created_at">
+): Promise<void> {
   // Check if event already exists
   const { data: existing } = await supabase
-    .from('events')
-    .select('id')
-    .eq('date', event.date)
+    .from("events")
+    .select("id")
+    .eq("date", event.date)
     .single();
 
   if (existing) {
     throw new Error("Event already exists for this date");
   }
 
-  const { error } = await supabase
-    .from('events')
-    .insert([event]);
+  const { error } = await supabase.from("events").insert([event]);
 
   if (error) {
     console.error("❌ Error adding event:", error);
@@ -184,14 +192,18 @@ export async function addEvent(event: Omit<Event, 'id' | 'created_at'>): Promise
 export async function addDate(date: string): Promise<void> {
   await addEvent({
     date,
-    title: 'Service',
-    description: '',
-    type: 'service'
+    title: "Service",
+    description: "",
+    type: "service",
   });
 }
 
 // Availability functions
-export async function setAvailability(date: string, personId: string, state: 'A' | 'U' | '?'): Promise<void> {
+export async function setAvailability(
+  date: string,
+  personId: string,
+  state: "A" | "U" | "?"
+): Promise<void> {
   // Verify person exists
   const person = await getPersonById(personId);
   if (!person) {
@@ -199,15 +211,18 @@ export async function setAvailability(date: string, personId: string, state: 'A'
   }
 
   // Upsert availability
-  const { error } = await supabase
-    .from('availability')
-    .upsert([{
-      date,
-      person_id: personId,
-      state
-    }], {
-      onConflict: 'date,person_id'
-    });
+  const { error } = await supabase.from("availability").upsert(
+    [
+      {
+        date,
+        person_id: personId,
+        state,
+      },
+    ],
+    {
+      onConflict: "date,person_id",
+    }
+  );
 
   if (error) {
     console.error("❌ Error setting availability:", error);
@@ -217,9 +232,9 @@ export async function setAvailability(date: string, personId: string, state: 'A'
 
 export async function getAvailability(): Promise<AvailabilityRecord[]> {
   const { data, error } = await supabase
-    .from('availability')
-    .select('*')
-    .order('date, person_id');
+    .from("availability")
+    .select("*")
+    .order("date, person_id");
 
   if (error) {
     console.error("❌ Error fetching availability:", error);
@@ -229,11 +244,17 @@ export async function getAvailability(): Promise<AvailabilityRecord[]> {
   return data || [];
 }
 
-export async function getAvailabilityByRole(): Promise<Record<string, Record<string, Array<{id: string, name: string, state: string}>>>> {
+export async function getAvailabilityByRole(): Promise<
+  Record<
+    string,
+    Record<string, Array<{ id: string; name: string; state: string }>>
+  >
+> {
   // Get all availability records with member info
   const { data, error } = await supabase
-    .from('availability')
-    .select(`
+    .from("availability")
+    .select(
+      `
       date,
       person_id,
       state,
@@ -242,15 +263,19 @@ export async function getAvailabilityByRole(): Promise<Record<string, Record<str
         name,
         role
       )
-    `)
-    .order('date, person_id');
+    `
+    )
+    .order("date, person_id");
 
   if (error) {
     console.error("❌ Error fetching availability by role:", error);
     throw new Error("Failed to fetch availability by role");
   }
 
-  const result: Record<string, Record<string, Array<{id: string, name: string, state: string}>>> = {};
+  const result: Record<
+    string,
+    Record<string, Array<{ id: string; name: string; state: string }>>
+  > = {};
 
   (data || []).forEach((record: any) => {
     const { date, person_id, state, members } = record;
@@ -266,7 +291,7 @@ export async function getAvailabilityByRole(): Promise<Record<string, Record<str
     result[date][role].push({
       id: person_id,
       name,
-      state
+      state,
     });
   });
 
@@ -282,17 +307,17 @@ export async function verifyAdmin(password: string): Promise<boolean> {
 export async function resetData(defaultMembers: Member[]): Promise<void> {
   try {
     // Clear availability
-    await supabase.from('availability').delete().neq('id', 0);
-    
+    await supabase.from("availability").delete().neq("id", 0);
+
     // Clear events
-    await supabase.from('events').delete().neq('id', 0);
-    
+    await supabase.from("events").delete().neq("id", 0);
+
     // Clear members
-    await supabase.from('members').delete().neq('id', '');
-    
+    await supabase.from("members").delete().neq("id", "");
+
     // Re-initialize with default members
     await initSchema(defaultMembers);
-    
+
     console.log("✅ Data reset complete");
   } catch (error) {
     console.error("❌ Error resetting data:", error);

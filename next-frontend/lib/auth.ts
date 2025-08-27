@@ -1,29 +1,31 @@
-import { NextRequest } from 'next/server';
-import { getMemberById } from './db';
-import { UserContext, Role } from './types';
+import { NextRequest } from "next/server";
+import { getMemberById } from "./db";
+import { UserContext, Role } from "./types";
 
-export async function getUserFromRequest(request: NextRequest): Promise<UserContext | null> {
+export async function getUserFromRequest(
+  request: NextRequest
+): Promise<UserContext | null> {
   try {
     // Try to get user ID from request headers or body
-    const authHeader = request.headers.get('x-user-id');
+    const authHeader = request.headers.get("x-user-id");
     if (!authHeader) {
       return null;
     }
-    
+
     const members = await getMemberById(authHeader);
     if (!members || members.length === 0) {
       return null;
     }
-    
+
     const member = members[0];
     return {
       id: member.id,
       name: member.name,
       role: member.role as Role,
-      isAdmin: member.role === 'admin'
+      isAdmin: member.role === "admin",
     };
   } catch (error) {
-    console.error('❌ Error getting user from request:', error);
+    console.error("❌ Error getting user from request:", error);
     return null;
   }
 }
@@ -32,7 +34,10 @@ export function requireAdmin(userContext: UserContext | null): boolean {
   return userContext !== null && userContext.isAdmin;
 }
 
-export function requireRole(userContext: UserContext | null, requiredRole: string): boolean {
+export function requireRole(
+  userContext: UserContext | null,
+  requiredRole: string
+): boolean {
   return userContext !== null && userContext.role === requiredRole;
 }
 

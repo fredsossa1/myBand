@@ -11,7 +11,9 @@ import {
 } from "./types";
 
 // API Configuration - Now using Next.js API routes
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || (process.env.NODE_ENV === "production" ? "" : "http://localhost:3000");
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE ||
+  (process.env.NODE_ENV === "production" ? "" : "http://localhost:3000");
 
 // Custom error class for API errors
 export class ApiError extends Error {
@@ -66,7 +68,10 @@ async function apiRequest<T>(
     }
 
     if (process.env.NODE_ENV === "development") {
-      console.log(`✅ API Response: ${response.status}`, typeof data === 'object' ? '[Object]' : data);
+      console.log(
+        `✅ API Response: ${response.status}`,
+        typeof data === "object" ? "[Object]" : data
+      );
     }
     return data;
   } catch (error) {

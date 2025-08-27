@@ -1,7 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { useState, useEffect } from "react";
@@ -13,38 +18,38 @@ export default function HomePage() {
 
   // Check if user is already logged in as admin
   useEffect(() => {
-    const adminStatus = localStorage.getItem('isAdmin');
-    if (adminStatus === 'true') {
+    const adminStatus = localStorage.getItem("isAdmin");
+    if (adminStatus === "true") {
       setIsAdmin(true);
     }
   }, []);
 
   const handleAdminLogin = async () => {
     try {
-      const response = await fetch('/api/admin/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: adminPassword })
+      const response = await fetch("/api/admin/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: adminPassword }),
       });
-      
+
       const data = await response.json();
       if (data.isAdmin) {
         setIsAdmin(true);
-        localStorage.setItem('isAdmin', 'true');
+        localStorage.setItem("isAdmin", "true");
         setShowAdminLogin(false);
         setAdminPassword("");
       } else {
-        alert('Invalid admin password');
+        alert("Invalid admin password");
       }
     } catch (error) {
-      console.error('Admin login error:', error);
-      alert('Login failed');
+      console.error("Admin login error:", error);
+      alert("Login failed");
     }
   };
 
   const handleAdminLogout = () => {
     setIsAdmin(false);
-    localStorage.removeItem('isAdmin');
+    localStorage.removeItem("isAdmin");
   };
 
   return (
@@ -54,11 +59,14 @@ export default function HomePage() {
         <div className="fixed top-4 right-4 z-50">
           {isAdmin ? (
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="border-green-500/50 text-green-300">
+              <Badge
+                variant="outline"
+                className="border-green-500/50 text-green-300"
+              >
                 👑 Admin
               </Badge>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={handleAdminLogout}
                 className="bg-white/10 border-white/20 text-white hover:bg-white/20"
@@ -75,14 +83,16 @@ export default function HomePage() {
                     placeholder="Admin password"
                     value={adminPassword}
                     onChange={(e) => setAdminPassword(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleAdminLogin()}
+                    onKeyPress={(e) => e.key === "Enter" && handleAdminLogin()}
                     className="w-full p-2 mb-2 bg-white/10 border border-white/20 rounded text-white placeholder-white/50"
                   />
                   <div className="flex gap-2">
-                    <Button onClick={handleAdminLogin} size="sm">Login</Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button onClick={handleAdminLogin} size="sm">
+                      Login
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => setShowAdminLogin(false)}
                       className="bg-white/10 border-white/20 text-white hover:bg-white/20"
                     >
@@ -91,8 +101,8 @@ export default function HomePage() {
                   </div>
                 </div>
               ) : (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => setShowAdminLogin(true)}
                   className="bg-white/10 border-white/20 text-white hover:bg-white/20"
@@ -114,16 +124,28 @@ export default function HomePage() {
               Modern availability tracking for your band
             </p>
             <div className="flex items-center justify-center gap-2 mt-4">
-              <Badge variant="outline" className="border-green-500/50 text-green-300">
+              <Badge
+                variant="outline"
+                className="border-green-500/50 text-green-300"
+              >
                 ✅ Next.js 14
               </Badge>
-              <Badge variant="outline" className="border-blue-500/50 text-blue-300">
+              <Badge
+                variant="outline"
+                className="border-blue-500/50 text-blue-300"
+              >
                 ✅ TypeScript
               </Badge>
-              <Badge variant="outline" className="border-purple-500/50 text-purple-300">
+              <Badge
+                variant="outline"
+                className="border-purple-500/50 text-purple-300"
+              >
                 ✅ shadcn/ui
               </Badge>
-              <Badge variant="outline" className="border-yellow-500/50 text-yellow-300">
+              <Badge
+                variant="outline"
+                className="border-yellow-500/50 text-yellow-300"
+              >
                 ✅ Advanced Hooks
               </Badge>
             </div>
@@ -133,8 +155,12 @@ export default function HomePage() {
               <Link href="/availability">
                 <Card className="glass-dark border-white/10 hover:border-white/30 transition-all duration-200 cursor-pointer group">
                   <CardContent className="p-6 text-center">
-                    <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">📅</div>
-                    <h3 className="text-white font-semibold mb-2">Availability</h3>
+                    <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">
+                      📅
+                    </div>
+                    <h3 className="text-white font-semibold mb-2">
+                      Availability
+                    </h3>
                     <p className="text-white/70 text-sm">
                       Manage your availability for upcoming events
                     </p>
@@ -146,8 +172,12 @@ export default function HomePage() {
                 <Link href="/stats">
                   <Card className="glass-dark border-white/10 hover:border-white/30 transition-all duration-200 cursor-pointer group">
                     <CardContent className="p-6 text-center">
-                      <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">📊</div>
-                      <h3 className="text-white font-semibold mb-2">Statistics</h3>
+                      <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">
+                        📊
+                      </div>
+                      <h3 className="text-white font-semibold mb-2">
+                        Statistics
+                      </h3>
                       <p className="text-white/70 text-sm">
                         View detailed analytics and response patterns
                       </p>
@@ -158,7 +188,9 @@ export default function HomePage() {
                 <Card className="glass-dark border-white/10 opacity-50">
                   <CardContent className="p-6 text-center">
                     <div className="text-4xl mb-4">🔒</div>
-                    <h3 className="text-white font-semibold mb-2">Statistics</h3>
+                    <h3 className="text-white font-semibold mb-2">
+                      Statistics
+                    </h3>
                     <p className="text-white/70 text-sm">
                       Admin access required
                     </p>

@@ -1,24 +1,190 @@
 # 🎵 Band Availability System
 
-A modern, production-ready web application for managing worship team availability with both **vanilla JavaScript** and **Next.js 14** frontends, beautiful glass morphism UI, keyboard shortcuts, bulk operations, PWA capabilities, and Supabase backend.
+A modern, production-ready web application for managing worship team availability with Next.js 14, TypeScript, smart coverage analysis, and Supabase backend.
 
-## 🚀 **Frontend Options**
+## ✨ Key Features
 
-### **🆕 Next.js 14 Frontend (Recommended)**
-Modern React-based frontend with advanced features:
-- **Next.js 14** with App Router and TypeScript
-- **shadcn/ui** component library with glass morphism design  
-- **Advanced React hooks** with optimistic updates and undo functionality
-- **Global keyboard shortcuts** (Ctrl+S, Ctrl+Z, etc.)
-- **Real-time state management** with pending changes indicator
-- **Comprehensive analytics** and statistics dashboard
-- **Type-safe** throughout with full TypeScript coverage
+### 🎯 **Smart Coverage Analysis**
+- **Service Types**: Service, Band Only, Jam Session, Special Event
+- **Coverage Requirements**: Automatic validation of minimum band requirements
+- **Visual Indicators**: ✅ Fully covered, ⚠️ Partial coverage, ❌ Not covered
+- **Real-time Analysis**: Coverage percentage and role-by-role breakdown
 
-📁 **Location**: `/next-frontend/`  
-🌐 **Dev Server**: `cd next-frontend && npm run dev` (http://localhost:3000)
+### 🎨 **Modern UI Design**
+- **Glass Morphism**: Beautiful modern interface with backdrop blur effects
+- **Next.js 14**: Built with App Router and TypeScript for type safety
+- **shadcn/ui**: Professional component library with consistent design
+- **Responsive**: Optimized for desktop, tablet, and mobile devices
 
-### **📱 Vanilla JavaScript Frontend (Original)**
-Production-ready PWA with glass morphism design:
+### 🚀 **Advanced Features**
+- **Admin Management**: Secure admin login for event creation and management
+- **Smart Availability**: Distinguishes between "Not Responded" and "Uncertain"
+- **Real-time Updates**: Local state management with server synchronization
+- **Keyboard Shortcuts**: Ctrl+R (refresh), Ctrl+Z (undo), Ctrl+S (save)
+- **Bulk Operations**: Set availability for multiple events at once
+
+### 👥 **Team Management**
+- **Role-based Organization**: Bassist, Pianist, Drummer, Lead, Background Vocals, Admin
+- **Visual Feedback**: Color-coded availability states and pending changes
+- **Coverage Tracking**: See which services need more musicians
+
+## 🎵 Service Type Requirements
+
+| Service Type | Bassist | Pianist | Drummer | Lead | BV |
+|-------------|---------|---------|---------|------|-----|
+| **Service** | 1 | 1 | 1 | 1 | 2+ |
+| **Band Only** | 1 | 1 | 1 | - | - |
+| **Jam Session** | 1 | 1 | 1 | 1 | 1 |
+| **Special Event** | 1 | 1 | 1 | 1 | 2+ |
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+ installed
+- Supabase account (free at [supabase.com](https://supabase.com))
+
+### 1. Database Setup
+1. Create a new Supabase project
+2. Copy the contents of `supabase-setup.sql`
+3. Run the SQL in your Supabase SQL Editor
+4. Note your Project URL and anon key from Settings → API
+
+### 2. Environment Setup
+```bash
+# Clone the repository
+git clone <your-repo-url>
+cd myBand/next-frontend
+
+# Install dependencies
+npm install
+
+# Create environment file
+cp .env.example .env.local
+```
+
+### 3. Environment Variables
+Edit `.env.local` with your Supabase credentials:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+ADMIN_PASSWORD=worship2024
+```
+
+### 4. Run the Application
+```bash
+# Development server
+npm run dev
+
+# Production build
+npm run build
+npm start
+```
+
+Visit http://localhost:3000 to see your application!
+
+## 🛠️ Admin Features
+
+### Admin Access
+- Login with password: `worship2024` (or your custom password)
+- Create and manage events
+- View comprehensive coverage statistics
+- Export availability data
+
+### Event Management
+1. Click "🔓 Admin Login" on any page
+2. Enter admin password
+3. Use "📅 Add Event" to create new events
+4. Select appropriate service type for automatic coverage requirements
+
+## 📱 User Experience
+
+### For Band Members
+1. Select your name from the dropdown
+2. View upcoming events with coverage status
+3. Click availability buttons to cycle through: Not Responded → Available → Unavailable → Uncertain
+4. Submit changes when ready (changes are saved locally first)
+
+### Coverage Indicators
+- **✅ Green**: Service is fully covered
+- **⚠️ Yellow**: Partially covered (some roles missing)
+- **❌ Red**: Not covered (critical gaps)
+
+## 🔧 Technical Stack
+
+- **Frontend**: Next.js 14, TypeScript, Tailwind CSS
+- **UI Components**: shadcn/ui with custom glass morphism theme
+- **Backend**: Next.js API routes
+- **Database**: Supabase (PostgreSQL)
+- **Deployment**: Railway, Vercel, or any Node.js hosting
+
+## 🚀 Deployment
+
+### Railway (Recommended)
+1. Connect your GitHub repository to Railway
+2. Set environment variables in Railway dashboard
+3. Deploy automatically on git push
+
+### Vercel
+1. Connect repository to Vercel
+2. Set environment variables
+3. Deploy with automatic previews
+
+### Manual Deployment
+```bash
+npm run build
+npm start
+```
+
+## 📊 Architecture
+
+```
+next-frontend/
+├── app/                    # Next.js App Router pages
+│   ├── page.tsx           # Homepage with admin auth
+│   ├── availability/      # Availability management
+│   ├── stats/            # Statistics dashboard
+│   └── api/              # API routes
+├── components/           # Reusable UI components
+├── lib/                 # Utilities and configuration
+│   ├── types.ts         # TypeScript type definitions
+│   ├── db.ts           # Database functions
+│   ├── utils.ts        # Coverage analysis utilities
+│   └── constants.ts    # Application constants
+└── hooks/              # Custom React hooks
+```
+
+## 🎯 Coverage Analysis System
+
+The application automatically calculates whether each service has adequate coverage based on the service type:
+
+- **Real-time calculations** as availability changes
+- **Visual feedback** with percentage and status indicators
+- **Role-by-role breakdown** showing available vs required musicians
+- **Smart defaults** for different service types
+
+## � Documentation
+
+For detailed guides and reference materials, visit the **[docs folder](docs/)**:
+
+- **[Quick Start Guide](docs/QUICKSTART.md)** - Get up and running in 5 minutes
+- **[Deployment Guide](docs/DEPLOY.md)** - Deploy to Railway, Vercel, or other platforms
+- **[Changelog](docs/CHANGELOG.md)** - Version history and release notes
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Open a Pull Request
+
+## 📝 License
+
+This project is open source and available under the MIT License.
+
+---
+
+**Built with ❤️ for worship teams everywhere** 🙏
 - **Progressive Web App** with offline capabilities
 - **Glass morphism UI** with backdrop blur effects
 - **Keyboard shortcuts** (A/U/? for quick responses)

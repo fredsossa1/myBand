@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getEvents, getAvailabilityByRole, getMembersByRole } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { getEvents, getAvailabilityByRole, getMembersByRole } from "@/lib/db";
 
 export async function GET() {
   try {

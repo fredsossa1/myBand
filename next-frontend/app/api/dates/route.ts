@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getDates, addDate, verifyAdmin } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { getDates, addDate, verifyAdmin } from "@/lib/db";
 
 export async function GET() {
   try {
@@ -17,7 +17,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const { date, adminPassword } = await request.json();
-    
+
     // Require admin access for creating dates
     if (!adminPassword || !(await verifyAdmin(adminPassword))) {
       return NextResponse.json(
@@ -25,21 +25,18 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
-    
+
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return NextResponse.json(
         { error: "Invalid date format" },
         { status: 400 }
       );
     }
-    
+
     await addDate(date);
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("❌ Error in POST /api/dates:", error);
-    return NextResponse.json(
-      { error: "Failed to add date" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to add date" }, { status: 500 });
   }
 }

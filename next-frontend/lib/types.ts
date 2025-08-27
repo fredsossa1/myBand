@@ -4,7 +4,11 @@ export type Role = "bassist" | "pianist" | "drummer" | "lead" | "bv" | "admin";
 
 export type AvailabilityState = "A" | "U" | "?";
 
-export type EventType = "service" | "band-only" | "jam-session" | "special-event";
+export type EventType =
+  | "service"
+  | "band-only"
+  | "jam-session"
+  | "special-event";
 
 // Member interface
 export interface Member {
@@ -144,7 +148,10 @@ export interface ExportData {
 }
 
 // Coverage analysis types
-export type CoverageStatus = "fully-covered" | "partially-covered" | "not-covered";
+export type CoverageStatus =
+  | "fully-covered"
+  | "partially-covered"
+  | "not-covered";
 
 export interface RoleCoverage {
   required: number;

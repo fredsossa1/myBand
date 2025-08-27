@@ -67,34 +67,34 @@ await initSchema(defaultMembers);
 // Proxy to Next.js in development, serve build in production
 if (process.env.NODE_ENV === "development") {
   console.log("🔄 Development mode: Proxying to Next.js dev server");
-  
+
   // In development, proxy to Next.js dev server
   app.get("*", (req, res, next) => {
     // Skip API routes
     if (req.path.startsWith("/api/")) {
       return next();
     }
-    
+
     // Proxy to Next.js dev server
     const nextUrl = `http://localhost:3000${req.path}`;
     res.redirect(302, nextUrl);
   });
 } else {
   console.log("🏗️ Production mode: Serving Next.js build");
-  
+
   // In production, serve Next.js build
   const frontendPath = path.join(process.cwd(), "next-frontend", ".next");
-  
+
   // Serve static files from Next.js build
   app.use("/_next", express.static(path.join(frontendPath, "static")));
-  
+
   // Fallback to index.html for client-side routing
   app.get("*", (req, res, next) => {
     // Skip API routes
     if (req.path.startsWith("/api/")) {
       return next();
     }
-    
+
     res.status(501).send(`
       <h1>Production Frontend Not Implemented</h1>
       <p>In production, this should either:</p>

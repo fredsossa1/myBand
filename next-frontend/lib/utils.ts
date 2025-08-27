@@ -1,20 +1,20 @@
-import { 
-  Member, 
-  MembersByRole, 
-  Event, 
-  AvailabilityRecord, 
-  AvailabilityByDate, 
-  AvailabilityByRole, 
-  Role, 
+import {
+  Member,
+  MembersByRole,
+  Event,
+  AvailabilityRecord,
+  AvailabilityByDate,
+  AvailabilityByRole,
+  Role,
   AvailabilityState,
   AvailabilityStats,
   CoverageRequirements,
   EventCoverage,
   CoverageStatus,
   RoleCoverage,
-  EventType
-} from './types';
-import { getAllRoles, sortMembersByRole, sortDateStrings } from './constants';
+  EventType,
+} from "./types";
+import { getAllRoles, sortMembersByRole, sortDateStrings } from "./constants";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -24,7 +24,9 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Member utilities
-export function groupMembersByRole(members: Member[] | undefined): MembersByRole {
+export function groupMembersByRole(
+  members: Member[] | undefined
+): MembersByRole {
   const grouped = {
     bassist: [],
     pianist: [],
@@ -456,23 +458,23 @@ export function calculateRoleCoverage(
   availabilityByDate: AvailabilityByDate,
   required: number
 ): RoleCoverage {
-  const roleMembers = members.filter(member => member.role === role);
+  const roleMembers = members.filter((member) => member.role === role);
   const availableMembers = roleMembers
-    .map(member => ({
+    .map((member) => ({
       id: member.id,
       name: member.name,
-      state: availabilityByDate[date]?.[member.id] || null
+      state: availabilityByDate[date]?.[member.id] || null,
     }))
-    .filter(member => member.state === 'A');
+    .filter((member) => member.state === "A");
 
   return {
     required,
     available: availableMembers.length,
-    members: roleMembers.map(member => ({
+    members: roleMembers.map((member) => ({
       id: member.id,
       name: member.name,
-      state: availabilityByDate[date]?.[member.id] || null
-    }))
+      state: availabilityByDate[date]?.[member.id] || null,
+    })),
   };
 }
 
@@ -481,37 +483,46 @@ export function calculateEventCoverage(
   members: Member[],
   availabilityByDate: AvailabilityByDate
 ): EventCoverage {
-  const requirements = COVERAGE_REQUIREMENTS[event.type as keyof CoverageRequirements] || COVERAGE_REQUIREMENTS.service;
-  
-  const coverageByRole: EventCoverage['coverageByRole'] = {};
+  const requirements =
+    COVERAGE_REQUIREMENTS[event.type as keyof CoverageRequirements] ||
+    COVERAGE_REQUIREMENTS.service;
+
+  const coverageByRole: EventCoverage["coverageByRole"] = {};
   let totalRequired = 0;
   let totalMet = 0;
 
   // Calculate coverage for each role
-  (Object.keys(requirements) as Role[]).forEach(role => {
-    if (role === 'admin') return; // Skip admin role for coverage
-    
+  (Object.keys(requirements) as Role[]).forEach((role) => {
+    if (role === "admin") return; // Skip admin role for coverage
+
     const required = requirements[role];
     if (required > 0) {
-      const roleCoverage = calculateRoleCoverage(members, role, event.date, availabilityByDate, required);
+      const roleCoverage = calculateRoleCoverage(
+        members,
+        role,
+        event.date,
+        availabilityByDate,
+        required
+      );
       coverageByRole[role] = roleCoverage;
-      
+
       totalRequired += required;
       totalMet += Math.min(roleCoverage.available, required);
     }
   });
 
   // Calculate overall coverage score
-  const coverageScore = totalRequired > 0 ? Math.round((totalMet / totalRequired) * 100) : 100;
-  
+  const coverageScore =
+    totalRequired > 0 ? Math.round((totalMet / totalRequired) * 100) : 100;
+
   // Determine coverage status
   let status: CoverageStatus;
   if (coverageScore >= 100) {
-    status = 'fully-covered';
+    status = "fully-covered";
   } else if (coverageScore >= 50) {
-    status = 'partially-covered';
+    status = "partially-covered";
   } else {
-    status = 'not-covered';
+    status = "not-covered";
   }
 
   return {
@@ -521,7 +532,7 @@ export function calculateEventCoverage(
     type: event.type as EventType,
     status,
     coverageByRole,
-    coverageScore
+    coverageScore,
   };
 }
 
@@ -530,47 +541,47 @@ export function calculateAllEventsCoverage(
   members: Member[],
   availabilityByDate: AvailabilityByDate
 ): EventCoverage[] {
-  return events.map(event => 
+  return events.map((event) =>
     calculateEventCoverage(event, members, availabilityByDate)
   );
 }
 
 export function getCoverageStatusIcon(status: CoverageStatus): string {
   switch (status) {
-    case 'fully-covered':
-      return '✅';
-    case 'partially-covered':
-      return '⚠️';
-    case 'not-covered':
-      return '❌';
+    case "fully-covered":
+      return "✅";
+    case "partially-covered":
+      return "⚠️";
+    case "not-covered":
+      return "❌";
     default:
-      return '❓';
+      return "❓";
   }
 }
 
 export function getCoverageStatusColor(status: CoverageStatus): string {
   switch (status) {
-    case 'fully-covered':
-      return 'text-green-400 border-green-500/50';
-    case 'partially-covered':
-      return 'text-yellow-400 border-yellow-500/50';
-    case 'not-covered':
-      return 'text-red-400 border-red-500/50';
+    case "fully-covered":
+      return "text-green-400 border-green-500/50";
+    case "partially-covered":
+      return "text-yellow-400 border-yellow-500/50";
+    case "not-covered":
+      return "text-red-400 border-red-500/50";
     default:
-      return 'text-gray-400 border-gray-500/50';
+      return "text-gray-400 border-gray-500/50";
   }
 }
 
 export function formatEventType(type: EventType): string {
   switch (type) {
-    case 'service':
-      return 'Service';
-    case 'band-only':
-      return 'Band Only';
-    case 'jam-session':
-      return 'Jam Session';
-    case 'special-event':
-      return 'Special Event';
+    case "service":
+      return "Service";
+    case "band-only":
+      return "Band Only";
+    case "jam-session":
+      return "Jam Session";
+    case "special-event":
+      return "Special Event";
     default:
       return type;
   }

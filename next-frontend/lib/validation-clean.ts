@@ -23,7 +23,9 @@ export function isValidAvailabilityState(
 }
 
 export function isValidEventType(type: string): type is EventType {
-  return ["service", "band-only", "jam-session", "special-event"].includes(type as EventType);
+  return ["service", "band-only", "jam-session", "special-event"].includes(
+    type as EventType
+  );
 }
 
 export function isValidDate(dateString: string): boolean {
