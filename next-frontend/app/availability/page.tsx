@@ -322,7 +322,7 @@ export default function AvailabilityPage() {
                         'hover:border-gray-500/50'
                       }`}
                     >
-                      Bulk {getAvailabilityIcon(state)} {
+                      Bulk {getAvailabilityIconOrDefault(state)} {
                         state === 'A' ? 'Available' :
                         state === 'U' ? 'Unavailable' : 'Uncertain'
                       }
@@ -463,7 +463,13 @@ export default function AvailabilityPage() {
                         <div className="flex items-center gap-2">
                           <Button
                             onClick={() => {
-                              const nextState = cycle(userAvailability);
+                              if (!currentUser) return;
+                              // Create a safe cycle function that handles the null case
+                              const safeCycle = (state: typeof userAvailability): AvailabilityState => {
+                                if (state === null) return 'A';
+                                return state === '?' ? 'A' : state === 'A' ? 'U' : '?';
+                              };
+                              const nextState = safeCycle(userAvailability);
                               setAvailabilityLocal(event.date, currentUser.id, nextState);
                             }}
                             className={`min-w-[140px] ${
@@ -524,7 +530,7 @@ export default function AvailabilityPage() {
                                           'border-gray-500/50 text-gray-300'
                                         }`}
                                       >
-                                        {getAvailabilityIcon(state)} {
+                                        {getAvailabilityIconOrDefault(state)} {
                                           state === 'A' ? 'Available' :
                                           state === 'U' ? 'Unavailable' : 'Uncertain'
                                         }
