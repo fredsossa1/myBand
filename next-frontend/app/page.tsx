@@ -72,58 +72,6 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
-        {/* Migration Progress */}
-        <Card className="glass border-white/20">
-          <CardHeader>
-            <CardTitle className="text-white text-2xl">🎉 Migration Complete!</CardTitle>
-            <p className="text-white/70">
-              Full-stack Next.js application with modern React patterns and API routes
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center space-y-4">
-              <div className="flex flex-wrap justify-center gap-4">
-                <Badge variant="outline" className="border-green-500/50 text-green-300 text-lg px-4 py-2">
-                  ✅ Next.js 14 + TypeScript
-                </Badge>
-                <Badge variant="outline" className="border-blue-500/50 text-blue-300 text-lg px-4 py-2">
-                  ✅ 15+ API Routes
-                </Badge>
-                <Badge variant="outline" className="border-purple-500/50 text-purple-300 text-lg px-4 py-2">
-                  ✅ Supabase Database
-                </Badge>
-                <Badge variant="outline" className="border-yellow-500/50 text-yellow-300 text-lg px-4 py-2">
-                  ✅ Production Ready
-                </Badge>
-              </div>
-              <div className="text-white/60 text-sm mt-4">
-                Migrated from Express.js to unified Next.js full-stack application
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions */}
-        <Card className="glass border-white/20">
-          <CardHeader>
-            <CardTitle className="text-white text-xl">🚀 Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Link href="/availability">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                  📅 Manage Availability
-                </Button>
-              </Link>
-              <Link href="/stats">
-                <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                  📊 View Statistics
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Footer */}
         <Card className="glass border-white/20">
           <CardContent className="p-6 text-center">
