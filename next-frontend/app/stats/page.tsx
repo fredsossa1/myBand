@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAppData } from '@/lib/api-hooks';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +11,23 @@ import { getAvailabilityIcon, getRoleDisplayName, formatDate } from '@/lib/const
 import { Role, AvailabilityState, Member, AvailabilityRecord } from '@/lib/types';
 
 export default function StatsPage() {
-  const { members, events, availability, loading, error, refetch } = useAppData();
+  const router = useRouter();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { members, events, availability, loading: dataLoading, error, refetch } = useAppData();
+  
+  // Check admin access
+  useEffect(() => {
+    const adminStatus = localStorage.getItem('isAdmin');
+    if (adminStatus === 'true') {
+      setIsAdmin(true);
+    } else {
+      // Redirect to home page if not admin
+      router.push('/');
+      return;
+    }
+    setLoading(false);
+  }, [router]);
   
   const stats = useMemo(() => {
     if (!members || !events || !availability || !Array.isArray(availability)) {
@@ -110,7 +127,30 @@ export default function StatsPage() {
     };
   }, [members, events, availability]);
   
+  // Show loading while checking admin access
   if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+        <div className="container mx-auto max-w-7xl">
+          <Card className="glass border-white/20">
+            <CardContent className="p-12 text-center">
+              <div className="text-white">
+                <div className="text-4xl mb-4">⏳</div>
+                <p className="text-xl">Checking access...</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render anything if not admin (will redirect)
+  if (!isAdmin) {
+    return null;
+  }
+  
+  if (dataLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
         <div className="container mx-auto max-w-7xl">

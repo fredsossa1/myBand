@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { addDate } from '@/lib/db';
+import { addDate, verifyAdmin } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
-    const { start, end, stepDays = 7 } = await request.json();
+    const { start, end, stepDays = 7, adminPassword } = await request.json();
+    
+    // Require admin access for creating date ranges
+    if (!adminPassword || !(await verifyAdmin(adminPassword))) {
+      return NextResponse.json(
+        { error: "Admin access required" },
+        { status: 403 }
+      );
+    }
     
     if (!start || !end) {
       return NextResponse.json(

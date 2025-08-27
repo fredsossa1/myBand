@@ -84,5 +84,15 @@
       "id": "bv7",
       "name": "Dorcas Tatala"
     }
+  ],
+  "admin": [
+    {
+      "id": "admin1",
+      "name": "Worship Leader"
+    },
+    {
+      "id": "admin2", 
+      "name": "Pastor"
+    }
   ]
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDates, addDate } from '@/lib/db';
+import { getDates, addDate, verifyAdmin } from '@/lib/db';
 
 export async function GET() {
   try {
@@ -16,7 +16,15 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { date } = await request.json();
+    const { date, adminPassword } = await request.json();
+    
+    // Require admin access for creating dates
+    if (!adminPassword || !(await verifyAdmin(adminPassword))) {
+      return NextResponse.json(
+        { error: "Admin access required" },
+        { status: 403 }
+      );
+    }
     
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return NextResponse.json(

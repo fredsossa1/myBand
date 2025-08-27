@@ -79,17 +79,32 @@ export async function initSchema(defaultMembers: Member[]): Promise<void> {
 
 // Member functions
 export async function getMembers(): Promise<Member[]> {
-  const { data, error } = await supabase
+  const { data: members, error } = await supabase
     .from('members')
     .select('*')
-    .order('name');
-
+    .order('role', { ascending: true })
+    .order('name', { ascending: true });
+  
   if (error) {
-    console.error("❌ Error fetching members:", error);
-    throw new Error("Failed to fetch members");
+    console.error('❌ Error fetching members:', error);
+    throw new Error(`Failed to fetch members: ${error.message}`);
   }
+  
+  return members || [];
+}
 
-  return data || [];
+export async function getMemberById(id: string): Promise<Member[]> {
+  const { data: members, error } = await supabase
+    .from('members')
+    .select('*')
+    .eq('id', id);
+  
+  if (error) {
+    console.error('❌ Error fetching member by ID:', error);
+    throw new Error(`Failed to fetch member: ${error.message}`);
+  }
+  
+  return members || [];
 }
 
 export async function getMembersByRole(): Promise<Record<string, Member[]>> {
