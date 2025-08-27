@@ -229,6 +229,9 @@ app.post("/api/reset", async (req, res) => {
   }
 });
 
-app.listen(PORT, () =>
-  console.log("Server listening on http://localhost:" + PORT)
-);
+app.listen(PORT, () => {
+  const serverUrl = process.env.RAILWAY_PUBLIC_DOMAIN 
+    ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` 
+    : `http://localhost:${PORT}`;
+  console.log(`Server listening on ${serverUrl}`);
+});

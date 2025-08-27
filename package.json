@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node server/server.js",
     "dev": "NODE_ENV=development node server/server.js",
+    "build": "npm install --omit=dev",
     "test": "node test/run-tests.js"
   },
   "dependencies": {

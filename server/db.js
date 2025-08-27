@@ -1,8 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
 
-// Load environment variables
-dotenv.config();
+// Load environment variables (only in development)
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config();
+}
 
 // Use environment variables for Supabase credentials
 const supabaseUrl =

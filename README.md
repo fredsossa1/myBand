@@ -178,8 +178,12 @@ The app is ready to deploy to various platforms:
 
 ### Railway
 1. Connect your GitHub repo to Railway
-2. Add environment variables in Railway dashboard
+2. Add environment variables in Railway dashboard:
+   - `SUPABASE_URL`: Your Supabase project URL
+   - `SUPABASE_ANON_KEY`: Your Supabase anonymous key
 3. Deploy automatically
+
+> **Railway Environment Variables:** Make sure to set your Supabase credentials in the Railway dashboard under Variables tab.
 
 ### Render
 1. Connect GitHub repo to Render
