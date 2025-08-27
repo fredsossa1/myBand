@@ -165,7 +165,7 @@ export function useAvailability(): UseAvailabilityReturn {
         newState: state
       });
       
-      await setAvailabilityAPI({ date, personId, state });
+      await setAvailabilityAPI(date, personId, state);
       
       // Remove from pending changes if it exists
       setPendingChanges(prev => {
@@ -205,11 +205,7 @@ export function useAvailability(): UseAvailabilityReturn {
       // Submit all changes in parallel
       await Promise.all(
         changes.map(change => 
-          setAvailabilityAPI({
-            date: change.date,
-            personId: change.personId,
-            state: change.state
-          })
+          setAvailabilityAPI(change.date, change.personId, change.state)
         )
       );
       
@@ -237,7 +233,7 @@ export function useAvailability(): UseAvailabilityReturn {
     try {
       await Promise.all(
         dates.map(date => 
-          setAvailabilityAPI({ date, personId, state })
+          setAvailabilityAPI(date, personId, state)
         )
       );
       
@@ -253,11 +249,11 @@ export function useAvailability(): UseAvailabilityReturn {
     if (!lastAction || lastAction.type !== 'availability') return false;
     
     try {
-      await setAvailabilityAPI({
-        date: lastAction.date,
-        personId: lastAction.personId,
-        state: lastAction.previousState
-      });
+      await setAvailabilityAPI(
+        lastAction.date,
+        lastAction.personId,
+        lastAction.previousState
+      );
       
       setLastAction(null);
       await refetch();
