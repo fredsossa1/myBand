@@ -143,6 +143,22 @@ myBand/
 - **PWA**: Service Worker + Web App Manifest
 - **Hosting**: Ready for Railway, Render, Vercel, or any Node.js host
 
+## 📊 Planning Center Integration
+
+The app exports data in the exact format needed for Planning Center scheduling:
+
+1. Click "Export CSV" in admin panel
+2. Copy the generated CSV data
+3. Import into Planning Center scheduling
+4. Columns map to: `date,bassist,drummer,pianist,lead,bv1,bv2`
+5. Values: `A` (Available), `U` (Unavailable), blank (Unknown)
+
+### Planning Center Workflow
+1. Set upcoming service dates in the app
+2. Share URL with band members for responses
+3. Filter for dates where all critical roles are available
+4. Export CSV and import into Planning Center for scheduling
+
 ## 📊 API Reference
 
 | Endpoint | Method | Description |
@@ -190,12 +206,59 @@ npm test
 
 ### Database Schema
 The app uses four main tables:
+
 - `members`: Team member information
 - `events`: Service dates and details
 - `availability`: Member availability responses
 - `settings`: Application configuration
 
-## 🎵 Ready for Your Worship Team!
+## 📊 Data Model
+
+The availability data structure:
+
+```jsonc
+// availability record shape
+{
+  "dates": ["2025-09-07", "2025-09-14"],
+  "members": {"bassist":"Alice", "drummer":"Bob", ...},
+  "availability": {
+    "2025-09-07": { 
+      "bassist":"A", 
+      "drummer":"U", 
+      "pianist":"?", 
+      "lead":"A", 
+      "bv1":"A", 
+      "bv2":"?" 
+    }
+  }
+}
+```
+
+**States:** `A` (Available), `U` (Unavailable), `?` (Unknown/not answered yet)
+
+## 🔧 Configuration
+
+### Admin Password
+Default: `band2025`
+- Change in Supabase settings table
+- Or update environment variables
+
+### Team Members
+Members are managed through the Supabase database:
+- Add/remove members via admin interface
+- Modify role assignments as needed
+- Data persists across server restarts
+
+## 📈 Future Enhancements
+
+- **Authentication**: Individual user accounts
+- **Notifications**: Email alerts for new events  
+- **Calendar Integration**: Google Calendar sync
+- **Advanced Analytics**: Response pattern analysis
+- **Theme Customization**: Multiple UI themes
+- **Multi-language Support**: Localization
+
+## 🎵 Ready for Your Worship Team
 
 This Band Availability System provides a modern, professional solution for coordinating your worship team's availability. The glass morphism UI creates a beautiful user experience while the Supabase backend ensures reliable data storage and real-time updates.
 
