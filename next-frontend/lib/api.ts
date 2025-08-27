@@ -1,4 +1,4 @@
-// API client for connecting to the Express backend
+// API client for connecting to the Next.js API routes
 import {
   Member,
   MembersByRole,
@@ -10,8 +10,8 @@ import {
   ApiResponse,
 } from "./types";
 
-// API Configuration
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5173";
+// API Configuration - Now using Next.js API routes
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:3000";
 
 // Custom error class for API errors
 export class ApiError extends Error {
