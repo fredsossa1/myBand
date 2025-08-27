@@ -7,6 +7,7 @@ export const ROLES: Record<Role, string> = {
   drummer: "Drummer",
   lead: "Lead Vocals",
   bv: "Background Vocals",
+  admin: "Administrator",
 } as const;
 
 export const ROLE_ICONS: Record<Role, string> = {
@@ -15,6 +16,7 @@ export const ROLE_ICONS: Record<Role, string> = {
   drummer: "🥁",
   lead: "🎤",
   bv: "🎵",
+  admin: "👑",
 } as const;
 
 export const ROLE_COLORS: Record<Role, string> = {
@@ -23,6 +25,7 @@ export const ROLE_COLORS: Record<Role, string> = {
   drummer: "from-red-500 to-red-600",
   lead: "from-yellow-500 to-yellow-600",
   bv: "from-green-500 to-green-600",
+  admin: "from-purple-700 to-purple-800",
 } as const;
 
 // Availability state constants and utilities
@@ -76,8 +79,16 @@ export function getAvailabilityIcon(state: AvailabilityState): string {
   return AVAILABILITY_ICONS[state];
 }
 
+export function getAvailabilityIconOrDefault(state: AvailabilityState | null): string {
+  return state ? AVAILABILITY_ICONS[state] : "⭕"; // Circle for untouched
+}
+
 export function getAvailabilityDisplayName(state: AvailabilityState): string {
   return AVAILABILITY_STATES[state];
+}
+
+export function getAvailabilityDisplayNameOrDefault(state: AvailabilityState | null): string {
+  return state ? AVAILABILITY_STATES[state] : "Not Responded";
 }
 
 export function getEventTypeIcon(type: EventType): string {

@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { getAvailabilityIcon, getRoleDisplayName, formatDate } from '@/lib/constants';
+import { getAvailabilityIconOrDefault, getAvailabilityDisplayNameOrDefault, getRoleDisplayName, formatDate } from '@/lib/constants';
 import { groupMembersByRole } from '@/lib/utils';
 import { Role, AvailabilityState, Member } from '@/lib/types';
 
@@ -428,7 +428,7 @@ export default function AvailabilityPage() {
           {events && events.length > 0 ? (
             events.map((event, index) => {
               const userAvailability = currentUser ? getUserAvailability(event.date, currentUser.id) : null;
-              const needsResponse = currentUser && (!userAvailability || userAvailability === '?');
+              const needsResponse = currentUser && userAvailability === null;
               const dayAvail = availabilityByDate[event.date] || {};
               const hasResponses = Object.keys(dayAvail).length > 0;
               
@@ -463,19 +463,17 @@ export default function AvailabilityPage() {
                         <div className="flex items-center gap-2">
                           <Button
                             onClick={() => {
-                              const nextState = cycle(userAvailability || '?');
+                              const nextState = cycle(userAvailability);
                               setAvailabilityLocal(event.date, currentUser.id, nextState);
                             }}
                             className={`min-w-[140px] ${
                               userAvailability === 'A' ? 'bg-green-600 hover:bg-green-700' :
                               userAvailability === 'U' ? 'bg-red-600 hover:bg-red-700' :
+                              userAvailability === '?' ? 'bg-yellow-600 hover:bg-yellow-700' :
                               'bg-gray-600 hover:bg-gray-700'
                             } text-white`}
                           >
-                            {getAvailabilityIcon(userAvailability || '?')} {
-                              userAvailability === 'A' ? 'Available' :
-                              userAvailability === 'U' ? 'Unavailable' : 'Uncertain'
-                            }
+                            {getAvailabilityIconOrDefault(userAvailability)} {getAvailabilityDisplayNameOrDefault(userAvailability)}
                           </Button>
                           
                           {Array.from(pendingChanges.values()).some(

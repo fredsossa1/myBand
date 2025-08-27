@@ -105,8 +105,11 @@ export function useAvailability(): UseAvailabilityReturn {
   
   const hasUnsavedChanges = pendingChanges.size > 0;
   
-  // Cycle through availability states
-  const cycle = useCallback((state: AvailabilityState): AvailabilityState => {
+  // Cycle through availability states (only when explicitly touched)
+  const cycle = useCallback((state: AvailabilityState | null): AvailabilityState => {
+    // If untouched (null), start with Available
+    if (state === null) return 'A';
+    // Otherwise cycle: ? -> A -> U -> ?
     return state === '?' ? 'A' : state === 'A' ? 'U' : '?';
   }, []);
   
@@ -120,40 +123,43 @@ export function useAvailability(): UseAvailabilityReturn {
     return availabilityByDate[date]?.[userId] || null;
   }, [localAvailability, availabilityByDate]);
   
-  // Set availability locally (optimistic update)
+  // Set availability locally (for immediate UI feedback)
   const setAvailabilityLocal = useCallback((date: string, personId: string, state: AvailabilityState) => {
-    const previousState = getUserAvailability(date, personId) || '?';
+    const previousState = getUserAvailability(date, personId); // Can be null for untouched dates
     
-    // Store pending change
+    // Add to pending changes
     setPendingChanges(prev => {
       const newChanges = new Map(prev);
       newChanges.set(`${date}-${personId}`, {
         date,
         personId,
         state,
-        previousState
+        previousState: previousState || '?' // Default to '?' for API compatibility
       });
       return newChanges;
     });
-    
-    // Update local availability for immediate UI feedback
-    setLocalAvailability((prev: LocalAvailabilityState) => ({
-      ...prev,
-      [date]: {
-        ...prev[date],
-        [personId]: {
-          state,
-          name: currentUser?.name || 'Unknown',
-          role: currentUser?.role || 'unknown',
-          isPending: true
+
+    // Update local state for immediate UI feedback
+    setLocalAvailability((prev: LocalAvailabilityState) => {
+      const member = members?.find(m => m.id === personId);
+      return {
+        ...prev,
+        [date]: {
+          ...prev[date],
+          [personId]: {
+            state,
+            name: member?.name || 'Unknown',
+            role: member?.role || 'unknown',
+            isPending: true
+          }
         }
-      }
-    }));
-  }, [getUserAvailability, currentUser]);
+      };
+    });
+  }, [getUserAvailability, members]);
   
   // Set availability remotely (save to server)
   const setAvailabilityRemote = useCallback(async (date: string, personId: string, state: AvailabilityState) => {
-    const previousState = getUserAvailability(date, personId) || '?';
+    const previousState = getUserAvailability(date, personId); // Can be null for untouched dates
     
     try {
       // Store for undo
@@ -161,7 +167,7 @@ export function useAvailability(): UseAvailabilityReturn {
         type: 'availability',
         date,
         personId,
-        previousState,
+        previousState: previousState || '?', // Use '?' for undo if previously untouched
         newState: state
       });
       
