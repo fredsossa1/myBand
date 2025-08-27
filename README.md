@@ -1,6 +1,32 @@
 # 🎵 Band Availability System
 
-A modern, production-ready web application for managing worship team availability with a beautiful glass morphism UI, keyboard shortcuts, bulk operations, PWA capabilities, and Supabase backend.
+A modern, production-ready web application for managing worship team availability with both **vanilla JavaScript** and **Next.js 14** frontends, beautiful glass morphism UI, keyboard shortcuts, bulk operations, PWA capabilities, and Supabase backend.
+
+## 🚀 **Frontend Options**
+
+### **🆕 Next.js 14 Frontend (Recommended)**
+Modern React-based frontend with advanced features:
+- **Next.js 14** with App Router and TypeScript
+- **shadcn/ui** component library with glass morphism design  
+- **Advanced React hooks** with optimistic updates and undo functionality
+- **Global keyboard shortcuts** (Ctrl+S, Ctrl+Z, etc.)
+- **Real-time state management** with pending changes indicator
+- **Comprehensive analytics** and statistics dashboard
+- **Type-safe** throughout with full TypeScript coverage
+
+📁 **Location**: `/next-frontend/`  
+🌐 **Dev Server**: `cd next-frontend && npm run dev` (http://localhost:3000)
+
+### **📱 Vanilla JavaScript Frontend (Original)**
+Production-ready PWA with glass morphism design:
+- **Progressive Web App** with offline capabilities
+- **Glass morphism UI** with backdrop blur effects
+- **Keyboard shortcuts** (A/U/? for quick responses)
+- **Bulk operations** (Shift+A for multiple events)
+- **Mobile-optimized** responsive design
+
+📁 **Location**: Root directory  
+🌐 **Server**: `npm start` (http://localhost:5173)
 
 ## ✨ Key Features
 
@@ -64,11 +90,20 @@ SUPABASE_URL=your-supabase-project-url
 SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
-### 4. Start the Application
+### 4. Choose Your Frontend
+
+#### **Option A: Next.js 14 Frontend (Recommended)**
+```bash
+cd next-frontend
+npm install
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+#### **Option B: Vanilla JavaScript Frontend**
 ```bash
 npm start
 ```
-
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ### 5. Initial Setup
@@ -91,6 +126,17 @@ The app comes pre-configured with 19 members across 5 roles:
 
 ## ⌨️ Keyboard Shortcuts
 
+### **Next.js Frontend**
+| Key | Action |
+|-----|--------|
+| `Ctrl+S` / `Cmd+S` | Save pending changes |
+| `Ctrl+Z` / `Cmd+Z` | Undo last change |
+| `Escape` | Clear selection |
+| `A` | Set Available |
+| `U` | Set Unavailable |
+| `?` | Set Uncertain |
+
+### **Vanilla Frontend**
 | Key | Action |
 |-----|--------|
 | `A` | Set Available |
@@ -115,35 +161,90 @@ The app comes pre-configured with 19 members across 5 roles:
 
 ```
 myBand/
+├── next-frontend/                 # 🆕 Next.js 14 Frontend
+│   ├── app/
+│   │   ├── page.tsx              # Homepage with navigation
+│   │   ├── availability/         # Availability management page
+│   │   ├── stats/               # Statistics dashboard  
+│   │   └── layout.tsx           # Root layout with navigation
+│   ├── components/
+│   │   ├── ui/                  # shadcn/ui components
+│   │   ├── navigation.tsx       # App navigation
+│   │   └── *.tsx               # Feature components
+│   ├── hooks/
+│   │   ├── use-availability.ts  # Advanced availability management
+│   │   └── use-keyboard-shortcuts.ts # Global hotkeys
+│   ├── lib/
+│   │   ├── api.ts              # API client
+│   │   ├── api-hooks.ts        # React hooks for API
+│   │   ├── types.ts            # TypeScript definitions
+│   │   └── utils.ts            # Utility functions
+│   └── package.json            # Next.js dependencies
 ├── server/
-│   ├── server.js          # Express server with API endpoints
-│   └── db.js              # Supabase database configuration
-├── src/
-│   ├── app.js             # Main application logic
-│   ├── dom.js             # DOM utilities
-│   ├── storage.js         # Local storage utilities
-│   └── export.js          # Data export functionality
+│   ├── server.js               # Express server with API endpoints
+│   └── db.js                   # Supabase database configuration
+├── src/                        # 📱 Vanilla JavaScript Frontend
+│   ├── app.js                  # Main application logic
+│   ├── dom.js                  # DOM utilities
+│   ├── storage.js              # Local storage utilities
+│   └── export.js               # Data export functionality
 ├── data/
-│   ├── members.json       # Default member configuration
-│   └── availability.json  # Sample availability data
+│   ├── members.json            # Default member configuration
+│   └── availability.json       # Sample availability data
 ├── test/
-│   └── run-tests.js       # Basic functionality tests
-├── index.html             # Main interface with glass morphism UI
-├── manifest.json          # PWA manifest
-├── sw.js                  # Service worker for offline capability
-├── package.json           # Dependencies and scripts
-├── supabase-setup.sql     # Database setup script
-└── .env.example           # Environment configuration template
+│   └── run-tests.js            # Basic functionality tests
+├── index.html                  # Main interface with glass morphism UI
+├── manifest.json               # PWA manifest
+├── sw.js                       # Service worker for offline capability
+├── package.json                # Dependencies and scripts
+├── supabase-setup.sql          # Database setup script
+└── .env.example                # Environment configuration template
 ```
 
 ## 🛠️ Technology Stack
 
-- **Backend**: Node.js + Express
+### **Backend (Shared)**
+- **Server**: Node.js + Express
 - **Database**: Supabase (PostgreSQL)
-- **Frontend**: Vanilla JavaScript + Modern CSS
-- **UI**: Glass Morphism design with CSS backdrop-filter
+- **API**: RESTful endpoints with comprehensive coverage
+
+### **Next.js Frontend**
+- **Framework**: Next.js 14 with App Router
+- **Language**: TypeScript
+- **Styling**: TailwindCSS + shadcn/ui
+- **State**: Custom React hooks with optimistic updates
+- **UI**: Glass morphism with modern components
+
+### **Vanilla Frontend**
+- **Language**: Modern JavaScript (ES6+)
+- **Styling**: CSS with glass morphism design
 - **PWA**: Service Worker + Web App Manifest
-- **Hosting**: Ready for Railway, Render, Vercel, or any Node.js host
+- **Storage**: Local storage with sync
+
+## 📊 Next.js Frontend Features
+
+### **🎯 Pages**
+- **Homepage** (`/`) - Overview with navigation and quick actions
+- **Availability** (`/availability`) - Full availability management with bulk operations
+- **Statistics** (`/stats`) - Comprehensive analytics and response patterns
+
+### **🔧 Advanced Hooks**
+- **useAvailability** - Optimistic updates, pending changes, undo functionality
+- **useKeyboardShortcuts** - Global hotkeys (Ctrl+S, Ctrl+Z, Escape)
+- **API Hooks** - Automatic data fetching, error handling, health monitoring
+
+### **📊 Statistics Dashboard**
+- **Role-based analytics** - Response rates by instrument/role
+- **Event coverage analysis** - Identify under-staffed events
+- **Recent activity tracking** - Monitor team engagement
+- **Response rate trends** - Track team participation over time
+
+### **⚡ Performance Features**
+- **Optimistic updates** - Instant UI feedback
+- **Pending changes indicator** - Visual feedback for unsaved changes
+- **Undo functionality** - Mistake recovery with Ctrl+Z
+- **Auto-save** - Changes saved automatically
+- **Error boundaries** - Graceful error handling
 
 ## 📊 Planning Center Integration
 
@@ -255,6 +356,25 @@ Members are managed through the Supabase database:
 - Modify role assignments as needed
 - Data persists across server restarts
 
+## 📈 Migration Guide
+
+### **From Vanilla to Next.js**
+
+The Next.js frontend provides a modern, enhanced experience while maintaining full compatibility with the existing backend:
+
+1. **All original features preserved** - No functionality lost
+2. **Enhanced UX** - Better keyboard shortcuts, undo, optimistic updates
+3. **Modern architecture** - TypeScript, React hooks, component library
+4. **Better maintainability** - Clean code structure, type safety
+5. **Future-ready** - Extensible architecture for new features
+
+### **Migration Steps Completed**
+- ✅ **Step 2A**: TypeScript types and utilities
+- ✅ **Step 2B**: API client and React hooks  
+- ✅ **Step 2C**: shadcn/ui component library
+- ✅ **Step 2D**: Advanced hooks and UX patterns
+- ✅ **Step 2E**: Complete application pages
+
 ## 📈 Future Enhancements
 
 - **Authentication**: Individual user accounts
@@ -266,7 +386,9 @@ Members are managed through the Supabase database:
 
 ## 🎵 Ready for Your Worship Team
 
-This Band Availability System provides a modern, professional solution for coordinating your worship team's availability. The glass morphism UI creates a beautiful user experience while the Supabase backend ensures reliable data storage and real-time updates.
+This Band Availability System provides both traditional and modern solutions for coordinating your worship team's availability. Choose the vanilla JavaScript frontend for immediate production use, or the Next.js frontend for a cutting-edge experience with advanced features.
+
+Both frontends share the same robust Supabase backend, ensuring reliable data storage and real-time updates for your entire team.
 
 ## 📄 License
 
