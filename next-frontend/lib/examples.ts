@@ -146,7 +146,7 @@ export function demoFormValidation() {
       date: "2025-12-25",
       title: "Christmas Service",
       description: "Special Christmas celebration",
-      type: "special",
+      type: "special-event",
     };
 
     const validatedEvent = validateCreateEvent(validEventData);

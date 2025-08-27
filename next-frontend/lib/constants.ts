@@ -50,20 +50,23 @@ export const AVAILABILITY_COLORS: Record<AvailabilityState, string> = {
 // Event type constants
 export const EVENT_TYPES: Record<EventType, string> = {
   service: "Service",
-  rehearsal: "Rehearsal",
-  special: "Special Event",
+  "band-only": "Band Only",
+  "jam-session": "Jam Session",
+  "special-event": "Special Event",
 } as const;
 
 export const EVENT_TYPE_ICONS: Record<EventType, string> = {
   service: "⛪",
-  rehearsal: "🎭",
-  special: "⭐",
+  "band-only": "🎸",
+  "jam-session": "�",
+  "special-event": "⭐",
 } as const;
 
 export const EVENT_TYPE_COLORS: Record<EventType, string> = {
   service: "from-blue-500 to-blue-600",
-  rehearsal: "from-purple-500 to-purple-600",
-  special: "from-yellow-500 to-yellow-600",
+  "band-only": "from-orange-500 to-orange-600",
+  "jam-session": "from-purple-500 to-purple-600",
+  "special-event": "from-yellow-500 to-yellow-600",
 } as const;
 
 // Utility functions
