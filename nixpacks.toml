@@ -8,14 +8,4 @@ cmd = "npm ci && cd next-frontend && npm ci"
 cmd = "cd next-frontend && npm run build"
 
 [start]
-cmd = "cd next-frontend && NODE_ENV=production npm start"up]
-nixPkgs = ["nodejs_20"]
-
-[phases.install]
-cmd = "npm ci --omit=dev && cd next-frontend && npm ci --omit=dev"
-
-[phases.build]
-cmd = "cd next-frontend && npm run build"
-
-[start]
-cmd = "cd next-frontend && npm start"
+cmd = "cd next-frontend && NODE_ENV=production npm start"
