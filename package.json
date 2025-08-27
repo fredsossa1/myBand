@@ -5,13 +5,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node server/server.js",
+    "start": "node --no-deprecation server/server.js",
     "dev": "NODE_ENV=development node server/server.js",
     "build": "npm install --omit=dev",
     "test": "node test/run-tests.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0",
+    "@supabase/supabase-js": "^2.56.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^4.19.2"

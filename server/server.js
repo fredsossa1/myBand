@@ -19,6 +19,8 @@ import {
 } from "./db.js";
 
 const PORT = process.env.PORT || 5173;
+console.log(`🔧 Environment PORT: ${process.env.PORT}`);
+console.log(`🔧 Using PORT: ${PORT}`);
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -229,9 +231,10 @@ app.post("/api/reset", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   const serverUrl = process.env.RAILWAY_PUBLIC_DOMAIN 
     ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` 
     : `http://localhost:${PORT}`;
-  console.log(`Server listening on ${serverUrl}`);
+  console.log(`🚀 Server listening on ${serverUrl}`);
+  console.log(`🔧 Bound to port ${PORT} on all interfaces`);
 });
