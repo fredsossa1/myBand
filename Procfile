@@ -1,1 +1,1 @@
-web: node --no-deprecation server/server.js
+web: cd next-frontend && npm start

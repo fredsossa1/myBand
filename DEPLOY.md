@@ -1,4 +1,77 @@
-# 🚀 Deployment Guide
+# 🚀 Railway Deployment Guide - UPDATED FOR NEXT.JS
+
+## ✅ Migration Complete: Ready for Deployment
+
+The Band Availability System has been successfully migrated from Express + vanilla JS to a single Next.js full-stack application.
+
+## 📦 Architecture Overview
+
+**Before (2-service architecture):**
+- Express API server (port 5173)
+- Static frontend files
+- Separate deployment complexity
+
+**After (1-service architecture):**
+- Next.js full-stack app with API routes
+- Server-side rendering + Static optimization
+- Single deployment target
+
+## 🛠️ Updated Deployment Configuration
+
+### Railway Configuration Files:
+
+1. **`nixpacks.toml`** - Build configuration
+   ```toml
+   [phases.setup]
+   nixPkgs = ["nodejs_20"]
+
+   [phases.install]
+   cmd = "npm ci && cd next-frontend && npm ci"
+
+   [phases.build]
+   cmd = "cd next-frontend && npm run build"
+
+   [start]
+   cmd = "cd next-frontend && npm start"
+   ```
+
+2. **`railway.json`** - Deployment settings
+   ```json
+   {
+     "build": { "builder": "NIXPACKS" },
+     "deploy": {
+       "healthcheckPath": "/api/init",
+       "healthcheckTimeout": 100,
+       "restartPolicyType": "ON_FAILURE",
+       "restartPolicyMaxRetries": 10
+     }
+   }
+   ```
+
+3. **`Procfile`** - Process definition
+   ```
+   web: cd next-frontend && npm start
+   ```
+
+## 🌍 Environment Variables
+
+Set these in Railway dashboard:
+
+```bash
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://rwcsctgzntxyadmpsllj.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3Y3NjdGd6bnR4eWFkbXBzbGxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyNTY5MTIsImV4cCI6MjA3MTgzMjkxMn0.eavNz7m8wUSJYBGRLk5tpmR7JAomAfWD9egXdOu-ZVk
+
+# API Base (leave empty for relative URLs in production)
+NEXT_PUBLIC_API_BASE=
+
+# Node Environment
+NODE_ENV=production
+```
+
+---
+
+# 🎯 Original Deployment Guide (Legacy)
 
 Complete guide to deploy your Band Availability System to production.
 
