@@ -27,27 +27,30 @@ function getPublicUrl(port) {
   // Check for Railway deployment
   if (process.env.RAILWAY_ENVIRONMENT) {
     // Railway provides the public domain differently
-    const railwayUrl = process.env.RAILWAY_PUBLIC_DOMAIN || 
-                      process.env.RAILWAY_STATIC_URL ||
-                      process.env.PUBLIC_URL;
-    
+    const railwayUrl =
+      process.env.RAILWAY_PUBLIC_DOMAIN ||
+      process.env.RAILWAY_STATIC_URL ||
+      process.env.PUBLIC_URL;
+
     if (railwayUrl) {
-      return railwayUrl.startsWith('http') ? railwayUrl : `https://${railwayUrl}`;
+      return railwayUrl.startsWith("http")
+        ? railwayUrl
+        : `https://${railwayUrl}`;
     }
-    
+
     // If Railway environment but no public URL, we're probably in deployment
     return `https://your-app.railway.app`;
   }
-  
+
   // Check for other cloud platforms
   if (process.env.RENDER_EXTERNAL_URL) {
     return process.env.RENDER_EXTERNAL_URL;
   }
-  
+
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
   }
-  
+
   // Default to localhost for development
   return `http://localhost:${port}`;
 }
@@ -264,16 +267,24 @@ app.post("/api/reset", async (req, res) => {
 
 app.listen(PORT, "0.0.0.0", () => {
   const serverUrl = getPublicUrl(PORT);
-  
+
   console.log(`🚀 Server listening on ${serverUrl}`);
   console.log(`🔧 Bound to port ${PORT} on all interfaces`);
-  
+
   // Debug environment in production
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === "production") {
     console.log(`🔍 Environment Detection:`);
-    console.log(`   RAILWAY_ENVIRONMENT: ${process.env.RAILWAY_ENVIRONMENT || 'not set'}`);
-    console.log(`   RAILWAY_PUBLIC_DOMAIN: ${process.env.RAILWAY_PUBLIC_DOMAIN || 'not set'}`);
-    console.log(`   RAILWAY_STATIC_URL: ${process.env.RAILWAY_STATIC_URL || 'not set'}`);
-    console.log(`   PUBLIC_URL: ${process.env.PUBLIC_URL || 'not set'}`);
+    console.log(
+      `   RAILWAY_ENVIRONMENT: ${process.env.RAILWAY_ENVIRONMENT || "not set"}`
+    );
+    console.log(
+      `   RAILWAY_PUBLIC_DOMAIN: ${
+        process.env.RAILWAY_PUBLIC_DOMAIN || "not set"
+      }`
+    );
+    console.log(
+      `   RAILWAY_STATIC_URL: ${process.env.RAILWAY_STATIC_URL || "not set"}`
+    );
+    console.log(`   PUBLIC_URL: ${process.env.PUBLIC_URL || "not set"}`);
   }
 });

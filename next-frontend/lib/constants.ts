@@ -1,0 +1,193 @@
+import { Role, AvailabilityState, EventType } from "./types";
+
+// Role constants and utilities
+export const ROLES: Record<Role, string> = {
+  bassist: "Bassist",
+  pianist: "Pianist",
+  drummer: "Drummer",
+  lead: "Lead Vocals",
+  bv: "Background Vocals",
+} as const;
+
+export const ROLE_ICONS: Record<Role, string> = {
+  bassist: "🎸",
+  pianist: "🎹",
+  drummer: "🥁",
+  lead: "🎤",
+  bv: "🎵",
+} as const;
+
+export const ROLE_COLORS: Record<Role, string> = {
+  bassist: "from-blue-500 to-blue-600",
+  pianist: "from-purple-500 to-purple-600",
+  drummer: "from-red-500 to-red-600",
+  lead: "from-yellow-500 to-yellow-600",
+  bv: "from-green-500 to-green-600",
+} as const;
+
+// Availability state constants and utilities
+export const AVAILABILITY_STATES: Record<AvailabilityState, string> = {
+  A: "Available",
+  U: "Unavailable",
+  "?": "Uncertain",
+} as const;
+
+export const AVAILABILITY_ICONS: Record<AvailabilityState, string> = {
+  A: "✅",
+  U: "❌",
+  "?": "❓",
+} as const;
+
+export const AVAILABILITY_COLORS: Record<AvailabilityState, string> = {
+  A: "bg-green-500/20 border-green-500/40 text-green-300",
+  U: "bg-red-500/20 border-red-500/40 text-red-300",
+  "?": "bg-yellow-500/20 border-yellow-500/40 text-yellow-300",
+} as const;
+
+// Event type constants
+export const EVENT_TYPES: Record<EventType, string> = {
+  service: "Service",
+  rehearsal: "Rehearsal",
+  special: "Special Event",
+} as const;
+
+export const EVENT_TYPE_ICONS: Record<EventType, string> = {
+  service: "⛪",
+  rehearsal: "🎭",
+  special: "⭐",
+} as const;
+
+export const EVENT_TYPE_COLORS: Record<EventType, string> = {
+  service: "from-blue-500 to-blue-600",
+  rehearsal: "from-purple-500 to-purple-600",
+  special: "from-yellow-500 to-yellow-600",
+} as const;
+
+// Utility functions
+export function getRoleDisplayName(role: Role): string {
+  return ROLES[role];
+}
+
+export function getRoleIcon(role: Role): string {
+  return ROLE_ICONS[role];
+}
+
+export function getAvailabilityIcon(state: AvailabilityState): string {
+  return AVAILABILITY_ICONS[state];
+}
+
+export function getAvailabilityDisplayName(state: AvailabilityState): string {
+  return AVAILABILITY_STATES[state];
+}
+
+export function getEventTypeIcon(type: EventType): string {
+  return EVENT_TYPE_ICONS[type];
+}
+
+export function getEventTypeDisplayName(type: EventType): string {
+  return EVENT_TYPES[type];
+}
+
+// Date formatting utilities
+export function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+export function formatDateShort(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+}
+
+export function isToday(dateString: string): boolean {
+  const date = new Date(dateString);
+  const today = new Date();
+  return date.toDateString() === today.toDateString();
+}
+
+export function isPast(dateString: string): boolean {
+  const date = new Date(dateString);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return date < today;
+}
+
+export function isFuture(dateString: string): boolean {
+  const date = new Date(dateString);
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  return date > today;
+}
+
+// Generate date string in YYYY-MM-DD format
+export function toDateString(date: Date): string {
+  return date.toISOString().split("T")[0];
+}
+
+// Generate unique ID for new events/members
+export function generateId(): string {
+  return Date.now().toString();
+}
+
+// Validation utilities
+export function isValidRole(role: string): role is Role {
+  return Object.keys(ROLES).includes(role as Role);
+}
+
+export function isValidAvailabilityState(
+  state: string
+): state is AvailabilityState {
+  return ["A", "U", "?"].includes(state);
+}
+
+export function isValidEventType(type: string): type is EventType {
+  return Object.keys(EVENT_TYPES).includes(type as EventType);
+}
+
+// Array utilities for roles
+export function getAllRoles(): Role[] {
+  return Object.keys(ROLES) as Role[];
+}
+
+// Sort utilities
+export function sortMembersByRole(
+  members: Array<{ role: Role; name: string }>
+): Array<{ role: Role; name: string }> {
+  const roleOrder: Role[] = ["lead", "bv", "pianist", "bassist", "drummer"];
+
+  return members.sort((a, b) => {
+    const roleComparison =
+      roleOrder.indexOf(a.role) - roleOrder.indexOf(b.role);
+    if (roleComparison !== 0) return roleComparison;
+    return a.name.localeCompare(b.name);
+  });
+}
+
+export function sortDateStrings(dates: string[]): string[] {
+  return dates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+}
+
+// Keyboard shortcut utilities
+export function formatKeyboardShortcut(shortcut: {
+  key: string;
+  ctrl?: boolean;
+  shift?: boolean;
+  alt?: boolean;
+}): string {
+  const parts: string[] = [];
+
+  if (shortcut.ctrl) parts.push("Ctrl");
+  if (shortcut.shift) parts.push("Shift");
+  if (shortcut.alt) parts.push("Alt");
+  parts.push(shortcut.key.toUpperCase());
+
+  return parts.join(" + ");
+}
