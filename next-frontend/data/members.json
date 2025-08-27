@@ -1,0 +1,88 @@
+{
+  "bassist": [
+    {
+      "id": "bass1",
+      "name": "Josue Tatala"
+    },
+    {
+      "id": "bass2",
+      "name": "Freddy Sossa"
+    },
+    {
+      "id": "bass3",
+      "name": "Michee Sinare"
+    }
+  ],
+  "pianist": [
+    {
+      "id": "piano1",
+      "name": "Guillaume Chambaud"
+    },
+    {
+      "id": "piano2",
+      "name": "Zack Kanku"
+    },
+    {
+      "id": "piano3",
+      "name": "Elisee Vou Bi"
+    }
+  ],
+  "drummer": [
+    {
+      "id": "drum1",
+      "name": "Gaïus Libam"
+    },
+    {
+      "id": "drum2",
+      "name": "Yves Junior Zogho"
+    }
+  ],
+  "lead": [
+    {
+      "id": "lead1",
+      "name": "Linda Claude K."
+    },
+    {
+      "id": "lead2",
+      "name": "Melina Ossibi"
+    },
+    {
+      "id": "lead3",
+      "name": "Sherley Jean Baptiste"
+    },
+    {
+      "id": "lead4",
+      "name": "Daniel Tatala"
+    }
+  ],
+  "bv": [
+    {
+      "id": "bv1",
+      "name": "Ketsia Joseph"
+    },
+    {
+      "id": "bv2",
+      "name": "Merveille Narri"
+    },
+    {
+      "id": "bv3",
+      "name": "Naomi Makosso-Tchivongo"
+    },
+    {
+      "id": "bv4",
+      "name": "Shirley Bille-Bioum"
+    },
+    {
+      "id": "bv5",
+      "name": "Esther Dicka"
+    },
+    {
+      "id": "bv6",
+      "name": "Michaëlle Moron"
+    },
+    {
+      "id": "bv7",
+      "name": "Dorcas Tatala"
+    }
+  ]
+}

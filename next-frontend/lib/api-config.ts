@@ -2,8 +2,8 @@
 
 // API Base URL Configuration
 export const API_CONFIG = {
-  // Base URL for the Express backend
-  baseUrl: process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5173",
+  // Use empty string for relative URLs to Next.js API routes
+  baseUrl: "",
 
   // Request timeout in milliseconds
   timeout: 10000,

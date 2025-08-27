@@ -5,15 +5,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node --no-deprecation server/server.js",
-    "dev": "node dev-start.js",
-    "dev:api": "NODE_ENV=development node server/server.js",
-    "dev:frontend": "cd next-frontend && npm run dev",
-    "build": "npm run build:frontend && npm install --omit=dev",
-    "build:frontend": "cd next-frontend && npm install && npm run build",
+    "start": "cd next-frontend && npm start",
+    "dev": "cd next-frontend && npm run dev",
+    "build": "cd next-frontend && npm install && npm run build",
     "test": "node test/run-tests.js",
     "clean": "cd next-frontend && rm -rf .next node_modules",
-    "postinstall": "cd next-frontend && npm install"
+    "postinstall": "cd next-frontend && npm install",
+    "legacy:start": "node --no-deprecation server/server.js",
+    "legacy:dev": "node dev-start.js",
+    "legacy:api": "NODE_ENV=development node server/server.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.56.0",
