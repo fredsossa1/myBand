@@ -2,10 +2,10 @@
 nixPkgs = ["nodejs_20"]
 
 [phases.install]
-cmd = "npm ci --omit=dev"
+cmd = "npm ci && cd next-frontend && npm ci"
 
 [phases.build]
-cmd = "echo 'Build complete'"
+cmd = "npm run build:frontend"
 
 [start]
-cmd = "node server/server.js"
+cmd = "npm start"

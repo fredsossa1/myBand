@@ -64,18 +64,49 @@ const membersConfigPath = path.join(process.cwd(), "data", "members.json");
 const defaultMembers = JSON.parse(fs.readFileSync(membersConfigPath, "utf8"));
 await initSchema(defaultMembers);
 
-app.use(
-  express.static(process.cwd(), {
-    // Disable caching for development
-    setHeaders: (res, path) => {
-      // Disable caching for all files in development
-      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-      res.setHeader("Pragma", "no-cache");
-      res.setHeader("Expires", "0");
-      res.setHeader("ETag", "false");
-    },
-  })
-);
+// Proxy to Next.js in development, serve build in production
+if (process.env.NODE_ENV === "development") {
+  console.log("🔄 Development mode: Proxying to Next.js dev server");
+  
+  // In development, proxy to Next.js dev server
+  app.get("*", (req, res, next) => {
+    // Skip API routes
+    if (req.path.startsWith("/api/")) {
+      return next();
+    }
+    
+    // Proxy to Next.js dev server
+    const nextUrl = `http://localhost:3000${req.path}`;
+    res.redirect(302, nextUrl);
+  });
+} else {
+  console.log("🏗️ Production mode: Serving Next.js build");
+  
+  // In production, serve Next.js build
+  const frontendPath = path.join(process.cwd(), "next-frontend", ".next");
+  
+  // Serve static files from Next.js build
+  app.use("/_next", express.static(path.join(frontendPath, "static")));
+  
+  // Fallback to index.html for client-side routing
+  app.get("*", (req, res, next) => {
+    // Skip API routes
+    if (req.path.startsWith("/api/")) {
+      return next();
+    }
+    
+    res.status(501).send(`
+      <h1>Production Frontend Not Implemented</h1>
+      <p>In production, this should either:</p>
+      <ul>
+        <li>Run Next.js as a separate service on a different port</li>
+        <li>Migrate API routes to Next.js API routes</li>
+        <li>Use a reverse proxy (nginx, etc.)</li>
+      </ul>
+      <p><a href="/api/members">API is working - click here to test</a></p>
+    `);
+  });
+}
 
 app.get("/api/members", async (req, res) => {
   try {
