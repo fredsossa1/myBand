@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '@/components/ui/input';
 import { getAvailabilityIcon, getRoleDisplayName, formatDate } from '@/lib/constants';
 import { groupMembersByRole } from '@/lib/utils';
-import { Role, AvailabilityState } from '@/lib/types';
+import { Role, AvailabilityState, Member } from '@/lib/types';
 
 interface BulkActionModalProps {
   isOpen: boolean;
@@ -280,7 +280,7 @@ export default function AvailabilityPage() {
                           <div className="px-2 py-1 text-sm font-semibold text-gray-500 uppercase">
                             {getRoleDisplayName(role as Role)}
                           </div>
-                          {people.map((member) => (
+                          {people.map((member: Member) => (
                             <SelectItem key={member.id} value={member.id}>
                               {member.name}
                             </SelectItem>
@@ -493,7 +493,7 @@ export default function AvailabilityPage() {
                     {hasResponses ? (
                       <div className="space-y-4">
                         {Object.entries(membersByRole).map(([role, people]) => {
-                          const roleResponses = people.filter(person => {
+                          const roleResponses = people.filter((person: Member) => {
                             const state = dayAvail[person.id];
                             return state && state !== '?';
                           });
@@ -506,7 +506,7 @@ export default function AvailabilityPage() {
                                 🎵 {getRoleDisplayName(role as Role)} ({roleResponses.length}/{people.length} responded)
                               </h4>
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                                {roleResponses.map(person => {
+                                {roleResponses.map((person: Member) => {
                                   const state = dayAvail[person.id];
                                   const isCurrentUser = currentUser?.id === person.id;
                                   

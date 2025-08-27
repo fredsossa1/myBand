@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { groupMembersByRole, groupAvailabilityByDate } from '@/lib/utils';
 import { getAvailabilityIcon, getRoleDisplayName, formatDate } from '@/lib/constants';
-import { Role, AvailabilityState } from '@/lib/types';
+import { Role, AvailabilityState, Member, AvailabilityRecord } from '@/lib/types';
 
 export default function StatsPage() {
   const { members, events, availability, loading, error, refetch } = useAppData();
@@ -41,7 +41,7 @@ export default function StatsPage() {
       
       events.forEach(event => {
         const dayAvail = availabilityByDate[event.date] || {};
-        roleMembers.forEach(member => {
+        roleMembers.forEach((member: Member) => {
           const state = dayAvail[member.id];
           if (state && state !== '?') {
             roleResponses++;
@@ -88,7 +88,7 @@ export default function StatsPage() {
       .filter(record => record.created_at)
       .sort((a, b) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime())
       .slice(0, 10)
-      .map(record => {
+      .map((record: AvailabilityRecord) => {
         const member = members.find(m => m.id === record.person_id);
         const event = events.find(e => e.date === record.date);
         return {
