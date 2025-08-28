@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAvailability, useBandKeyboardShortcuts } from "@/hooks";
+import { useTranslations } from "@/hooks/use-language";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -52,9 +53,10 @@ function BulkActionModal({
   state,
 }: BulkActionModalProps) {
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
+  const t = useTranslations();
 
   const stateText =
-    state === "A" ? "Available" : state === "U" ? "Unavailable" : "Uncertain";
+    state === "A" ? t.available : state === "U" ? t.unavailable : t.uncertain;
 
   const toggleDate = (date: string) => {
     setSelectedDates((prev) =>
@@ -82,10 +84,10 @@ function BulkActionModal({
       <DialogContent className="glass border-white/20 max-w-md">
         <DialogHeader>
           <DialogTitle className="text-white">
-            🎯 Set {stateText} for Multiple Events
+            🎯 {t.bulkSetTitle.replace('{state}', stateText)}
           </DialogTitle>
           <DialogDescription className="text-white/70">
-            Select which events to update:
+            {t.bulkSelectEvents}
           </DialogDescription>
         </DialogHeader>
 
@@ -96,8 +98,8 @@ function BulkActionModal({
             className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
           >
             {selectedDates.length === events.length
-              ? "Deselect All"
-              : "Select All"}
+              ? t.deselectAll
+              : t.selectAll}
           </Button>
 
           <div className="space-y-2 max-h-60 overflow-y-auto">
@@ -126,7 +128,7 @@ function BulkActionModal({
               onClick={onClose}
               className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20"
             >
-              Cancel
+              {t.cancel}
             </Button>
             <Button
               onClick={handleApply}
@@ -167,6 +169,7 @@ function AddEventModal({ isOpen, onClose, onAdd }: AddEventModalProps) {
     type: "service",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const t = useTranslations();
 
   const handleSubmit = async () => {
     if (!eventData.date || !eventData.title) return;
@@ -194,15 +197,15 @@ function AddEventModal({ isOpen, onClose, onAdd }: AddEventModalProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="glass border-white/20 max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-white">📅 Add New Event</DialogTitle>
+          <DialogTitle className="text-white">📅 {t.addNewEvent}</DialogTitle>
           <DialogDescription className="text-white/70">
-            Create a new event for the band to respond to
+            {t.addEventDescription}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div>
-            <label className="text-white text-sm font-medium">Date</label>
+            <label className="text-white text-sm font-medium">{t.date}</label>
             <Input
               type="date"
               value={eventData.date}
@@ -216,7 +219,7 @@ function AddEventModal({ isOpen, onClose, onAdd }: AddEventModalProps) {
 
           <div>
             <label className="text-white text-sm font-medium">
-              Event Title
+              {t.eventTitle}
             </label>
             <Input
               type="text"
@@ -224,14 +227,14 @@ function AddEventModal({ isOpen, onClose, onAdd }: AddEventModalProps) {
               onChange={(e) =>
                 setEventData((prev) => ({ ...prev, title: e.target.value }))
               }
-              placeholder="e.g., Sunday Service, Practice, Concert"
+              placeholder={t.eventTitlePlaceholder}
               className="bg-white/10 border-white/20 text-white mt-1"
             />
           </div>
 
           <div>
             <label className="text-white text-sm font-medium">
-              Description (Optional)
+              {t.descriptionOptional}
             </label>
             <Input
               type="text"
@@ -242,13 +245,13 @@ function AddEventModal({ isOpen, onClose, onAdd }: AddEventModalProps) {
                   description: e.target.value,
                 }))
               }
-              placeholder="Additional details about the event"
+              placeholder={t.eventDescriptionPlaceholder}
               className="bg-white/10 border-white/20 text-white mt-1"
             />
           </div>
 
           <div>
-            <label className="text-white text-sm font-medium">Event Type</label>
+            <label className="text-white text-sm font-medium">{t.eventType}</label>
             <Select
               value={eventData.type}
               onValueChange={(value) =>
@@ -259,10 +262,10 @@ function AddEventModal({ isOpen, onClose, onAdd }: AddEventModalProps) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="service">Service</SelectItem>
-                <SelectItem value="band-only">Band Only</SelectItem>
-                <SelectItem value="jam-session">Jam Session</SelectItem>
-                <SelectItem value="special-event">Special Event</SelectItem>
+                <SelectItem value="service">{t.service}</SelectItem>
+                <SelectItem value="band-only">{t.bandOnly}</SelectItem>
+                <SelectItem value="jam-session">{t.jamSession}</SelectItem>
+                <SelectItem value="special-event">{t.specialEvent}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -274,14 +277,14 @@ function AddEventModal({ isOpen, onClose, onAdd }: AddEventModalProps) {
               disabled={isSubmitting}
               className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20"
             >
-              Cancel
+              {t.cancel}
             </Button>
             <Button
               onClick={handleSubmit}
               disabled={!eventData.date || !eventData.title || isSubmitting}
               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
             >
-              {isSubmitting ? "Adding..." : "Add Event"}
+              {isSubmitting ? t.adding : t.addEvent}
             </Button>
           </div>
         </div>
@@ -291,6 +294,8 @@ function AddEventModal({ isOpen, onClose, onAdd }: AddEventModalProps) {
 }
 
 export default function AvailabilityPage() {
+  const t = useTranslations();
+  
   const [bulkModal, setBulkModal] = useState<{
     isOpen: boolean;
     state: AvailabilityState;
@@ -358,11 +363,11 @@ export default function AvailabilityPage() {
         localStorage.setItem("adminSession", adminPassword);
         setAdminPassword("");
       } else {
-        alert("Invalid admin password");
+        alert(t.invalidAdminPassword);
       }
     } catch (error) {
       console.error("Admin login error:", error);
-      alert("Login failed");
+      alert(t.loginFailed);
     }
   };
 
@@ -379,13 +384,13 @@ export default function AvailabilityPage() {
     type?: string;
   }) => {
     if (!isAdmin) {
-      alert("Admin access required");
+      alert(t.adminAccessRequired);
       return;
     }
 
     const adminSession = localStorage.getItem("adminSession");
     if (!adminSession) {
-      alert("Admin session expired. Please login again.");
+      alert(t.adminSessionExpired);
       setIsAdmin(false);
       return;
     }
@@ -404,7 +409,7 @@ export default function AvailabilityPage() {
         await refetch(); // Refresh events list
       } else {
         const error = await response.json();
-        alert(error.error || "Failed to add event");
+        alert(error.error || t.failedToAddEvent);
 
         // If admin access is denied, logout
         if (response.status === 403) {
@@ -413,7 +418,7 @@ export default function AvailabilityPage() {
       }
     } catch (error) {
       console.error("Error adding event:", error);
-      alert("Failed to add event");
+      alert(t.failedToAddEvent);
     }
   };
 
@@ -431,15 +436,14 @@ export default function AvailabilityPage() {
     events.forEach((event) => {
       const dayAvail = availabilityByDate[event.date] || {};
       Object.values(dayAvail).forEach((state) => {
-        if (state && state !== "?") stats.totalResponses++;
+        if (state) stats.totalResponses++; // Include all responses (A, U, and ?)
       });
 
       if (
         currentUser &&
-        dayAvail[currentUser.id] &&
-        dayAvail[currentUser.id] !== "?"
+        dayAvail[currentUser.id]
       ) {
-        stats.userResponses++;
+        stats.userResponses++; // Include all user responses (A, U, and ?)
       }
     });
   }
@@ -464,7 +468,7 @@ export default function AvailabilityPage() {
             <CardContent className="p-12 text-center">
               <div className="text-white">
                 <div className="text-4xl mb-4">⏳</div>
-                <p className="text-xl">Loading availability data...</p>
+                <p className="text-xl">{t.loadingAvailabilityData}</p>
               </div>
             </CardContent>
           </Card>
@@ -481,9 +485,9 @@ export default function AvailabilityPage() {
             <CardContent className="p-12 text-center">
               <div className="text-red-400">
                 <div className="text-4xl mb-4">❌</div>
-                <p className="text-xl">Error loading data: {error}</p>
+                <p className="text-xl">{t.errorLoadingData}: {error}</p>
                 <Button onClick={refetch} className="mt-4" variant="outline">
-                  Try Again
+                  {t.tryAgain}
                 </Button>
               </div>
             </CardContent>
@@ -503,10 +507,10 @@ export default function AvailabilityPage() {
               <div>
                 <CardTitle className="text-white text-2xl flex items-center gap-3">
                   <span className="text-3xl">🎵</span>
-                  Band Availability System
+                  {t.appTitle}
                 </CardTitle>
                 <p className="text-white/70 mt-2">
-                  Manage your availability for upcoming events
+                  {t.appSubtitle}
                 </p>
               </div>
               <div className="flex gap-2">
@@ -516,7 +520,7 @@ export default function AvailabilityPage() {
                   onClick={() => setShowKeyboardHelp(true)}
                   className="bg-white/10 border-white/20 text-white hover:bg-white/20"
                 >
-                  ⌨️ Shortcuts
+                  ⌨️ {t.keyboardShortcuts}
                 </Button>
                 <Button
                   variant="outline"
@@ -524,7 +528,7 @@ export default function AvailabilityPage() {
                   onClick={refetch}
                   className="bg-white/10 border-white/20 text-white hover:bg-white/20"
                 >
-                  🔄 Refresh
+                  🔄 {t.refresh}
                 </Button>
               </div>
             </div>
@@ -538,16 +542,16 @@ export default function AvailabilityPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="text-white">
-                    <div className="font-semibold">🔑 Admin Access</div>
+                    <div className="font-semibold">🔑 {t.adminAccess}</div>
                     <div className="text-sm text-white/70">
-                      Login to manage events
+                      {t.loginToManageEvents}
                     </div>
                   </div>
                   {showAdminLogin && (
                     <div className="flex items-center gap-2">
                       <Input
                         type="password"
-                        placeholder="Admin password"
+                        placeholder={t.adminPassword}
                         value={adminPassword}
                         onChange={(e) => setAdminPassword(e.target.value)}
                         onKeyPress={(e) =>
@@ -560,14 +564,14 @@ export default function AvailabilityPage() {
                         disabled={!adminPassword}
                         className="bg-blue-600 hover:bg-blue-700 text-white"
                       >
-                        Login
+                        {t.login}
                       </Button>
                       <Button
                         variant="outline"
                         onClick={() => setShowAdminLogin(false)}
                         className="bg-white/10 border-white/20 text-white hover:bg-white/20"
                       >
-                        Cancel
+                        {t.cancel}
                       </Button>
                     </div>
                   )}
@@ -578,7 +582,7 @@ export default function AvailabilityPage() {
                     onClick={() => setShowAdminLogin(true)}
                     className="bg-white/10 border-white/20 text-white hover:bg-white/20"
                   >
-                    🔓 Admin Login
+                    🔓 {t.adminLogin}
                   </Button>
                 )}
               </div>
@@ -589,10 +593,10 @@ export default function AvailabilityPage() {
                     variant="secondary"
                     className="bg-green-500/20 text-green-300 border-green-500/30"
                   >
-                    🔑 Admin Access Granted
+                    🔑 {t.adminAccessGranted}
                   </Badge>
                   <div className="text-white text-sm">
-                    You can now manage events and view statistics
+                    {t.adminManageDescription}
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -600,14 +604,14 @@ export default function AvailabilityPage() {
                     onClick={() => setAddEventModal(true)}
                     className="bg-green-600 hover:bg-green-700 text-white"
                   >
-                    📅 Add Event
+                    📅 {t.addEvent}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={handleAdminLogout}
                     className="bg-white/10 border-white/20 text-white hover:bg-white/20"
                   >
-                    🚪 Logout
+                    🚪 {t.logout}
                   </Button>
                 </div>
               </div>
@@ -628,7 +632,7 @@ export default function AvailabilityPage() {
                   }}
                 >
                   <SelectTrigger className="w-64 bg-white/10 border-white/20 text-white">
-                    <SelectValue placeholder="Select your name..." />
+                    <SelectValue placeholder={t.selectName} />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.entries(membersByRole).map(
@@ -655,7 +659,7 @@ export default function AvailabilityPage() {
                       variant="secondary"
                       className="bg-green-500/20 text-green-300 border-green-500/30"
                     >
-                      Welcome, {currentUser.name}!
+                      {t.welcome}, {currentUser.name}!
                     </Badge>
                     <Button
                       variant="ghost"
@@ -663,7 +667,7 @@ export default function AvailabilityPage() {
                       onClick={() => setCurrentUser(null)}
                       className="text-white/60 hover:text-white hover:bg-white/10"
                     >
-                      ✕ Clear
+                      ✕ {t.clear}
                     </Button>
                   </div>
                 )}
@@ -685,12 +689,12 @@ export default function AvailabilityPage() {
                           : "hover:border-gray-500/50"
                       }`}
                     >
-                      Bulk {getAvailabilityIconOrDefault(state)}{" "}
+                      {t.bulk} {getAvailabilityIconOrDefault(state)}{" "}
                       {state === "A"
-                        ? "Available"
+                        ? t.available
                         : state === "U"
-                        ? "Unavailable"
-                        : "Uncertain"}
+                        ? t.unavailable
+                        : t.uncertain}
                     </Button>
                   ))}
                 </div>
@@ -707,20 +711,20 @@ export default function AvailabilityPage() {
                 <div className="text-2xl font-bold text-white">
                   {stats.totalEvents}
                 </div>
-                <div className="text-white/60 text-sm">Upcoming Events</div>
+                <div className="text-white/60 text-sm">{t.upcomingEvents}</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-white">
                   {stats.totalMembers}
                 </div>
-                <div className="text-white/60 text-sm">Band Members</div>
+                <div className="text-white/60 text-sm">{t.bandMembers}</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-white">
                   {overallRate}%
                 </div>
                 <div className="text-white/60 text-sm">
-                  Overall Response Rate
+                  {t.overallResponseRate}
                 </div>
               </div>
               {currentUser && (
@@ -729,7 +733,7 @@ export default function AvailabilityPage() {
                     {userRate}%
                   </div>
                   <div className="text-white/60 text-sm">
-                    Your Response Rate
+                    {t.yourResponseRate}
                   </div>
                 </div>
               )}
@@ -746,11 +750,10 @@ export default function AvailabilityPage() {
                   <span className="text-2xl">⏳</span>
                   <div className="text-white">
                     <div className="font-semibold">
-                      {pendingChanges.size} unsaved change
-                      {pendingChanges.size !== 1 ? "s" : ""}
+                      {pendingChanges.size} {t.unsavedChanges}
                     </div>
                     <div className="text-sm text-white/70">
-                      Changes are saved locally - submit to save to server
+                      {t.unsavedChangesDescription}
                     </div>
                   </div>
                 </div>
@@ -761,14 +764,14 @@ export default function AvailabilityPage() {
                     onClick={discardAllChanges}
                     className="bg-white/10 border-white/20 text-white hover:bg-white/20"
                   >
-                    Discard All
+                    {t.discardAll}
                   </Button>
                   <Button
                     size="sm"
                     onClick={submitAllChanges}
                     className="bg-orange-600 hover:bg-orange-700 text-white"
                   >
-                    Submit All Changes
+                    {t.submitAllChanges}
                   </Button>
                 </div>
               </div>
@@ -784,9 +787,9 @@ export default function AvailabilityPage() {
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">↶</span>
                   <div className="text-white">
-                    <div className="font-semibold">Undo Available</div>
+                    <div className="font-semibold">{t.undoAvailable}</div>
                     <div className="text-sm text-white/70">
-                      Press Ctrl+Z or click to undo
+                      {t.undoDescription}
                     </div>
                   </div>
                 </div>
@@ -796,7 +799,7 @@ export default function AvailabilityPage() {
                   onClick={undoLastAction}
                   className="bg-white/10 border-white/20 text-white hover:bg-white/20"
                 >
-                  ↶ Undo
+                  ↶ {t.undoAction}
                 </Button>
               </div>
             </CardContent>
@@ -968,7 +971,7 @@ export default function AvailabilityPage() {
                           const roleResponses = people.filter(
                             (person: Member) => {
                               const state = dayAvail[person.id];
-                              return state && state !== "?";
+                              return state; // Include all responses (A, U, and ?)
                             }
                           );
 

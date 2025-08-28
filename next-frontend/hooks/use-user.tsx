@@ -1,7 +1,13 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { UserContext } from '@/lib/types';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { UserContext } from "@/lib/types";
 
 interface UserContextType {
   user: UserContext | null;
@@ -19,13 +25,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   // Check for saved user in localStorage on mount
   useEffect(() => {
-    const savedUser = localStorage.getItem('bandapp_user');
+    const savedUser = localStorage.getItem("bandapp_user");
     if (savedUser) {
       try {
         setUser(JSON.parse(savedUser));
       } catch (error) {
-        console.error('Error parsing saved user:', error);
-        localStorage.removeItem('bandapp_user');
+        console.error("Error parsing saved user:", error);
+        localStorage.removeItem("bandapp_user");
       }
     }
     setLoading(false);
@@ -33,28 +39,28 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const login = async (memberId: string): Promise<boolean> => {
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ memberId })
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ memberId }),
       });
 
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
-        localStorage.setItem('bandapp_user', JSON.stringify(data.user));
+        localStorage.setItem("bandapp_user", JSON.stringify(data.user));
         return true;
       }
       return false;
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       return false;
     }
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('bandapp_user');
+    localStorage.removeItem("bandapp_user");
   };
 
   const contextValue: UserContextType = {
@@ -62,7 +68,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     login,
     logout,
     isAdmin: user?.isAdmin || false,
-    loading
+    loading,
   };
 
   return (
@@ -75,7 +81,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 export function useUser() {
   const context = useContext(UserContextApi);
   if (!context) {
-    throw new Error('useUser must be used within a UserProvider');
+    throw new Error("useUser must be used within a UserProvider");
   }
   return context;
 }
