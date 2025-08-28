@@ -55,8 +55,21 @@ export function Sidebar() {
         <div className="space-y-2">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
+            const isStatsPage = item.href === "/stats";
+            const isDisabled = isStatsPage && !isAdmin;
 
-            return (
+            return isDisabled ? (
+              <div
+                key={item.href}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg w-full text-sm text-white/40 border border-transparent cursor-not-allowed opacity-50"
+              >
+                <span className="text-lg flex-shrink-0">{item.icon}</span>
+                <span className="font-medium">
+                  {t[item.labelKey] as string}
+                </span>
+                <span className="ml-auto text-xs">🔒</span>
+              </div>
+            ) : (
               <Link
                 key={item.href}
                 href={item.href}

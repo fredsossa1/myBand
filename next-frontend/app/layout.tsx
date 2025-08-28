@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "../components/sidebar";
 import { MobileMenu } from "../components/mobile-menu";
+import { PageHeader } from "../components/page-header";
 import { DatabaseInitializer } from "../components/database-initializer";
 import { LanguageProvider } from "@/hooks/use-language";
 import { AdminProvider } from "@/hooks/use-admin";
@@ -38,6 +39,7 @@ export default function RootLayout({
 
                   {/* Main Content */}
                   <div className="flex-1 min-w-0">
+                    <PageHeader />
                     <main>{children}</main>
                   </div>
                 </div>

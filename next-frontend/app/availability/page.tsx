@@ -469,60 +469,76 @@ export default function AvailabilityPage() {
     <div className="space-y-6">
       {/* Header */}
       <Card className="glass border-white/20">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-white text-2xl flex items-center gap-3">
-                <span className="text-3xl">🎵</span>
+        <CardHeader className="pb-4">
+          <div className="space-y-4">
+            {/* Title Section */}
+            <div className="text-center sm:text-left">
+              <CardTitle className="text-white text-xl sm:text-2xl flex items-center justify-center sm:justify-start gap-3">
+                <span className="text-2xl sm:text-3xl">🎵</span>
                 {t.appTitle}
               </CardTitle>
-              <p className="text-white/70 mt-2">{t.appSubtitle}</p>
+              <p className="text-white/70 mt-2 text-sm sm:text-base">{t.appSubtitle}</p>
             </div>
-            <div className="flex gap-2">
+            
+            {/* Button Section */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
               <Button
                 variant="outline"
-                size="sm"
+                size="default"
+                onClick={refetch}
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20 w-full sm:w-auto"
+              >
+                🔄 {t.refresh}
+              </Button>
+              <Button
+                variant="outline"
+                size="default"
                 onClick={() => setShowKeyboardHelp(true)}
                 className="hidden sm:flex bg-white/10 border-white/20 text-white hover:bg-white/20"
               >
                 ⌨️ {t.keyboardShortcuts}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={refetch}
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-              >
-                🔄 {t.refresh}
               </Button>
             </div>
           </div>
         </CardHeader>
       </Card>
 
-      {/* Admin Add Event Button */}
+      {/* Admin Add Event Button - Desktop */}
       {isAdmin && (
-        <Card className="glass border-green-500/30">
+        <Card className="glass border-green-500/30 hidden sm:block">
           <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center justify-between gap-4">
               <div className="text-white">
-                <div className="font-semibold text-green-300 text-sm sm:text-base">
+                <div className="font-semibold text-green-300 text-base">
                   🔑 {t.adminControls}
                 </div>
-                <div className="text-xs sm:text-sm text-white/70">
+                <div className="text-sm text-white/70">
                   {t.adminManageDescription}
                 </div>
               </div>
               <Button
                 onClick={() => setAddEventModal(true)}
-                className="bg-green-600 hover:bg-green-700 text-white self-start sm:self-auto text-sm"
+                className="bg-green-600 hover:bg-green-700 text-white"
                 size="sm"
               >
-                📅 <span className="hidden sm:inline">{t.addEvent}</span>
+                📅 {t.addEvent}
               </Button>
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Admin Add Event Button - Mobile FAB */}
+      {isAdmin && (
+        <div className="fixed bottom-6 right-6 z-50 sm:hidden">
+          <Button
+            onClick={() => setAddEventModal(true)}
+            className="h-14 w-14 rounded-full shadow-lg bg-green-600 hover:bg-green-700 text-white border-2 border-white/20"
+            size="sm"
+          >
+            <span className="text-2xl">📅</span>
+          </Button>
+        </div>
       )}
 
       {/* User Selection */}
@@ -742,24 +758,30 @@ export default function AvailabilityPage() {
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <CardHeader>
-                  <CardTitle className="text-white flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span>{event.title}</span>
-                      {needsResponse && <span>⚠️</span>}
+                  <CardTitle className="text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <span className="truncate">{event.title}</span>
+                      {needsResponse && <span className="flex-shrink-0">⚠️</span>}
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
                       <Badge
                         variant="outline"
                         className={`${getCoverageStatusColor(
                           coverage.status
-                        )} text-xs hidden sm:inline-flex`}
+                        )} text-xs flex-shrink-0`}
                       >
                         {getCoverageStatusIcon(coverage.status)}{" "}
                         {coverage.coverageScore}%
                       </Badge>
-                    </div>
-                    <div className="flex items-center gap-2">
                       <Badge
                         variant="outline"
-                        className="border-white/20 text-white"
+                        className="border-blue-500/30 text-blue-300 text-xs flex-shrink-0"
+                      >
+                        {formatEventType(event.type)}
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        className="border-white/20 text-white whitespace-nowrap flex-shrink-0 text-xs"
                       >
                         {formatDate(event.date)}
                       </Badge>

@@ -88,8 +88,21 @@ export function MobileMenu() {
             <div className="space-y-1">
               {navItems.map((item) => {
                 const isActive = pathname === item.href;
+                const isStatsPage = item.href === "/stats";
+                const isDisabled = isStatsPage && !isAdmin;
 
-                return (
+                return isDisabled ? (
+                  <div
+                    key={item.href}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg w-full text-sm text-white/40 border border-transparent cursor-not-allowed opacity-50"
+                  >
+                    <span className="text-base flex-shrink-0">{item.icon}</span>
+                    <span className="font-medium">
+                      {t[item.labelKey] as string}
+                    </span>
+                    <span className="ml-auto text-xs">🔒</span>
+                  </div>
+                ) : (
                   <Link
                     key={item.href}
                     href={item.href}
