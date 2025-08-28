@@ -5,6 +5,10 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { LanguageToggle } from "./language-switcher";
 import { useTranslations } from "@/hooks/use-language";
+import { useAdmin } from "@/hooks/use-admin";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 interface NavItem {
   href: string;
@@ -16,6 +20,16 @@ interface NavItem {
 export function Navigation() {
   const pathname = usePathname();
   const t = useTranslations();
+  const {
+    isAdmin,
+    adminPassword,
+    setAdminPassword,
+    showAdminLogin,
+    setShowAdminLogin,
+    handleAdminLogin,
+    handleAdminLogout,
+    loginError
+  } = useAdmin();
 
   const navItems: NavItem[] = [
     {
@@ -39,8 +53,9 @@ export function Navigation() {
   ];
 
   return (
-    <nav className="glass rounded-xl border border-white/20 p-2">
-      <div className="flex items-center justify-between">
+    <nav className="glass rounded-xl border border-white/20 p-4">
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        {/* Navigation Links */}
         <div className="flex items-center gap-2">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
@@ -65,8 +80,74 @@ export function Navigation() {
           })}
         </div>
         
-        {/* Language Switcher */}
-        <LanguageToggle />
+        {/* Admin Section & Language Switcher */}
+        <div className="flex items-center gap-4">
+          {/* Admin Status/Login */}
+          {!isAdmin ? (
+            <div className="flex items-center gap-2">
+              {showAdminLogin ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="password"
+                    placeholder={t.adminPassword}
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleAdminLogin()}
+                    className="w-40 bg-white/10 border-white/20 text-white text-sm"
+                  />
+                  <Button
+                    onClick={handleAdminLogin}
+                    disabled={!adminPassword}
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {t.login}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAdminLogin(false)}
+                    size="sm"
+                    className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                  >
+                    {t.cancel}
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  onClick={() => setShowAdminLogin(true)}
+                  size="sm"
+                  className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                >
+                  🔓 {t.adminLogin}
+                </Button>
+              )}
+              {loginError && (
+                <span className="text-red-300 text-sm">{loginError}</span>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="secondary"
+                className="bg-green-500/20 text-green-300 border-green-500/30"
+              >
+                🔑 {t.adminAccessGranted}
+              </Badge>
+              <Button
+                variant="outline"
+                onClick={handleAdminLogout}
+                size="sm"
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+              >
+                🚪 {t.logout}
+              </Button>
+            </div>
+          )}
+          
+          {/* Language Switcher */}
+          <LanguageToggle />
+        </div>
       </div>
     </nav>
   );

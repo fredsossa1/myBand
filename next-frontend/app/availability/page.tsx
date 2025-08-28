@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAvailability, useBandKeyboardShortcuts } from "@/hooks";
 import { useTranslations } from "@/hooks/use-language";
+import { useAdmin } from "@/hooks/use-admin";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -305,9 +306,8 @@ export default function AvailabilityPage() {
   });
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [addEventModal, setAddEventModal] = useState(false);
-  const [adminPassword, setAdminPassword] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  
+  const { isAdmin, handleAdminLogout } = useAdmin();
 
   const {
     members,
@@ -331,14 +331,6 @@ export default function AvailabilityPage() {
     setBulkAvailability,
   } = useAvailability();
 
-  // Check for existing admin session on component mount
-  useEffect(() => {
-    const savedAdminSession = localStorage.getItem("adminSession");
-    if (savedAdminSession === "worship2024") {
-      setIsAdmin(true);
-    }
-  }, []);
-
   // Setup keyboard shortcuts
   useBandKeyboardShortcuts({
     refresh: refetch,
@@ -347,35 +339,6 @@ export default function AvailabilityPage() {
     toggleUser: () => setCurrentUser(currentUser ? null : members?.[0] || null),
     openHelp: () => setShowKeyboardHelp(true),
   });
-
-  // Admin functions
-  const handleAdminLogin = async () => {
-    try {
-      const response = await fetch("/api/admin/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: adminPassword }),
-      });
-
-      if (response.ok) {
-        setIsAdmin(true);
-        setShowAdminLogin(false);
-        localStorage.setItem("adminSession", adminPassword);
-        setAdminPassword("");
-      } else {
-        alert(t.invalidAdminPassword);
-      }
-    } catch (error) {
-      console.error("Admin login error:", error);
-      alert(t.loginFailed);
-    }
-  };
-
-  const handleAdminLogout = () => {
-    setIsAdmin(false);
-    setAdminPassword("");
-    localStorage.removeItem("adminSession");
-  };
 
   const handleAddEvent = async (eventData: {
     date: string;
@@ -391,7 +354,7 @@ export default function AvailabilityPage() {
     const adminSession = localStorage.getItem("adminSession");
     if (!adminSession) {
       alert(t.adminSessionExpired);
-      setIsAdmin(false);
+      handleAdminLogout();
       return;
     }
 
@@ -535,89 +498,25 @@ export default function AvailabilityPage() {
           </CardHeader>
         </Card>
 
-        {/* Admin Section */}
-        <Card className="glass border-white/20">
-          <CardContent className="p-6">
-            {!isAdmin ? (
+        {/* Admin Add Event Button */}
+        {isAdmin && (
+          <Card className="glass border-green-500/30">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="text-white">
-                    <div className="font-semibold">🔑 {t.adminAccess}</div>
-                    <div className="text-sm text-white/70">
-                      {t.loginToManageEvents}
-                    </div>
-                  </div>
-                  {showAdminLogin && (
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="password"
-                        placeholder={t.adminPassword}
-                        value={adminPassword}
-                        onChange={(e) => setAdminPassword(e.target.value)}
-                        onKeyPress={(e) =>
-                          e.key === "Enter" && handleAdminLogin()
-                        }
-                        className="w-48 bg-white/10 border-white/20 text-white"
-                      />
-                      <Button
-                        onClick={handleAdminLogin}
-                        disabled={!adminPassword}
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
-                      >
-                        {t.login}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => setShowAdminLogin(false)}
-                        className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-                      >
-                        {t.cancel}
-                      </Button>
-                    </div>
-                  )}
+                <div className="text-white">
+                  <div className="font-semibold text-green-300">🔑 {t.adminControls}</div>
+                  <div className="text-sm text-white/70">{t.adminManageDescription}</div>
                 </div>
-                {!showAdminLogin && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowAdminLogin(true)}
-                    className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-                  >
-                    🔓 {t.adminLogin}
-                  </Button>
-                )}
+                <Button
+                  onClick={() => setAddEventModal(true)}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  📅 {t.addEvent}
+                </Button>
               </div>
-            ) : (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <Badge
-                    variant="secondary"
-                    className="bg-green-500/20 text-green-300 border-green-500/30"
-                  >
-                    🔑 {t.adminAccessGranted}
-                  </Badge>
-                  <div className="text-white text-sm">
-                    {t.adminManageDescription}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => setAddEventModal(true)}
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    📅 {t.addEvent}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handleAdminLogout}
-                    className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-                  >
-                    🚪 {t.logout}
-                  </Button>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* User Selection */}
         <Card className="glass border-white/20">
@@ -967,11 +866,29 @@ export default function AvailabilityPage() {
                     {/* Responses by role */}
                     {hasResponses ? (
                       <div className="space-y-4">
+                        {/* Coverage optimization indicator */}
+                        {coverage.status === "fully-covered" && (
+                          <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                            <div className="flex items-center gap-2 text-green-300 text-sm">
+                              <span>✅</span>
+                              <span>{t.fullyCovered} - {t.availableMembers.toLowerCase()} shown only</span>
+                            </div>
+                          </div>
+                        )}
+                        
                         {Object.entries(membersByRole).map(([role, people]) => {
                           const roleResponses = people.filter(
                             (person: Member) => {
                               const state = dayAvail[person.id];
-                              return state; // Include all responses (A, U, and ?)
+                              if (!state) return false;
+                              
+                              // If event is fully covered, only show available responses
+                              if (coverage.status === "fully-covered") {
+                                return state === "A";
+                              }
+                              
+                              // Otherwise show all responses (A, U, and ?)
+                              return true;
                             }
                           );
 
@@ -981,8 +898,12 @@ export default function AvailabilityPage() {
                             <div key={role} className="space-y-2">
                               <h4 className="text-white font-medium">
                                 🎵 {getRoleDisplayName(role as Role)} (
-                                {roleResponses.length}/{people.length}{" "}
-                                responded)
+                                {roleResponses.length}/{
+                                  coverage.status === "fully-covered" 
+                                    ? people.filter((p: Member) => dayAvail[p.id] === "A").length
+                                    : people.length
+                                }{" "}
+                                {coverage.status === "fully-covered" ? t.availableMembers.toLowerCase() : "responded"})
                               </h4>
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                                 {roleResponses.map((person: Member) => {

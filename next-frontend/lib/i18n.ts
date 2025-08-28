@@ -110,6 +110,7 @@ export interface Translations {
   invalidAdminPassword: string;
   adminAccessRequired: string;
   adminSessionExpired: string;
+  adminControls: string;
   failedToAddEvent: string;
   loginToManageEvents: string;
   adminAccessGranted: string;
@@ -129,6 +130,7 @@ export interface Translations {
   coverage: string;
   bandCoverage: string;
   fullyCovered: string;
+  availableMembers: string;
   partiallyCovered: string;
   notCovered: string;
   coverageScore: string;
@@ -246,6 +248,7 @@ export const translations: Record<Language, Translations> = {
     invalidAdminPassword: "Invalid admin password",
     adminAccessRequired: "Admin access required",
     adminSessionExpired: "Admin session expired. Please login again.",
+    adminControls: "Admin Controls",
     failedToAddEvent: "Failed to add event",
     loginToManageEvents: "Login to manage events",
     adminAccessGranted: "Admin Access Granted",
@@ -319,6 +322,7 @@ export const translations: Record<Language, Translations> = {
     coverage: "Coverage",
     bandCoverage: "Band Coverage",
     fullyCovered: "Fully Covered",
+    availableMembers: "Available Members",
     partiallyCovered: "Partially Covered", 
     notCovered: "Not Covered",
     coverageScore: "Coverage Score",
@@ -436,6 +440,7 @@ export const translations: Record<Language, Translations> = {
     invalidAdminPassword: "Mot de passe administrateur invalide",
     adminAccessRequired: "Accès administrateur requis",
     adminSessionExpired: "Session administrateur expirée. Veuillez vous reconnecter.",
+    adminControls: "Contrôles Administrateur",
     failedToAddEvent: "Échec de l'ajout de l'événement",
     loginToManageEvents: "Connectez-vous pour gérer les événements",
     adminAccessGranted: "Accès Administrateur Accordé",
@@ -509,6 +514,7 @@ export const translations: Record<Language, Translations> = {
     coverage: "Couverture",
     bandCoverage: "Couverture du Groupe",
     fullyCovered: "Entièrement Couvert",
+    availableMembers: "Membres Disponibles",
     partiallyCovered: "Partiellement Couvert",
     notCovered: "Non Couvert",
     coverageScore: "Score de Couverture",
