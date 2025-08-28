@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 
 interface AdminContextType {
   isAdmin: boolean;
@@ -32,7 +38,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password: savedAdminSession }),
       })
-        .then(response => {
+        .then((response) => {
           if (response.ok) {
             setIsAdmin(true);
           } else {
@@ -49,7 +55,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const handleAdminLogin = async () => {
     setLoginError(null);
-    
+
     try {
       const response = await fetch("/api/admin/verify", {
         method: "POST",
@@ -80,17 +86,19 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AdminContext.Provider value={{
-      isAdmin,
-      setIsAdmin,
-      adminPassword,
-      setAdminPassword,
-      showAdminLogin,
-      setShowAdminLogin,
-      handleAdminLogin,
-      handleAdminLogout,
-      loginError,
-    }}>
+    <AdminContext.Provider
+      value={{
+        isAdmin,
+        setIsAdmin,
+        adminPassword,
+        setAdminPassword,
+        showAdminLogin,
+        setShowAdminLogin,
+        handleAdminLogin,
+        handleAdminLogout,
+        loginError,
+      }}
+    >
       {children}
     </AdminContext.Provider>
   );

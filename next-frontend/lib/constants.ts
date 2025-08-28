@@ -108,7 +108,9 @@ export function getEventTypeDisplayName(type: EventType): string {
 
 // Date formatting utilities
 export function formatDate(dateString: string): string {
-  const date = new Date(dateString);
+  // Parse as local date to avoid timezone issues
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
   return date.toLocaleDateString("en-US", {
     weekday: "short",
     year: "numeric",
@@ -118,7 +120,9 @@ export function formatDate(dateString: string): string {
 }
 
 export function formatDateShort(dateString: string): string {
-  const date = new Date(dateString);
+  // Parse as local date to avoid timezone issues
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
   return date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -126,20 +130,26 @@ export function formatDateShort(dateString: string): string {
 }
 
 export function isToday(dateString: string): boolean {
-  const date = new Date(dateString);
+  // Parse as local date to avoid timezone issues
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
   const today = new Date();
   return date.toDateString() === today.toDateString();
 }
 
 export function isPast(dateString: string): boolean {
-  const date = new Date(dateString);
+  // Parse as local date to avoid timezone issues
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return date < today;
 }
 
 export function isFuture(dateString: string): boolean {
-  const date = new Date(dateString);
+  // Parse as local date to avoid timezone issues
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
   const today = new Date();
   today.setHours(23, 59, 59, 999);
   return date > today;

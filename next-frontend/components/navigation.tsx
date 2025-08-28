@@ -28,7 +28,7 @@ export function Navigation() {
     setShowAdminLogin,
     handleAdminLogin,
     handleAdminLogout,
-    loginError
+    loginError,
   } = useAdmin();
 
   const navItems: NavItem[] = [
@@ -54,9 +54,9 @@ export function Navigation() {
 
   return (
     <nav className="glass rounded-xl border border-white/20 p-4">
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
         {/* Navigation Links */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
 
@@ -65,86 +65,93 @@ export function Navigation() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200",
-                  "hover:bg-white/10 hover:text-white",
+                  "flex items-center gap-3 px-4 py-3 sm:px-3 sm:py-2 rounded-lg transition-all duration-200",
+                  "hover:bg-white/10 hover:text-white text-sm sm:text-base min-h-[44px] sm:min-h-0",
                   isActive
                     ? "bg-white/20 text-white border border-white/30"
                     : "text-white/70 border border-transparent"
                 )}
                 title={t[item.descriptionKey] as string}
               >
-                <span className="text-lg">{item.icon}</span>
-                <span className="font-medium">{t[item.labelKey] as string}</span>
+                <span className="text-lg flex-shrink-0">{item.icon}</span>
+                <span className="font-medium">
+                  {t[item.labelKey] as string}
+                </span>
               </Link>
             );
           })}
         </div>
-        
+
         {/* Admin Section & Language Switcher */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
           {/* Admin Status/Login */}
           {!isAdmin ? (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
               {showAdminLogin ? (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
                   <Input
                     type="password"
                     placeholder={t.adminPassword}
                     value={adminPassword}
                     onChange={(e) => setAdminPassword(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && handleAdminLogin()}
-                    className="w-40 bg-white/10 border-white/20 text-white text-sm"
+                    className="w-full sm:w-32 md:w-40 bg-white/10 border-white/20 text-white text-sm"
                   />
-                  <Button
-                    onClick={handleAdminLogin}
-                    disabled={!adminPassword}
-                    size="sm"
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    {t.login}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowAdminLogin(false)}
-                    size="sm"
-                    className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-                  >
-                    {t.cancel}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleAdminLogin}
+                      disabled={!adminPassword}
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm"
+                    >
+                      {t.login}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowAdminLogin(false)}
+                      size="sm"
+                      className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-xs sm:text-sm"
+                    >
+                      {t.cancel}
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <Button
                   variant="outline"
                   onClick={() => setShowAdminLogin(true)}
                   size="sm"
-                  className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-xs sm:text-sm"
                 >
-                  🔓 {t.adminLogin}
+                  🔓 <span className="hidden sm:inline">{t.adminLogin}</span>
                 </Button>
               )}
               {loginError && (
-                <span className="text-red-300 text-sm">{loginError}</span>
+                <span className="text-red-300 text-xs sm:text-sm">
+                  {loginError}
+                </span>
               )}
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
               <Badge
                 variant="secondary"
-                className="bg-green-500/20 text-green-300 border-green-500/30"
+                className="bg-green-500/20 text-green-300 border-green-500/30 text-xs sm:text-sm"
               >
-                🔑 {t.adminAccessGranted}
+                🔑{" "}
+                <span className="hidden sm:inline">{t.adminAccessGranted}</span>
               </Badge>
               <Button
                 variant="outline"
                 onClick={handleAdminLogout}
                 size="sm"
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-xs sm:text-sm"
               >
-                🚪 {t.logout}
+                🚪 <span className="hidden sm:inline">{t.logout}</span>
               </Button>
             </div>
           )}
-          
+
           {/* Language Switcher */}
           <LanguageToggle />
         </div>

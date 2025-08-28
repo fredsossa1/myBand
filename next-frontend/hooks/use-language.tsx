@@ -1,13 +1,19 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { 
-  Language, 
-  Translations, 
-  getTranslation, 
-  loadLanguagePreference, 
-  saveLanguagePreference 
-} from '@/lib/i18n';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import {
+  Language,
+  Translations,
+  getTranslation,
+  loadLanguagePreference,
+  saveLanguagePreference,
+} from "@/lib/i18n";
 
 interface LanguageContextType {
   language: Language;
@@ -19,7 +25,7 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | null>(null);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>('en');
+  const [language, setLanguageState] = useState<Language>("en");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -51,7 +57,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 export function useLanguage(): LanguageContextType {
   const context = useContext(LanguageContext);
   if (!context) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
+    throw new Error("useLanguage must be used within a LanguageProvider");
   }
   return context;
 }

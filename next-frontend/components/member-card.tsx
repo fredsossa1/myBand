@@ -74,13 +74,15 @@ export function MemberCard({
     >
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-3">
-          <div className="text-2xl">{getRoleIcon(member.role)}</div>
-          <div className="flex-1">
-            <div className="text-white font-semibold">{member.name}</div>
+          <div className="text-xl sm:text-2xl">{getRoleIcon(member.role)}</div>
+          <div className="flex-1 min-w-0">
+            <div className="text-white font-semibold text-sm sm:text-base truncate">
+              {member.name}
+            </div>
             <Badge
               variant="secondary"
               className={cn(
-                "text-xs text-white bg-gradient-to-r border-0",
+                "text-xs text-white bg-gradient-to-r border-0 mt-1",
                 roleColor
               )}
             >
@@ -91,14 +93,16 @@ export function MemberCard({
       </CardHeader>
 
       <CardContent className="pt-0">
-        <div className="flex items-center gap-2">
-          <span className="text-white/80 text-sm">Availability:</span>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <span className="text-white/80 text-xs sm:text-sm">
+            Availability:
+          </span>
 
           {availability ? (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <div
                 className={cn(
-                  "px-2 py-1 rounded-md text-xs font-medium border",
+                  "px-2 py-1 rounded-md text-xs font-medium border w-fit",
                   availabilityColor
                 )}
               >
@@ -137,8 +141,10 @@ export function MemberCard({
               )}
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <span className="text-white/60 text-sm">No response</span>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <span className="text-white/60 text-xs sm:text-sm">
+                No response
+              </span>
 
               {onAvailabilityChange && (
                 <div className="flex gap-1">

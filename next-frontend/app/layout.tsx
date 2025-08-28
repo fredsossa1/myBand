@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Navigation } from "../components/navigation";
+import { Sidebar } from "../components/sidebar";
+import { MobileMenu } from "../components/mobile-menu";
 import { DatabaseInitializer } from "../components/database-initializer";
 import { LanguageProvider } from "@/hooks/use-language";
 import { AdminProvider } from "@/hooks/use-admin";
@@ -25,13 +26,22 @@ export default function RootLayout({
           <AdminProvider>
             <DatabaseInitializer />
             <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-              {/* Navigation */}
-              <div className="container mx-auto px-4 pt-4">
-                <Navigation />
-              </div>
+              {/* Mobile Menu Button */}
+              <MobileMenu />
+              
+              <div className="container mx-auto px-4 py-4">
+                <div className="flex flex-col lg:flex-row gap-6">
+                  {/* Desktop Sidebar (hidden on mobile) */}
+                  <div className="w-full lg:w-64 flex-shrink-0 hidden lg:block">
+                    <Sidebar />
+                  </div>
 
-              {/* Main Content */}
-              <main className="pb-8">{children}</main>
+                  {/* Main Content */}
+                  <div className="flex-1 min-w-0">
+                    <main>{children}</main>
+                  </div>
+                </div>
+              </div>
             </div>
           </AdminProvider>
         </LanguageProvider>

@@ -49,7 +49,7 @@ export function EventCard({
     return (
       <div
         className={cn(
-          "glass rounded-lg p-3 transition-all cursor-pointer",
+          "glass rounded-lg p-4 transition-all cursor-pointer",
           "hover:scale-105 hover:shadow-lg",
           isPastEvent && "opacity-60",
           isTodayEvent && "ring-2 ring-yellow-400/50",
@@ -57,35 +57,20 @@ export function EventCard({
         )}
         onClick={onClick}
       >
-        <div className="flex items-center gap-3">
-          <div className="text-lg">{getEventTypeIcon(event.type)}</div>
-          <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-4">
+          <div className="text-xl flex-shrink-0">
+            {getEventTypeIcon(event.type)}
+          </div>
+          <div className="flex-1 min-w-0 space-y-2">
             <div className="text-white font-medium text-sm truncate">
               {event.title}
             </div>
-            <div className="text-white/60 text-xs">
-              {formatDateShort(event.date)}
+            <div className="flex flex-col gap-1">
+              <div className="text-white/60 text-xs">
+                {formatDateShort(event.date)}
+              </div>
             </div>
           </div>
-          {coverageStats && (
-            <div className="text-right">
-              <div className="text-xs text-white/80">
-                {coverageStats.availableCount}/{coverageStats.totalMembers}
-              </div>
-              <div
-                className={cn(
-                  "text-xs",
-                  coveragePercentage >= 80
-                    ? "text-green-400"
-                    : coveragePercentage >= 60
-                    ? "text-yellow-400"
-                    : "text-red-400"
-                )}
-              >
-                {coveragePercentage}%
-              </div>
-            </div>
-          )}
         </div>
       </div>
     );
@@ -103,70 +88,65 @@ export function EventCard({
       onClick={onClick}
     >
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-3">
-          <div className="text-2xl">{getEventTypeIcon(event.type)}</div>
-          <div className="flex-1">
-            <div className="text-white font-semibold">{event.title}</div>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge
-                variant="secondary"
-                className={cn(
-                  "text-xs text-white bg-gradient-to-r border-0",
-                  eventTypeColor
+        <CardTitle className="flex items-start gap-3">
+          <div className="text-xl sm:text-2xl flex-shrink-0">
+            {getEventTypeIcon(event.type)}
+          </div>
+          <div className="flex-1 min-w-0 space-y-1">
+            <div className="text-white font-semibold text-sm sm:text-base truncate">
+              {event.title}
+            </div>
+            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-1 sm:gap-2">
+              <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3">
+                <div className="text-white/80 text-xs font-medium">
+                  📅 {formatDate(event.date)}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                {isTodayEvent && (
+                  <Badge
+                    variant="secondary"
+                    className="text-xs bg-yellow-500/20 border-yellow-500/40 text-yellow-300"
+                  >
+                    Today
+                  </Badge>
                 )}
-              >
-                {getEventTypeDisplayName(event.type)}
-              </Badge>
-              {isTodayEvent && (
-                <Badge
-                  variant="secondary"
-                  className="text-xs bg-yellow-500/20 border-yellow-500/40 text-yellow-300"
-                >
-                  Today
-                </Badge>
-              )}
-              {isPastEvent && (
-                <Badge
-                  variant="secondary"
-                  className="text-xs bg-gray-500/20 border-gray-500/40 text-gray-400"
-                >
-                  Past
-                </Badge>
-              )}
+                {isPastEvent && (
+                  <Badge
+                    variant="secondary"
+                    className="text-xs bg-gray-500/20 border-gray-500/40 text-gray-400"
+                  >
+                    Past
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="pt-0 space-y-3">
+      <CardContent className="pt-0 space-y-4">
         <div>
-          <div className="text-white/80 text-sm font-medium">
+          <div className="hidden sm:block text-white/80 text-xs sm:text-sm font-medium whitespace-nowrap">
             📅 {formatDate(event.date)}
           </div>
           {event.description && (
-            <div className="text-white/60 text-sm mt-1">
+            <div className="text-white/60 text-xs sm:text-sm mt-1">
               {event.description}
             </div>
           )}
         </div>
 
         {coverageStats && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-white/80">Response Rate:</span>
-              <span
-                className={cn(
-                  "font-medium",
-                  coveragePercentage >= 80
-                    ? "text-green-400"
-                    : coveragePercentage >= 60
-                    ? "text-yellow-400"
-                    : "text-red-400"
-                )}
-              >
-                {coverageStats.totalResponses}/{coverageStats.totalMembers} (
-                {coveragePercentage}%)
-              </span>
+          <div className="space-y-3">
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span className="text-white/80">Coverage:</span>
+                <span className="text-white font-medium">
+                  {coverageStats.availableCount}/{coverageStats.totalMembers}{" "}
+                  members
+                </span>
+              </div>
             </div>
 
             <div className="w-full bg-white/10 rounded-full h-2">
@@ -183,16 +163,41 @@ export function EventCard({
               />
             </div>
 
-            <div className="flex justify-between text-xs">
-              <span className="text-green-400">
-                ✅ {coverageStats.availableCount} Available
-              </span>
-              <span className="text-red-400">
-                ❌ {coverageStats.unavailableCount} Unavailable
-              </span>
-              <span className="text-yellow-400">
-                ❓ {coverageStats.uncertainCount} Uncertain
-              </span>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+              <div className="flex items-center justify-between sm:justify-center">
+                <span className="text-green-400">✅ Available</span>
+                <span className="text-white sm:hidden">
+                  {coverageStats.availableCount}
+                </span>
+              </div>
+              <div className="flex items-center justify-between sm:justify-center">
+                <span className="text-red-400">❌ Unavailable</span>
+                <span className="text-white sm:hidden">
+                  {coverageStats.unavailableCount}
+                </span>
+              </div>
+              <div className="flex items-center justify-between sm:justify-center">
+                <span className="text-yellow-400">❓ Uncertain</span>
+                <span className="text-white sm:hidden">
+                  {coverageStats.uncertainCount}
+                </span>
+              </div>
+              {/* Desktop numbers */}
+              <div className="hidden sm:block text-center">
+                <span className="text-white font-medium">
+                  {coverageStats.availableCount}
+                </span>
+              </div>
+              <div className="hidden sm:block text-center">
+                <span className="text-white font-medium">
+                  {coverageStats.unavailableCount}
+                </span>
+              </div>
+              <div className="hidden sm:block text-center">
+                <span className="text-white font-medium">
+                  {coverageStats.uncertainCount}
+                </span>
+              </div>
             </div>
           </div>
         )}

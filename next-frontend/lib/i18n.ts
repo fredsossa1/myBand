@@ -1,7 +1,7 @@
 // Internationalization (i18n) support for the Band Availability System
 // Supports English and French languages
 
-export type Language = 'en' | 'fr';
+export type Language = "en" | "fr";
 
 export interface Translations {
   // App Title and Navigation
@@ -9,12 +9,12 @@ export interface Translations {
   appSubtitle: string;
   bandAvailabilitySystem: string;
   manageAvailabilityDescription: string;
-  
+
   // Navigation
   home: string;
   availability: string;
   statistics: string;
-  
+
   // General UI
   loading: string;
   error: string;
@@ -29,11 +29,13 @@ export interface Translations {
   clear: string;
   login: string;
   logout: string;
+  language: string;
+  adminMode: string;
   back: string;
   next: string;
   previous: string;
   close: string;
-  
+
   // Admin Section
   adminAccess: string;
   adminLogin: string;
@@ -44,19 +46,19 @@ export interface Translations {
   adminExpired: string;
   addEvent: string;
   manageEvents: string;
-  
+
   // User Selection
   selectName: string;
   chooseYourName: string;
   welcome: string;
   yourName: string;
-  
+
   // Availability States
   available: string;
   unavailable: string;
   uncertain: string;
   notResponded: string;
-  
+
   // Availability Actions
   setAvailable: string;
   setUnavailable: string;
@@ -65,7 +67,7 @@ export interface Translations {
   bulkUnavailable: string;
   bulkUncertain: string;
   yourAvailability: string;
-  
+
   // Team and Roles
   bassist: string;
   pianist: string;
@@ -73,7 +75,7 @@ export interface Translations {
   lead: string;
   backgroundVocals: string;
   admin: string;
-  
+
   // Statistics
   stats: string;
   teamStats: string;
@@ -87,7 +89,7 @@ export interface Translations {
   totalResponses: string;
   responses: string;
   responded: string;
-  
+
   // Events
   events: string;
   event: string;
@@ -102,10 +104,10 @@ export interface Translations {
   addNewEvent: string;
   addEventDescription: string;
   descriptionOptional: string;
-  
+
   // Actions and Messages (new ones only)
   adding: string;
-  
+
   // Admin Messages (new ones only)
   invalidAdminPassword: string;
   adminAccessRequired: string;
@@ -115,17 +117,17 @@ export interface Translations {
   loginToManageEvents: string;
   adminAccessGranted: string;
   adminManageDescription: string;
-  
+
   // Loading States (new ones only)
   loadingAvailabilityData: string;
   errorLoadingData: string;
-  
+
   // Event Types
   service: string;
   bandOnly: string;
   jamSession: string;
   specialEvent: string;
-  
+
   // Coverage
   coverage: string;
   bandCoverage: string;
@@ -135,7 +137,7 @@ export interface Translations {
   notCovered: string;
   coverageScore: string;
   required: string;
-  
+
   // Changes and Actions
   pendingChanges: string;
   unsavedChanges: string;
@@ -149,7 +151,7 @@ export interface Translations {
   undoAction: string;
   undoAvailable: string;
   undoDescription: string;
-  
+
   // Keyboard Shortcuts
   keyboardShortcuts: string;
   shortcuts: string;
@@ -158,7 +160,7 @@ export interface Translations {
   undoLast: string;
   saveChanges: string;
   showHelp: string;
-  
+
   // Messages and Feedback
   loadingData: string;
   errorLoading: string;
@@ -169,18 +171,18 @@ export interface Translations {
   loginFailed: string;
   addEventSuccess: string;
   addEventFailed: string;
-  
+
   // Dates and Time
   date: string;
   today: string;
   upcoming: string;
   past: string;
-  
+
   // Form Validation
   required_field: string;
   invalid_date: string;
   invalid_email: string;
-  
+
   // Bulk Actions
   bulkActions: string;
   bulkSetTitle: string;
@@ -190,12 +192,12 @@ export interface Translations {
   selectEvents: string;
   setForMultiple: string;
   bulk: string;
-  
+
   // Planning Center Integration
   exportCsv: string;
   planningCenter: string;
   exportData: string;
-  
+
   // Responsive Messages
   excellent: string;
   goodJob: string;
@@ -209,13 +211,14 @@ export const translations: Record<Language, Translations> = {
     appTitle: "Band Availability System",
     appSubtitle: "Manage your availability for upcoming events",
     bandAvailabilitySystem: "Band Availability System",
-    manageAvailabilityDescription: "Manage your availability for upcoming events",
-    
+    manageAvailabilityDescription:
+      "Manage your availability for upcoming events",
+
     // Navigation
     home: "Home",
-    availability: "Availability", 
+    availability: "Availability",
     statistics: "Statistics",
-    
+
     // General UI
     loading: "Loading",
     error: "Error",
@@ -230,11 +233,13 @@ export const translations: Record<Language, Translations> = {
     clear: "Clear",
     login: "Login",
     logout: "Logout",
+    language: "Language",
+    adminMode: "Admin Mode",
     back: "Back",
     next: "Next",
     previous: "Previous",
     close: "Close",
-    
+
     // Admin Section
     adminAccess: "Admin Access",
     adminLogin: "Admin Login",
@@ -253,19 +258,19 @@ export const translations: Record<Language, Translations> = {
     loginToManageEvents: "Login to manage events",
     adminAccessGranted: "Admin Access Granted",
     adminManageDescription: "You can now manage events and view statistics",
-    
+
     // User Selection
     selectName: "Select your name",
     chooseYourName: "Choose your name...",
     welcome: "Welcome",
     yourName: "Your Name",
-    
+
     // Availability States
     available: "Available",
-    unavailable: "Unavailable", 
+    unavailable: "Unavailable",
     uncertain: "Uncertain",
     notResponded: "Not Responded",
-    
+
     // Availability Actions
     setAvailable: "Set Available",
     setUnavailable: "Set Unavailable",
@@ -274,7 +279,7 @@ export const translations: Record<Language, Translations> = {
     bulkUnavailable: "Bulk Unavailable",
     bulkUncertain: "Bulk Uncertain",
     yourAvailability: "Your Availability",
-    
+
     // Team and Roles
     bassist: "Bassist",
     pianist: "Pianist",
@@ -282,11 +287,11 @@ export const translations: Record<Language, Translations> = {
     lead: "Lead Vocals",
     backgroundVocals: "Background Vocals",
     admin: "Administrator",
-    
+
     // Statistics
     stats: "Stats",
     teamStats: "Team Stats",
-    teamEngagement: "Team Engagement", 
+    teamEngagement: "Team Engagement",
     upcomingEvents: "Upcoming Events",
     bandMembers: "Band Members",
     overallResponseRate: "Overall Response Rate",
@@ -296,7 +301,7 @@ export const translations: Record<Language, Translations> = {
     totalResponses: "Total Responses",
     responses: "Responses",
     responded: "responded",
-    
+
     // Events
     events: "Events",
     event: "Event",
@@ -311,28 +316,29 @@ export const translations: Record<Language, Translations> = {
     addNewEvent: "Add New Event",
     addEventDescription: "Create a new event for the band to respond to",
     descriptionOptional: "Description (Optional)",
-    
+
     // Event Types
     service: "Service",
     bandOnly: "Band Only",
     jamSession: "Jam Session",
     specialEvent: "Special Event",
-    
+
     // Coverage
     coverage: "Coverage",
     bandCoverage: "Band Coverage",
     fullyCovered: "Fully Covered",
     availableMembers: "Available Members",
-    partiallyCovered: "Partially Covered", 
+    partiallyCovered: "Partially Covered",
     notCovered: "Not Covered",
     coverageScore: "Coverage Score",
     required: "required",
-    
+
     // Changes and Actions
     pendingChanges: "Pending Changes",
     unsavedChanges: "unsaved changes",
     unsavedChange: "unsaved change",
-    unsavedChangesDescription: "Changes are saved locally - submit to save to server",
+    unsavedChangesDescription:
+      "Changes are saved locally - submit to save to server",
     changesLocal: "Changes are saved locally - submit to save to server",
     submitChanges: "Submit Changes",
     discardChanges: "Discard Changes",
@@ -341,7 +347,7 @@ export const translations: Record<Language, Translations> = {
     undoAction: "Undo",
     undoAvailable: "Undo Available",
     undoDescription: "Press Ctrl+Z or click to undo",
-    
+
     // Keyboard Shortcuts
     keyboardShortcuts: "Keyboard Shortcuts",
     shortcuts: "Shortcuts",
@@ -350,7 +356,7 @@ export const translations: Record<Language, Translations> = {
     undoLast: "Undo last action",
     saveChanges: "Save changes",
     showHelp: "Show this help",
-    
+
     // Messages and Feedback
     loadingData: "Loading availability data...",
     loadingAvailabilityData: "Loading availability data...",
@@ -364,18 +370,18 @@ export const translations: Record<Language, Translations> = {
     addEventSuccess: "Event added successfully",
     addEventFailed: "Failed to add event",
     adding: "Adding...",
-    
+
     // Dates and Time
     date: "Date",
     today: "Today",
     upcoming: "Upcoming",
     past: "Past",
-    
+
     // Form Validation
     required_field: "This field is required",
     invalid_date: "Invalid date",
     invalid_email: "Invalid email",
-    
+
     // Bulk Actions
     bulkActions: "Bulk Actions",
     bulkSetTitle: "Set {state} for Multiple Events",
@@ -384,30 +390,31 @@ export const translations: Record<Language, Translations> = {
     deselectAll: "Deselect All",
     selectEvents: "Select Events",
     setForMultiple: "Set for Multiple",
-    bulk: "Bulk",    // Planning Center Integration
+    bulk: "Bulk", // Planning Center Integration
     exportCsv: "Export CSV",
     planningCenter: "Planning Center",
     exportData: "Export Data",
-    
+
     // Responsive Messages
     excellent: "🎉 Excellent!",
     goodJob: "👍 Good job",
     keepImproving: "📈 Keep improving",
-    pleaseRespond: "💬 Please respond more"
+    pleaseRespond: "💬 Please respond more",
   },
-  
+
   fr: {
     // App Title and Navigation
     appTitle: "Système de Disponibilité du Groupe",
     appSubtitle: "Gérez votre disponibilité pour les événements à venir",
     bandAvailabilitySystem: "Système de Disponibilité du Groupe",
-    manageAvailabilityDescription: "Gérez votre disponibilité pour les événements à venir",
-    
+    manageAvailabilityDescription:
+      "Gérez votre disponibilité pour les événements à venir",
+
     // Navigation
     home: "Accueil",
     availability: "Disponibilité",
     statistics: "Statistiques",
-    
+
     // General UI
     loading: "Chargement",
     error: "Erreur",
@@ -422,11 +429,13 @@ export const translations: Record<Language, Translations> = {
     clear: "Effacer",
     login: "Connexion",
     logout: "Déconnexion",
+    language: "Langue",
+    adminMode: "Mode Admin",
     back: "Retour",
     next: "Suivant",
     previous: "Précédent",
     close: "Fermer",
-    
+
     // Admin Section
     adminAccess: "Accès Administrateur",
     adminLogin: "Connexion Admin",
@@ -439,34 +448,36 @@ export const translations: Record<Language, Translations> = {
     manageEvents: "Connectez-vous pour gérer les événements",
     invalidAdminPassword: "Mot de passe administrateur invalide",
     adminAccessRequired: "Accès administrateur requis",
-    adminSessionExpired: "Session administrateur expirée. Veuillez vous reconnecter.",
+    adminSessionExpired:
+      "Session administrateur expirée. Veuillez vous reconnecter.",
     adminControls: "Contrôles Administrateur",
     failedToAddEvent: "Échec de l'ajout de l'événement",
     loginToManageEvents: "Connectez-vous pour gérer les événements",
     adminAccessGranted: "Accès Administrateur Accordé",
-    adminManageDescription: "Vous pouvez maintenant gérer les événements et consulter les statistiques",
-    
+    adminManageDescription:
+      "Vous pouvez maintenant gérer les événements et consulter les statistiques",
+
     // User Selection
     selectName: "Sélectionnez votre nom",
     chooseYourName: "Choisissez votre nom...",
     welcome: "Bienvenue",
     yourName: "Votre Nom",
-    
+
     // Availability States
     available: "Disponible",
     unavailable: "Indisponible",
     uncertain: "Incertain",
     notResponded: "Pas de Réponse",
-    
+
     // Availability Actions
     setAvailable: "Définir Disponible",
-    setUnavailable: "Définir Indisponible", 
+    setUnavailable: "Définir Indisponible",
     setUncertain: "Définir Incertain",
     bulkAvailable: "Disponible en Masse",
     bulkUnavailable: "Indisponible en Masse",
     bulkUncertain: "Incertain en Masse",
     yourAvailability: "Votre Disponibilité",
-    
+
     // Team and Roles
     bassist: "Bassiste",
     pianist: "Pianiste",
@@ -474,7 +485,7 @@ export const translations: Record<Language, Translations> = {
     lead: "Chant Principal",
     backgroundVocals: "Chœurs",
     admin: "Administrateur",
-    
+
     // Statistics
     stats: "Statistiques",
     teamStats: "Stats de l'Équipe",
@@ -488,7 +499,7 @@ export const translations: Record<Language, Translations> = {
     totalResponses: "Total des Réponses",
     responses: "Réponses",
     responded: "ont répondu",
-    
+
     // Events
     events: "Événements",
     event: "Événement",
@@ -501,15 +512,16 @@ export const translations: Record<Language, Translations> = {
     noEvents: "Aucun événement programmé",
     noEventsDesc: "Contactez votre administrateur pour ajouter des événements",
     addNewEvent: "Ajouter un Nouvel Événement",
-    addEventDescription: "Créer un nouvel événement pour que le groupe puisse répondre",
+    addEventDescription:
+      "Créer un nouvel événement pour que le groupe puisse répondre",
     descriptionOptional: "Description (Optionnelle)",
-    
+
     // Event Types
     service: "Service",
-    bandOnly: "Groupe Seulement",
+    bandOnly: "Band Seulement",
     jamSession: "Session Jam",
     specialEvent: "Événement Spécial",
-    
+
     // Coverage
     coverage: "Couverture",
     bandCoverage: "Couverture du Groupe",
@@ -519,13 +531,15 @@ export const translations: Record<Language, Translations> = {
     notCovered: "Non Couvert",
     coverageScore: "Score de Couverture",
     required: "requis",
-    
+
     // Changes and Actions
     pendingChanges: "Modifications en Attente",
     unsavedChanges: "modifications non sauvegardées",
     unsavedChange: "modification non sauvegardée",
-    unsavedChangesDescription: "Les modifications sont sauvegardées localement - soumettez pour sauvegarder sur le serveur",
-    changesLocal: "Les modifications sont sauvegardées localement - soumettez pour sauvegarder sur le serveur",
+    unsavedChangesDescription:
+      "Les modifications sont sauvegardées localement - soumettez pour sauvegarder sur le serveur",
+    changesLocal:
+      "Les modifications sont sauvegardées localement - soumettez pour sauvegarder sur le serveur",
     submitChanges: "Soumettre les Modifications",
     discardChanges: "Ignorer les Modifications",
     discardAll: "Tout Ignorer",
@@ -533,7 +547,7 @@ export const translations: Record<Language, Translations> = {
     undoAction: "Annuler",
     undoAvailable: "Annulation Disponible",
     undoDescription: "Appuyez sur Ctrl+Z ou cliquez pour annuler",
-    
+
     // Keyboard Shortcuts
     keyboardShortcuts: "Raccourcis Clavier",
     shortcuts: "Raccourcis",
@@ -542,32 +556,33 @@ export const translations: Record<Language, Translations> = {
     undoLast: "Annuler la dernière action",
     saveChanges: "Sauvegarder les modifications",
     showHelp: "Afficher cette aide",
-    
+
     // Messages and Feedback
     loadingData: "Chargement des données de disponibilité...",
     loadingAvailabilityData: "Chargement des données de disponibilité...",
     errorLoading: "Erreur lors du chargement des données",
     errorLoadingData: "Erreur lors du chargement des données",
     tryAgain: "Réessayer",
-    noResponsesYet: "Aucune réponse pour le moment. Soyez le premier à répondre !",
+    noResponsesYet:
+      "Aucune réponse pour le moment. Soyez le premier à répondre !",
     beFirstToRespond: "Soyez le premier à répondre !",
     sessionExpired: "Session expirée",
     loginFailed: "Échec de la connexion",
     addEventSuccess: "Événement ajouté avec succès",
     addEventFailed: "Échec de l'ajout de l'événement",
     adding: "Ajout en cours...",
-    
+
     // Dates and Time
     date: "Date",
     today: "Aujourd'hui",
     upcoming: "À venir",
     past: "Passé",
-    
+
     // Form Validation
     required_field: "Ce champ est requis",
     invalid_date: "Date invalide",
     invalid_email: "Email invalide",
-    
+
     // Bulk Actions
     bulkActions: "Actions en Masse",
     bulkSetTitle: "Définir {state} pour Plusieurs Événements",
@@ -577,18 +592,18 @@ export const translations: Record<Language, Translations> = {
     selectEvents: "Sélectionnez les événements à mettre à jour",
     setForMultiple: "Définir pour Plusieurs Événements",
     bulk: "En Masse",
-    
+
     // Planning Center Integration
     exportCsv: "Exporter CSV",
     planningCenter: "Planning Center",
     exportData: "Exporter les Données",
-    
+
     // Responsive Messages
     excellent: "🎉 Excellent !",
     goodJob: "👍 Bon travail",
     keepImproving: "📈 Continuez à vous améliorer",
-    pleaseRespond: "💬 Veuillez répondre plus souvent"
-  }
+    pleaseRespond: "💬 Veuillez répondre plus souvent",
+  },
 };
 
 // Language context and hooks
@@ -598,30 +613,30 @@ export function getTranslation(language: Language): Translations {
 
 // Browser language detection
 export function detectBrowserLanguage(): Language {
-  if (typeof window === 'undefined') return 'en';
-  
+  if (typeof window === "undefined") return "en";
+
   const browserLang = navigator.language.toLowerCase();
-  if (browserLang.startsWith('fr')) {
-    return 'fr';
+  if (browserLang.startsWith("fr")) {
+    return "fr";
   }
-  return 'en';
+  return "en";
 }
 
 // Storage key for language preference
-export const LANGUAGE_STORAGE_KEY = 'band_app_language';
+export const LANGUAGE_STORAGE_KEY = "band_app_language";
 
 // Save language preference
 export function saveLanguagePreference(language: Language): void {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
   }
 }
 
 // Load language preference
 export function loadLanguagePreference(): Language {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY) as Language;
-    if (saved && (saved === 'en' || saved === 'fr')) {
+    if (saved && (saved === "en" || saved === "fr")) {
       return saved;
     }
   }
