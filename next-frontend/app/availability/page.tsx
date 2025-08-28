@@ -38,119 +38,6 @@ import {
 } from "@/lib/utils";
 import { Role, AvailabilityState, Member, EventType } from "@/lib/types";
 
-interface BulkActionModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onApply: (dates: string[], state: AvailabilityState) => void;
-  events: any[];
-  state: AvailabilityState;
-}
-
-function BulkActionModal({
-  isOpen,
-  onClose,
-  onApply,
-  events,
-  state,
-}: BulkActionModalProps) {
-  const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const t = useTranslations();
-
-  const stateText =
-    state === "A" ? t.available : state === "U" ? t.unavailable : t.uncertain;
-
-  const toggleDate = (date: string) => {
-    setSelectedDates((prev) =>
-      prev.includes(date) ? prev.filter((d) => d !== date) : [...prev, date]
-    );
-  };
-
-  const selectAll = () => {
-    const allDates = events.map((e) => e.date);
-    setSelectedDates((prev) =>
-      prev.length === allDates.length ? [] : allDates
-    );
-  };
-
-  const handleApply = () => {
-    if (selectedDates.length > 0) {
-      onApply(selectedDates, state);
-      setSelectedDates([]);
-      onClose();
-    }
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="glass border-white/20 max-w-md w-[calc(100vw-2rem)] sm:w-full mx-auto">
-        <DialogHeader>
-          <DialogTitle className="text-white text-sm sm:text-base">
-            🎯 {t.bulkSetTitle.replace("{state}", stateText)}
-          </DialogTitle>
-          <DialogDescription className="text-white/70 text-xs sm:text-sm">
-            {t.bulkSelectEvents}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <Button
-            variant="outline"
-            onClick={selectAll}
-            className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
-          >
-            {selectedDates.length === events.length
-              ? t.deselectAll
-              : t.selectAll}
-          </Button>
-
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {events.map((event) => (
-              <div key={event.id} className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id={`bulk_${event.date}`}
-                  checked={selectedDates.includes(event.date)}
-                  onChange={() => toggleDate(event.date)}
-                  className="rounded"
-                />
-                <label
-                  htmlFor={`bulk_${event.date}`}
-                  className="text-white text-sm cursor-pointer flex-1"
-                >
-                  {event.title} - {formatDate(event.date)}
-                </label>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-2 pt-4">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className="order-2 sm:order-1 flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20 text-sm"
-            >
-              {t.cancel}
-            </Button>
-            <Button
-              onClick={handleApply}
-              disabled={selectedDates.length === 0}
-              className={`order-1 sm:order-2 flex-1 text-white text-sm ${
-                state === "A"
-                  ? "bg-green-600 hover:bg-green-700"
-                  : state === "U"
-                  ? "bg-red-600 hover:bg-red-700"
-                  : "bg-gray-600 hover:bg-gray-700"
-              }`}
-            >
-              Set {stateText}
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 interface AddEventModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -303,13 +190,6 @@ function AddEventModal({ isOpen, onClose, onAdd }: AddEventModalProps) {
 export default function AvailabilityPage() {
   const t = useTranslations();
 
-  const [bulkModal, setBulkModal] = useState<{
-    isOpen: boolean;
-    state: AvailabilityState;
-  }>({
-    isOpen: false,
-    state: "A",
-  });
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [addEventModal, setAddEventModal] = useState(false);
 
@@ -334,7 +214,6 @@ export default function AvailabilityPage() {
     refetch,
     cycle,
     getUserAvailability,
-    setBulkAvailability,
   } = useAvailability();
 
   // Setup keyboard shortcuts
@@ -466,7 +345,7 @@ export default function AvailabilityPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className={`space-y-6 ${hasUnsavedChanges ? "pb-32" : ""}`}>
       {/* Header */}
       <Card className="glass border-white/20">
         <CardHeader className="pb-4">
@@ -477,9 +356,11 @@ export default function AvailabilityPage() {
                 <span className="text-2xl sm:text-3xl">🎵</span>
                 {t.appTitle}
               </CardTitle>
-              <p className="text-white/70 mt-2 text-sm sm:text-base">{t.appSubtitle}</p>
+              <p className="text-white/70 mt-2 text-sm sm:text-base">
+                {t.appSubtitle}
+              </p>
             </div>
-            
+
             {/* Button Section */}
             <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
               <Button
@@ -594,36 +475,6 @@ export default function AvailabilityPage() {
                 </div>
               )}
             </div>
-
-            {currentUser && (
-              <div className="flex flex-wrap gap-2">
-                {(["A", "U", "?"] as AvailabilityState[]).map((state) => (
-                  <Button
-                    key={state}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setBulkModal({ isOpen: true, state })}
-                    className={`bg-white/10 border-white/20 text-white hover:bg-white/20 text-xs sm:text-sm ${
-                      state === "A"
-                        ? "hover:border-green-500/50"
-                        : state === "U"
-                        ? "hover:border-red-500/50"
-                        : "hover:border-gray-500/50"
-                    }`}
-                  >
-                    <span className="hidden sm:inline">{t.bulk}</span>{" "}
-                    {getAvailabilityIconOrDefault(state)}{" "}
-                    <span className="hidden sm:inline">
-                      {state === "A"
-                        ? t.available
-                        : state === "U"
-                        ? t.unavailable
-                        : t.uncertain}
-                    </span>
-                  </Button>
-                ))}
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
@@ -664,42 +515,41 @@ export default function AvailabilityPage() {
         </CardContent>
       </Card>
 
-      {/* Pending Changes */}
+      {/* Pending Changes - Sticky Bottom Bar */}
       {hasUnsavedChanges && (
-        <Card className="glass border-orange-500/20 bg-orange-500/10">
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">⏳</span>
-                <div className="text-white">
-                  <div className="font-semibold text-sm sm:text-base">
-                    {pendingChanges.size} {t.unsavedChanges}
-                  </div>
-                  <div className="text-xs sm:text-sm text-white/70">
-                    {t.unsavedChangesDescription}
+        <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-black/80 to-transparent">
+          <Card className="glass border-orange-500/20 bg-orange-500/20 backdrop-blur-xl max-w-4xl mx-auto">
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">⏳</span>
+                  <div className="text-white">
+                    <div className="font-semibold text-sm sm:text-base">
+                      {pendingChanges.size} {t.unsavedChanges}
+                    </div>
                   </div>
                 </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={discardAllChanges}
+                    className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                  >
+                    {t.discardAll}
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={submitAllChanges}
+                    className="bg-orange-600 hover:bg-orange-700 text-white"
+                  >
+                    {t.submitAllChanges}
+                  </Button>
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={discardAllChanges}
-                  className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-                >
-                  {t.discardAll}
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={submitAllChanges}
-                  className="bg-orange-600 hover:bg-orange-700 text-white"
-                >
-                  {t.submitAllChanges}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Undo */}
@@ -761,7 +611,9 @@ export default function AvailabilityPage() {
                   <CardTitle className="text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                       <span className="truncate">{event.title}</span>
-                      {needsResponse && <span className="flex-shrink-0">⚠️</span>}
+                      {needsResponse && (
+                        <span className="flex-shrink-0">⚠️</span>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
                       <Badge
@@ -898,7 +750,7 @@ export default function AvailabilityPage() {
                             <span>✅</span>
                             <span>
                               {t.fullyCovered} -{" "}
-                              {t.availableMembers.toLowerCase()} shown only
+                              {t.availableMembers.toLowerCase()}
                             </span>
                           </div>
                         </div>
@@ -1004,18 +856,6 @@ export default function AvailabilityPage() {
       </div>
 
       {/* Modals */}
-      <BulkActionModal
-        isOpen={bulkModal.isOpen}
-        onClose={() => setBulkModal({ ...bulkModal, isOpen: false })}
-        onApply={(dates, state) => {
-          if (currentUser) {
-            setBulkAvailability(dates, currentUser.id, state);
-          }
-        }}
-        events={events || []}
-        state={bulkModal.state}
-      />
-
       <AddEventModal
         isOpen={addEventModal}
         onClose={() => setAddEventModal(false)}

@@ -18,26 +18,26 @@ export function PageHeader() {
         return {
           title: t.home,
           icon: "🏠",
-          description: "Dashboard overview"
+          description: "Dashboard overview",
         };
       case "/availability":
         return {
           title: t.availability,
           icon: "📅",
-          description: t.manageAvailabilityDescription
+          description: t.manageAvailabilityDescription,
         };
       case "/stats":
         return {
           title: t.statistics,
           icon: "📊",
           description: "Band statistics and analytics",
-          adminOnly: true
+          adminOnly: true,
         };
       default:
         return {
           title: "Unknown Page",
           icon: "📄",
-          description: ""
+          description: "",
         };
     }
   };
@@ -51,25 +51,33 @@ export function PageHeader() {
     <Card className="glass border-white/20 mb-6">
       <div className="p-4 lg:p-6">
         <div className="flex items-center gap-3">
-          <span className={`text-2xl lg:text-3xl ${isRestrictedPage ? 'opacity-50' : ''}`}>
+          <span
+            className={`text-2xl lg:text-3xl ${
+              isRestrictedPage ? "opacity-50" : ""
+            }`}
+          >
             {pageInfo.icon}
           </span>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3">
-              <h1 className={`text-white text-lg lg:text-xl font-semibold ${isRestrictedPage ? 'opacity-50' : ''}`}>
+              <h1
+                className={`text-white text-lg lg:text-xl font-semibold ${
+                  isRestrictedPage ? "opacity-50" : ""
+                }`}
+              >
                 {pageInfo.title}
               </h1>
               {isRestrictedPage && (
-                <Badge 
-                  variant="outline" 
+                <Badge
+                  variant="outline"
                   className="border-red-500/50 text-red-300 text-xs"
                 >
                   🔒 Admin Only
                 </Badge>
               )}
               {pathname === "/stats" && isAdmin && (
-                <Badge 
-                  variant="outline" 
+                <Badge
+                  variant="outline"
                   className="border-green-500/50 text-green-300 text-xs"
                 >
                   👑 Admin Access
@@ -77,11 +85,14 @@ export function PageHeader() {
               )}
             </div>
             {pageInfo.description && (
-              <p className={`text-white/70 text-sm lg:text-base mt-1 ${isRestrictedPage ? 'opacity-50' : ''}`}>
-                {isRestrictedPage 
+              <p
+                className={`text-white/70 text-sm lg:text-base mt-1 ${
+                  isRestrictedPage ? "opacity-50" : ""
+                }`}
+              >
+                {isRestrictedPage
                   ? "This page requires admin access. Please log in as admin to view statistics."
-                  : pageInfo.description
-                }
+                  : pageInfo.description}
               </p>
             )}
           </div>
@@ -89,7 +100,11 @@ export function PageHeader() {
           <div className="hidden sm:flex items-center text-white/60 text-sm">
             <span>🎵</span>
             <span className="mx-2">/</span>
-            <span className={`text-white/80 ${isRestrictedPage ? 'opacity-50' : ''}`}>
+            <span
+              className={`text-white/80 ${
+                isRestrictedPage ? "opacity-50" : ""
+              }`}
+            >
               {pageInfo.title}
             </span>
           </div>

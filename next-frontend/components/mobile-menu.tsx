@@ -53,7 +53,10 @@ export function MobileMenu() {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
         setShowAdminLogin(false);
       }
@@ -147,7 +150,9 @@ export function MobileMenu() {
                       placeholder={t.adminPassword}
                       value={adminPassword}
                       onChange={(e) => setAdminPassword(e.target.value)}
-                      onKeyPress={(e) => e.key === "Enter" && handleAdminLogin()}
+                      onKeyPress={(e) =>
+                        e.key === "Enter" && handleAdminLogin()
+                      }
                       className="w-full bg-white/10 border-white/20 text-white text-xs placeholder:text-white/50"
                     />
                     <div className="flex gap-2">

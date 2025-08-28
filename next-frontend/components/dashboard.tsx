@@ -14,14 +14,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState, useMemo } from "react";
-import { 
-  formatDate, 
-  formatDateShort, 
-  isToday, 
+import {
+  formatDate,
+  formatDateShort,
+  isToday,
   isPast,
   getRoleDisplayName,
   getEventTypeIcon,
-  getAvailabilityIcon
+  getAvailabilityIcon,
 } from "@/lib/constants";
 import { Event, Member, AvailabilityRecord } from "@/lib/types";
 import { groupAvailabilityByDate } from "@/lib/utils";
@@ -42,7 +42,7 @@ export function Dashboard() {
         upcomingEvents: [],
         recentActivity: [],
         memberStats: null,
-        nextEvent: null
+        nextEvent: null,
       };
     }
 
@@ -50,13 +50,14 @@ export function Dashboard() {
     const totalMembers = members.length;
     const totalPossibleResponses = totalEvents * totalMembers;
     const totalResponses = availability.length;
-    const responseRate = totalPossibleResponses > 0 
-      ? Math.round((totalResponses / totalPossibleResponses) * 100) 
-      : 0;
+    const responseRate =
+      totalPossibleResponses > 0
+        ? Math.round((totalResponses / totalPossibleResponses) * 100)
+        : 0;
 
     // Get upcoming events (next 3)
     const upcomingEvents = events
-      .filter(event => !isPast(event.date))
+      .filter((event) => !isPast(event.date))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .slice(0, 3);
 
@@ -65,12 +66,15 @@ export function Dashboard() {
 
     // Recent activity (last 5)
     const recentActivity = availability
-      .filter(record => record.created_at)
-      .sort((a, b) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime())
+      .filter((record) => record.created_at)
+      .sort(
+        (a, b) =>
+          new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime()
+      )
       .slice(0, 5)
-      .map(record => {
-        const member = members.find(m => m.id === record.person_id);
-        const event = events.find(e => e.date === record.date);
+      .map((record) => {
+        const member = members.find((m) => m.id === record.person_id);
+        const event = events.find((e) => e.date === record.date);
         return {
           ...record,
           memberName: member?.name || "Unknown",
@@ -82,25 +86,28 @@ export function Dashboard() {
     // Member-specific stats if selected
     let memberStats = null;
     if (selectedMember) {
-      const member = members.find(m => m.id === selectedMember);
+      const member = members.find((m) => m.id === selectedMember);
       if (member) {
-        const memberAvailability = availability.filter(a => a.person_id === selectedMember);
+        const memberAvailability = availability.filter(
+          (a) => a.person_id === selectedMember
+        );
         const memberResponses = memberAvailability.length;
-        const memberResponseRate = totalEvents > 0 
-          ? Math.round((memberResponses / totalEvents) * 100) 
-          : 0;
-        
+        const memberResponseRate =
+          totalEvents > 0
+            ? Math.round((memberResponses / totalEvents) * 100)
+            : 0;
+
         const availabilityByDate = groupAvailabilityByDate(memberAvailability);
-        const memberEventStatus = upcomingEvents.map(event => ({
+        const memberEventStatus = upcomingEvents.map((event) => ({
           ...event,
-          status: availabilityByDate[event.date]?.[selectedMember] || null
+          status: availabilityByDate[event.date]?.[selectedMember] || null,
         }));
 
         memberStats = {
           member,
           responses: memberResponses,
           responseRate: memberResponseRate,
-          eventStatus: memberEventStatus
+          eventStatus: memberEventStatus,
         };
       }
     }
@@ -114,7 +121,7 @@ export function Dashboard() {
       upcomingEvents,
       recentActivity,
       memberStats,
-      nextEvent
+      nextEvent,
     };
   }, [members, events, availability, selectedMember]);
 
@@ -204,17 +211,18 @@ export function Dashboard() {
             <div className="w-full bg-white/10 rounded-full h-3">
               <div
                 className={`h-3 rounded-full transition-all duration-300 ${
-                  stats.responseRate >= 80 
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-500'
+                  stats.responseRate >= 80
+                    ? "bg-gradient-to-r from-green-500 to-emerald-500"
                     : stats.responseRate >= 60
-                    ? 'bg-gradient-to-r from-yellow-500 to-orange-500'
-                    : 'bg-gradient-to-r from-red-500 to-pink-500'
+                    ? "bg-gradient-to-r from-yellow-500 to-orange-500"
+                    : "bg-gradient-to-r from-red-500 to-pink-500"
                 }`}
                 style={{ width: `${stats.responseRate}%` }}
               />
             </div>
             <div className="text-xs text-white/60">
-              {stats.totalResponses} / {stats.totalPossibleResponses} {t.responses}
+              {stats.totalResponses} / {stats.totalPossibleResponses}{" "}
+              {t.responses}
             </div>
           </CardContent>
         </Card>
@@ -226,7 +234,8 @@ export function Dashboard() {
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-3">
               <span className="text-xl">👤</span>
-              {stats.memberStats.member.name} - {getRoleDisplayName(stats.memberStats.member.role)}
+              {stats.memberStats.member.name} -{" "}
+              {getRoleDisplayName(stats.memberStats.member.role)}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -244,33 +253,53 @@ export function Dashboard() {
                 <div className="text-sm text-white/70">Response Rate</div>
               </div>
             </div>
-            
+
             {stats.memberStats.eventStatus.length > 0 && (
               <div className="space-y-2">
-                <h4 className="text-white font-medium">Upcoming Events Status:</h4>
+                <h4 className="text-white font-medium">
+                  Upcoming Events Status:
+                </h4>
                 <div className="space-y-2">
-                  {stats.memberStats.eventStatus.map(event => (
-                    <div key={event.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                  {stats.memberStats.eventStatus.map((event) => (
+                    <div
+                      key={event.id}
+                      className="flex items-center justify-between p-3 rounded-lg bg-white/5"
+                    >
                       <div className="flex items-center gap-3">
-                        <span className="text-lg">{getEventTypeIcon(event.type)}</span>
+                        <span className="text-lg">
+                          {getEventTypeIcon(event.type)}
+                        </span>
                         <div>
-                          <div className="text-white text-sm font-medium">{event.title}</div>
-                          <div className="text-white/60 text-xs">{formatDate(event.date)}</div>
+                          <div className="text-white text-sm font-medium">
+                            {event.title}
+                          </div>
+                          <div className="text-white/60 text-xs">
+                            {formatDate(event.date)}
+                          </div>
                         </div>
                       </div>
-                      <Badge 
+                      <Badge
                         variant="outline"
                         className={`${
-                          event.status === 'A' ? 'border-green-500/50 text-green-300' :
-                          event.status === 'U' ? 'border-red-500/50 text-red-300' :
-                          event.status === '?' ? 'border-yellow-500/50 text-yellow-300' :
-                          'border-gray-500/50 text-gray-400'
+                          event.status === "A"
+                            ? "border-green-500/50 text-green-300"
+                            : event.status === "U"
+                            ? "border-red-500/50 text-red-300"
+                            : event.status === "?"
+                            ? "border-yellow-500/50 text-yellow-300"
+                            : "border-gray-500/50 text-gray-400"
                         }`}
                       >
-                        {event.status ? getAvailabilityIcon(event.status) : '⭕'} 
-                        {event.status === 'A' ? 'Available' : 
-                         event.status === 'U' ? 'Unavailable' : 
-                         event.status === '?' ? 'Uncertain' : 'No Response'}
+                        {event.status
+                          ? getAvailabilityIcon(event.status)
+                          : "⭕"}
+                        {event.status === "A"
+                          ? "Available"
+                          : event.status === "U"
+                          ? "Unavailable"
+                          : event.status === "?"
+                          ? "Uncertain"
+                          : "No Response"}
                       </Badge>
                     </div>
                   ))}
@@ -295,8 +324,13 @@ export function Dashboard() {
             {stats.upcomingEvents.length > 0 ? (
               <div className="space-y-3">
                 {stats.upcomingEvents.map((event) => (
-                  <div key={event.id} className="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-                    <div className="text-2xl">{getEventTypeIcon(event.type)}</div>
+                  <div
+                    key={event.id}
+                    className="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                  >
+                    <div className="text-2xl">
+                      {getEventTypeIcon(event.type)}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-white font-medium text-sm truncate">
                         {event.title}
@@ -334,18 +368,27 @@ export function Dashboard() {
             {stats.recentActivity.length > 0 ? (
               <div className="space-y-3">
                 {stats.recentActivity.map((activity, index) => (
-                  <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
+                  <div
+                    key={index}
+                    className="flex items-center gap-3 p-3 rounded-lg bg-white/5"
+                  >
                     <div className="text-xl">
                       {getAvailabilityIcon(activity.state)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-white text-sm">
-                        <span className="font-medium">{activity.memberName}</span>
-                        <span className="text-white/60"> • {activity.eventTitle}</span>
+                        <span className="font-medium">
+                          {activity.memberName}
+                        </span>
+                        <span className="text-white/60">
+                          {" "}
+                          • {activity.eventTitle}
+                        </span>
                       </div>
                       <div className="text-white/60 text-xs">
-                        {activity.memberRole && getRoleDisplayName(activity.memberRole)} • 
-                        {formatDateShort(activity.date)}
+                        {activity.memberRole &&
+                          getRoleDisplayName(activity.memberRole)}{" "}
+                        •{formatDateShort(activity.date)}
                       </div>
                     </div>
                   </div>

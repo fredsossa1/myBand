@@ -29,7 +29,7 @@ export default function RootLayout({
             <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
               {/* Mobile Menu Button */}
               <MobileMenu />
-              
+
               <div className="container mx-auto px-4 py-4">
                 <div className="flex flex-col lg:flex-row gap-6">
                   {/* Desktop Sidebar (hidden on mobile) */}

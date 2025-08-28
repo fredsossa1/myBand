@@ -109,7 +109,7 @@ export function getEventTypeDisplayName(type: EventType): string {
 // Date formatting utilities
 export function formatDate(dateString: string): string {
   // Parse as local date to avoid timezone issues
-  const [year, month, day] = dateString.split('-').map(Number);
+  const [year, month, day] = dateString.split("-").map(Number);
   const date = new Date(year, month - 1, day);
   return date.toLocaleDateString("en-US", {
     weekday: "short",
@@ -121,7 +121,7 @@ export function formatDate(dateString: string): string {
 
 export function formatDateShort(dateString: string): string {
   // Parse as local date to avoid timezone issues
-  const [year, month, day] = dateString.split('-').map(Number);
+  const [year, month, day] = dateString.split("-").map(Number);
   const date = new Date(year, month - 1, day);
   return date.toLocaleDateString("en-US", {
     month: "short",
@@ -131,7 +131,7 @@ export function formatDateShort(dateString: string): string {
 
 export function isToday(dateString: string): boolean {
   // Parse as local date to avoid timezone issues
-  const [year, month, day] = dateString.split('-').map(Number);
+  const [year, month, day] = dateString.split("-").map(Number);
   const date = new Date(year, month - 1, day);
   const today = new Date();
   return date.toDateString() === today.toDateString();
@@ -139,7 +139,7 @@ export function isToday(dateString: string): boolean {
 
 export function isPast(dateString: string): boolean {
   // Parse as local date to avoid timezone issues
-  const [year, month, day] = dateString.split('-').map(Number);
+  const [year, month, day] = dateString.split("-").map(Number);
   const date = new Date(year, month - 1, day);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -148,7 +148,7 @@ export function isPast(dateString: string): boolean {
 
 export function isFuture(dateString: string): boolean {
   // Parse as local date to avoid timezone issues
-  const [year, month, day] = dateString.split('-').map(Number);
+  const [year, month, day] = dateString.split("-").map(Number);
   const date = new Date(year, month - 1, day);
   const today = new Date();
   today.setHours(23, 59, 59, 999);
