@@ -84,5 +84,11 @@
       "id": "bv7",
       "name": "Dorcas Tatala"
     }
+  ],
+  "violinist": [
+    {
+      "id": "violin1",
+      "name": "Auryane Cabald"
+    }
   ]
 }

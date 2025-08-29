@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/db";
 
-export async function POST(request: NextRequest) {
+export const dynamic = 'force-dynamic';export async function POST(request: NextRequest) {
   try {
     const { password } = await request.json();
     const isAdmin = await verifyAdmin(password);

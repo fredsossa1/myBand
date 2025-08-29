@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMembersByRole } from "@/lib/db";
 
-export async function GET() {
+export const dynamic = 'force-dynamic';export async function GET() {
   try {
     if (process.env.NODE_ENV === "development") {
       console.log("📥 GET /api/members/by-role request received");

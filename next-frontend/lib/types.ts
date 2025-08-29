@@ -1,6 +1,13 @@
 // Core data types matching the backend API structures
 
-export type Role = "bassist" | "pianist" | "drummer" | "lead" | "bv" | "admin";
+export type Role =
+  | "bassist"
+  | "pianist"
+  | "drummer"
+  | "lead"
+  | "bv"
+  | "violinist"
+  | "admin";
 
 export type AvailabilityState = "A" | "U" | "?";
 
@@ -25,6 +32,7 @@ export interface MembersByRole {
   drummer: Member[];
   lead: Member[];
   bv: Member[];
+  violinist: Member[];
   admin: Member[];
 }
 
@@ -182,6 +190,7 @@ export interface CoverageRequirements {
     drummer: number;
     lead: number;
     bv: number;
+    violinist: number;
   };
   "band-only": {
     bassist: number;
@@ -189,6 +198,7 @@ export interface CoverageRequirements {
     drummer: number;
     lead: number;
     bv: number;
+    violinist: number;
   };
   "jam-session": {
     bassist: number;
@@ -196,6 +206,7 @@ export interface CoverageRequirements {
     drummer: number;
     lead: number;
     bv: number;
+    violinist: number;
   };
   "special-event": {
     bassist: number;
@@ -203,6 +214,7 @@ export interface CoverageRequirements {
     drummer: number;
     lead: number;
     bv: number;
+    violinist: number;
   };
 }
 

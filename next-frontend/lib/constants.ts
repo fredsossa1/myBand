@@ -1,12 +1,13 @@
 import { Role, AvailabilityState, EventType } from "./types";
 
-// Role constants and utilities
+// Role constants and utilities - these are fallbacks, actual translations come from i18n
 export const ROLES: Record<Role, string> = {
   bassist: "Bassist",
   pianist: "Pianist",
   drummer: "Drummer",
   lead: "Lead Vocals",
   bv: "Background Vocals",
+  violinist: "Violinist",
   admin: "Administrator",
 } as const;
 
@@ -16,6 +17,7 @@ export const ROLE_ICONS: Record<Role, string> = {
   drummer: "🥁",
   lead: "🎤",
   bv: "🎵",
+  violinist: "🎻",
   admin: "👑",
 } as const;
 
@@ -25,6 +27,7 @@ export const ROLE_COLORS: Record<Role, string> = {
   drummer: "from-red-500 to-red-600",
   lead: "from-yellow-500 to-yellow-600",
   bv: "from-green-500 to-green-600",
+  violinist: "from-indigo-500 to-indigo-600",
   admin: "from-purple-700 to-purple-800",
 } as const;
 
@@ -72,6 +75,28 @@ export const EVENT_TYPE_COLORS: Record<EventType, string> = {
 // Utility functions
 export function getRoleDisplayName(role: Role): string {
   return ROLES[role];
+}
+
+// Translation-aware role display function
+export function getRoleDisplayNameTranslated(role: Role, t: any): string {
+  switch (role) {
+    case "bassist":
+      return t.bassist;
+    case "pianist":
+      return t.pianist;
+    case "drummer":
+      return t.drummer;
+    case "lead":
+      return t.lead;
+    case "bv":
+      return t.backgroundVocals;
+    case "violinist":
+      return t.violinist;
+    case "admin":
+      return t.admin;
+    default:
+      return ROLES[role];
+  }
 }
 
 export function getRoleIcon(role: Role): string {

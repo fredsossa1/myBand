@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMembers } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     if (process.env.NODE_ENV === "development") {

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getEvents, getAvailabilityByRole } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const events = await getEvents();

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { addDate, verifyAdmin } from "@/lib/db";
 
-export async function POST(request: NextRequest) {
+export const dynamic = 'force-dynamic';export async function POST(request: NextRequest) {
   try {
     const { start, end, stepDays = 7, adminPassword } = await request.json();
 

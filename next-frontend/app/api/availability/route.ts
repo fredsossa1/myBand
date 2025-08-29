@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAvailability, setAvailability } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const availability = await getAvailability();

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDates, addDate, verifyAdmin } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const dates = await getDates();

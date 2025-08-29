@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAvailabilityByRole } from "@/lib/db";
 
-export async function GET() {
+export const dynamic = 'force-dynamic';export async function GET() {
   try {
     const availabilityByRole = await getAvailabilityByRole();
     return NextResponse.json(availabilityByRole);

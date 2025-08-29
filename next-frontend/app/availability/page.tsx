@@ -27,6 +27,7 @@ import {
   getAvailabilityIconOrDefault,
   getAvailabilityDisplayNameOrDefault,
   getRoleDisplayName,
+  getRoleDisplayNameTranslated,
   formatDate,
 } from "@/lib/constants";
 import {
@@ -443,7 +444,7 @@ export default function AvailabilityPage() {
                       people.length > 0 && (
                         <div key={role}>
                           <div className="px-2 py-1 text-sm font-semibold text-gray-500 uppercase">
-                            {getRoleDisplayName(role as Role)}
+                            {getRoleDisplayNameTranslated(role as Role, t)}
                           </div>
                           {people.map((member: Member) => (
                             <SelectItem key={member.id} value={member.id}>
@@ -657,22 +658,70 @@ export default function AvailabilityPage() {
                         {coverage.status.replace("-", " ")}
                       </Badge>
                     </h4>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 text-sm">
                       {Object.entries(coverage.coverageByRole).map(
                         ([role, roleCoverage]) => (
                           <div key={role} className="text-center">
-                            <div className="text-white/70 capitalize">
-                              {getRoleDisplayName(role as Role)}
+                            <div className="text-white/70 capitalize flex items-center justify-center gap-1">
+                              {getRoleDisplayNameTranslated(role as Role, t)}
+                              {role === "violinist" && (
+                                <span
+                                  className="text-xs text-blue-400"
+                                  title="Optional - Special Guest"
+                                >
+                                  ✨
+                                </span>
+                              )}
                             </div>
                             <div
                               className={`font-medium ${
-                                roleCoverage!.available >=
-                                roleCoverage!.required
+                                role === "violinist"
+                                  ? roleCoverage!.available > 0
+                                    ? "text-blue-400"
+                                    : "text-yellow-500"
+                                  : roleCoverage!.available >=
+                                    roleCoverage!.required
                                   ? "text-green-400"
                                   : "text-red-400"
                               }`}
                             >
-                              {roleCoverage!.available}/{roleCoverage!.required}
+                              {role === "violinist" ? (
+                                // Special display for violinist
+                                roleCoverage!.available > 0 ? (
+                                  <span className="flex items-center justify-center gap-1">
+                                    ✨ <span className="text-xs">Guest</span>
+                                  </span>
+                                ) : (
+                                  <span className="text-yellow-500">0/1</span>
+                                )
+                              ) : event.type === "jam-session" ? (
+                                // For jam sessions, show available count with a "+" if it exceeds minimum
+                                roleCoverage!.available >=
+                                roleCoverage!.required ? (
+                                  roleCoverage!.available >
+                                  roleCoverage!.required ? (
+                                    <>
+                                      {roleCoverage!.required}
+                                      <span className="text-blue-400">
+                                        +
+                                        {roleCoverage!.available -
+                                          roleCoverage!.required}
+                                      </span>
+                                    </>
+                                  ) : (
+                                    `${roleCoverage!.available}✓`
+                                  )
+                                ) : (
+                                  `${roleCoverage!.available}/${
+                                    roleCoverage!.required
+                                  }`
+                                )
+                              ) : (
+                                // For other events, show standard format
+                                `${roleCoverage!.available}/${
+                                  roleCoverage!.required
+                                }`
+                              )}
                             </div>
                           </div>
                         )
@@ -744,17 +793,48 @@ export default function AvailabilityPage() {
                   {hasResponses ? (
                     <div className="space-y-4">
                       {/* Coverage optimization indicator */}
-                      {coverage.status === "fully-covered" && (
-                        <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
-                          <div className="flex items-center gap-2 text-green-300 text-sm">
-                            <span>✅</span>
-                            <span>
-                              {t.fullyCovered} -{" "}
-                              {t.availableMembers.toLowerCase()}
-                            </span>
+                      {coverage.status === "fully-covered" &&
+                        event.type === "jam-session" && (
+                          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                            <div className="flex items-center gap-2 text-blue-300 text-sm">
+                              <span>🎵</span>
+                              <span>
+                                {t.fullyCovered} - {t.jamSessionEncouragement}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
+                      {coverage.status === "fully-covered" &&
+                        event.type !== "jam-session" && (
+                          <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                            <div className="flex items-center gap-2 text-green-300 text-sm">
+                              <span>✅</span>
+                              <span>
+                                {t.fullyCovered} -{" "}
+                                {t.availableMembers.toLowerCase()}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                      {/* Special indicator when violinist is available */}
+                      {coverage.coverageByRole.violinist &&
+                        coverage.coverageByRole.violinist.available > 0 && (
+                          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                            <div className="flex items-center gap-2 text-blue-300 text-sm">
+                              <span>✨</span>
+                              <span>
+                                {t.specialGuestPerformance} -{" "}
+                                {
+                                  coverage.coverageByRole.violinist?.members.find(
+                                    (m) => m.state === "A"
+                                  )?.name
+                                }{" "}
+                                {t.willJoinOnViolin}
+                              </span>
+                            </div>
+                          </div>
+                        )}
 
                       {Object.entries(membersByRole).map(([role, people]) => {
                         const roleResponses = people.filter(
@@ -762,7 +842,12 @@ export default function AvailabilityPage() {
                             const state = dayAvail[person.id];
                             if (!state) return false;
 
-                            // If event is fully covered, only show available responses
+                            // For jam sessions, always show all responses to encourage participation
+                            if (event.type === "jam-session") {
+                              return true;
+                            }
+
+                            // For other events, if fully covered, only show available responses
                             if (coverage.status === "fully-covered") {
                               return state === "A";
                             }
@@ -777,14 +862,18 @@ export default function AvailabilityPage() {
                         return (
                           <div key={role} className="space-y-2">
                             <h4 className="text-white font-medium">
-                              🎵 {getRoleDisplayName(role as Role)} (
-                              {roleResponses.length}/
-                              {coverage.status === "fully-covered"
+                              🎵 {getRoleDisplayNameTranslated(role as Role, t)}{" "}
+                              ({roleResponses.length}/
+                              {event.type === "jam-session"
+                                ? people.length
+                                : coverage.status === "fully-covered"
                                 ? people.filter(
                                     (p: Member) => dayAvail[p.id] === "A"
                                   ).length
                                 : people.length}{" "}
-                              {coverage.status === "fully-covered"
+                              {event.type === "jam-session"
+                                ? "responded"
+                                : coverage.status === "fully-covered"
                                 ? t.availableMembers.toLowerCase()
                                 : "responded"}
                               )
@@ -834,8 +923,7 @@ export default function AvailabilityPage() {
                     </div>
                   ) : (
                     <div className="text-center py-8 text-white/60">
-                      <div className="text-2xl mb-2">👋</div>
-                      <p>No responses yet. Be the first to respond!</p>
+                      <p>{t.noResponsesYet}</p>
                     </div>
                   )}
                 </CardContent>

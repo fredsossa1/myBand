@@ -33,6 +33,7 @@ export function groupMembersByRole(
     drummer: [],
     lead: [],
     bv: [],
+    violinist: [],
     admin: [],
   } as MembersByRole;
 
@@ -427,6 +428,7 @@ export const COVERAGE_REQUIREMENTS: CoverageRequirements = {
     drummer: 1,
     lead: 1,
     bv: 2,
+    violinist: 1,
   },
   "band-only": {
     bassist: 1,
@@ -434,6 +436,7 @@ export const COVERAGE_REQUIREMENTS: CoverageRequirements = {
     drummer: 1,
     lead: 0,
     bv: 0,
+    violinist: 0,
   },
   "jam-session": {
     bassist: 1,
@@ -441,6 +444,7 @@ export const COVERAGE_REQUIREMENTS: CoverageRequirements = {
     drummer: 1,
     lead: 1,
     bv: 1,
+    violinist: 1,
   },
   "special-event": {
     bassist: 1,
@@ -448,6 +452,7 @@ export const COVERAGE_REQUIREMENTS: CoverageRequirements = {
     drummer: 1,
     lead: 1,
     bv: 2,
+    violinist: 1,
   },
 };
 
@@ -490,6 +495,7 @@ export function calculateEventCoverage(
   const coverageByRole: EventCoverage["coverageByRole"] = {};
   let totalRequired = 0;
   let totalMet = 0;
+  let totalAvailable = 0;
 
   // Calculate coverage for each role
   (Object.keys(requirements) as Role[]).forEach((role) => {
@@ -506,16 +512,38 @@ export function calculateEventCoverage(
       );
       coverageByRole[role] = roleCoverage;
 
-      totalRequired += required;
-      totalMet += Math.min(roleCoverage.available, required);
+      // Special handling for violinist - treat as optional
+      if (role === "violinist") {
+        // Don't count violinist in required/met calculations for coverage status
+        // but still include in the display
+        totalAvailable += roleCoverage.available;
+      } else {
+        totalRequired += required;
+        totalMet += Math.min(roleCoverage.available, required);
+        totalAvailable += roleCoverage.available;
+      }
     }
   });
 
-  // Calculate overall coverage score
-  const coverageScore =
-    totalRequired > 0 ? Math.round((totalMet / totalRequired) * 100) : 100;
+  // For jam sessions, calculate coverage differently to encourage more participants
+  let coverageScore: number;
+  if (event.type === "jam-session") {
+    // For jam sessions, score is based on having at least minimum + bonus for extras
+    const minimumMet =
+      totalRequired > 0 ? Math.round((totalMet / totalRequired) * 100) : 100;
 
-  // Determine coverage status
+    // Give bonus points for having more than minimum (up to 150% total)
+    const bonusAvailable = Math.max(0, totalAvailable - totalRequired);
+    const bonusScore = Math.min(50, bonusAvailable * 10); // 10 points per extra person, max 50
+
+    coverageScore = Math.min(150, minimumMet + bonusScore);
+  } else {
+    // For other events, use standard calculation (excluding violinist from requirements)
+    coverageScore =
+      totalRequired > 0 ? Math.round((totalMet / totalRequired) * 100) : 100;
+  }
+
+  // Determine coverage status (violinist doesn't affect this)
   let status: CoverageStatus;
   if (coverageScore >= 100) {
     status = "fully-covered";

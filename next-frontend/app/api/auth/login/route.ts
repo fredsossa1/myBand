@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getMemberById } from "@/lib/db";
 import { UserContext, Role } from "@/lib/types";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   try {
     const { memberId } = await request.json();

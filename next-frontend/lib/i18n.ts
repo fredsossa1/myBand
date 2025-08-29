@@ -74,6 +74,7 @@ export interface Translations {
   drummer: string;
   lead: string;
   backgroundVocals: string;
+  violinist: string;
   admin: string;
 
   // Statistics
@@ -137,6 +138,9 @@ export interface Translations {
   notCovered: string;
   coverageScore: string;
   required: string;
+  jamSessionEncouragement: string;
+  specialGuestPerformance: string;
+  willJoinOnViolin: string;
 
   // Changes and Actions
   pendingChanges: string;
@@ -286,6 +290,7 @@ export const translations: Record<Language, Translations> = {
     drummer: "Drummer",
     lead: "Lead Vocals",
     backgroundVocals: "Background Vocals",
+    violinist: "Violinist",
     admin: "Administrator",
 
     // Statistics
@@ -332,6 +337,9 @@ export const translations: Record<Language, Translations> = {
     notCovered: "Not Covered",
     coverageScore: "Coverage Score",
     required: "required",
+    jamSessionEncouragement: "More musicians welcome for an even better jam!",
+    specialGuestPerformance: "Special Guest Performance",
+    willJoinOnViolin: "will join us on violin!",
 
     // Changes and Actions
     pendingChanges: "Pending Changes",
@@ -482,8 +490,9 @@ export const translations: Record<Language, Translations> = {
     bassist: "Bassiste",
     pianist: "Pianiste",
     drummer: "Batteur",
-    lead: "Chant Principal",
-    backgroundVocals: "Chœurs",
+    lead: "Lead",
+    backgroundVocals: "BV",
+    violinist: "Violoniste",
     admin: "Administrateur",
 
     // Statistics
@@ -531,6 +540,10 @@ export const translations: Record<Language, Translations> = {
     notCovered: "Non Couvert",
     coverageScore: "Score de Couverture",
     required: "requis",
+    jamSessionEncouragement:
+      "Plus de musiciens sont les bienvenus pour un jam encore meilleur !",
+    specialGuestPerformance: "Performance d'Invité Spécial",
+    willJoinOnViolin: "nous rejoindra au violon !",
 
     // Changes and Actions
     pendingChanges: "Modifications en Attente",
