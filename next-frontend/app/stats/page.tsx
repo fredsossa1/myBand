@@ -166,7 +166,7 @@ export default function StatsPage() {
   // Show loading while checking admin access
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-teal-900 to-cyan-900 p-4">
         <div className="container mx-auto max-w-7xl">
           <Card className="glass border-white/20">
             <CardContent className="p-12 text-center">
@@ -188,7 +188,7 @@ export default function StatsPage() {
 
   if (dataLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-teal-900 to-cyan-900 p-4">
         <div className="container mx-auto max-w-7xl">
           <Card className="glass border-white/20">
             <CardContent className="p-12 text-center">
@@ -205,7 +205,7 @@ export default function StatsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-teal-900 to-cyan-900 p-4">
         <div className="container mx-auto max-w-7xl">
           <Card className="glass border-red-500/20">
             <CardContent className="p-12 text-center">

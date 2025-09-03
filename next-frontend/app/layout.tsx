@@ -26,7 +26,7 @@ export default function RootLayout({
         <LanguageProvider>
           <AdminProvider>
             <DatabaseInitializer />
-            <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+            <div className="min-h-screen bg-gradient-to-br from-blue-900 via-teal-900 to-cyan-900">
               {/* Mobile Menu Button */}
               <MobileMenu />
 

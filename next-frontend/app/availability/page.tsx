@@ -317,7 +317,7 @@ export default function AvailabilityPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-teal-900 to-cyan-900 p-4">
         <div className="container mx-auto max-w-6xl">
           <Card className="glass border-white/20">
             <CardContent className="p-12 text-center">
@@ -334,7 +334,7 @@ export default function AvailabilityPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-teal-900 to-cyan-900 p-4">
         <div className="container mx-auto max-w-6xl">
           <Card className="glass border-red-500/20">
             <CardContent className="p-12 text-center">
@@ -444,7 +444,7 @@ export default function AvailabilityPage() {
                   setCurrentUser(user || null);
                 }}
               >
-                <SelectTrigger className="w-full sm:w-64 bg-white/10 border-white/20 text-white">
+                <SelectTrigger className="w-full sm:w-64 bg-white/30 border-white/40 text-white [&>span]:text-white [&>span]:opacity-100">
                   <SelectValue placeholder={t.selectName} />
                 </SelectTrigger>
                 <SelectContent>
@@ -456,7 +456,10 @@ export default function AvailabilityPage() {
                             {getRoleDisplayNameTranslated(role as Role, t)}
                           </div>
                           {people.map((member: Member) => (
-                            <SelectItem key={member.id} value={member.id}>
+                            <SelectItem 
+                              key={member.id} 
+                              value={member.id}
+                            >
                               {member.name}
                             </SelectItem>
                           ))}
