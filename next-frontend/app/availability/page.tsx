@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAvailability, useBandKeyboardShortcuts } from "@/hooks";
-import { useTranslations } from "@/hooks/use-language";
+import { useTranslations, useLanguage } from "@/hooks/use-language";
 import { useAdmin } from "@/hooks/use-admin";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -190,6 +190,7 @@ function AddEventModal({ isOpen, onClose, onAdd }: AddEventModalProps) {
 
 export default function AvailabilityPage() {
   const t = useTranslations();
+  const { language } = useLanguage();
 
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [addEventModal, setAddEventModal] = useState(false);
