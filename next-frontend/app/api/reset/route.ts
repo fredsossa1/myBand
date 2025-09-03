@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdmin, resetData } from "@/lib/db";
 import fs from "fs";
-export const dynamic = 'force-dynamic';import path from "path";
+export const dynamic = "force-dynamic";
+import path from "path";
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,14 +16,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Load default members from data directory
-    const membersConfigPath = path.join(
-      process.cwd(),
-      "data",
-      "members.json"
-    );
-    const membersData = JSON.parse(
-      fs.readFileSync(membersConfigPath, "utf8")
-    );
+    const membersConfigPath = path.join(process.cwd(), "data", "members.json");
+    const membersData = JSON.parse(fs.readFileSync(membersConfigPath, "utf8"));
 
     // Flatten the members data structure
     const defaultMembers: any[] = [];

@@ -273,16 +273,24 @@ export default function AvailabilityPage() {
 
   const membersByRole = groupMembersByRole(members);
 
-  // Calculate stats
+  // Calculate stats for upcoming events only
+  const upcomingEvents =
+    events?.filter((event) => {
+      const eventDate = new Date(event.date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return eventDate >= today;
+    }) || [];
+
   const stats = {
-    totalEvents: events?.length || 0,
+    totalEvents: upcomingEvents.length,
     totalMembers: members?.length || 0,
     totalResponses: 0,
     userResponses: 0,
   };
 
-  if (events && members) {
-    events.forEach((event) => {
+  if (upcomingEvents && members) {
+    upcomingEvents.forEach((event) => {
       const dayAvail = availabilityByDate[event.date] || {};
       Object.values(dayAvail).forEach((state) => {
         if (state) stats.totalResponses++; // Include all responses (A, U, and ?)
@@ -584,8 +592,8 @@ export default function AvailabilityPage() {
 
       {/* Events */}
       <div className="space-y-4">
-        {events && events.length > 0 ? (
-          events.map((event, index) => {
+        {upcomingEvents && upcomingEvents.length > 0 ? (
+          upcomingEvents.map((event, index) => {
             const userAvailability = currentUser
               ? getUserAvailability(event.date, currentUser.id)
               : null;
@@ -935,8 +943,16 @@ export default function AvailabilityPage() {
             <CardContent className="p-12 text-center">
               <div className="text-white/60">
                 <div className="text-4xl mb-4">📅</div>
-                <p className="text-xl">No events scheduled yet</p>
-                <p className="text-sm mt-2">Contact your admin to add events</p>
+                <p className="text-xl">
+                  {language === "fr"
+                    ? "Aucun événement à venir"
+                    : "No upcoming events"}
+                </p>
+                <p className="text-sm mt-2">
+                  {language === "fr"
+                    ? "Contactez votre admin pour ajouter des événements"
+                    : "Contact your admin to add events"}
+                </p>
               </div>
             </CardContent>
           </Card>
