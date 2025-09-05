@@ -19,6 +19,7 @@ interface NavItem {
 export function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
   const pathname = usePathname();
   const t = useTranslations();
   const {
@@ -31,6 +32,16 @@ export function MobileMenu() {
     handleAdminLogout,
     loginError,
   } = useAdmin();
+
+  // Ensure input stays focused when it becomes visible
+  useEffect(() => {
+    if (showAdminLogin && passwordInputRef.current) {
+      const timer = setTimeout(() => {
+        passwordInputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [showAdminLogin]);
 
   const navItems: NavItem[] = [
     {
@@ -58,7 +69,11 @@ export function MobileMenu() {
         !dropdownRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
-        setShowAdminLogin(false);
+        // Only close admin login if we're not clicking on an input field
+        const target = event.target as HTMLElement;
+        if (!target.closest('input[type="password"]')) {
+          setShowAdminLogin(false);
+        }
       }
     };
 
@@ -146,6 +161,7 @@ export function MobileMenu() {
                 ) : (
                   <div className="space-y-2">
                     <Input
+                      ref={passwordInputRef}
                       type="password"
                       placeholder={t.adminPassword}
                       value={adminPassword}
@@ -153,6 +169,7 @@ export function MobileMenu() {
                       onKeyPress={(e) =>
                         e.key === "Enter" && handleAdminLogin()
                       }
+                      autoFocus
                       className="w-full bg-white/10 border-white/20 text-white text-xs placeholder:text-white/50"
                     />
                     <div className="flex gap-2">

@@ -54,6 +54,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleAdminLogin = async () => {
+    if (!adminPassword.trim()) {
+      setLoginError("Please enter a password");
+      return;
+    }
+
     setLoginError(null);
 
     try {
@@ -68,8 +73,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         setShowAdminLogin(false);
         localStorage.setItem("adminSession", adminPassword);
         setAdminPassword("");
+        setLoginError(null);
       } else {
         setLoginError("Invalid admin password");
+        // Don't clear the password on failed attempt, let user correct it
       }
     } catch (error) {
       console.error("Admin login error:", error);

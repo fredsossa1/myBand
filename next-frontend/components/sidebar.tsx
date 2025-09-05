@@ -8,7 +8,7 @@ import { useTranslations } from "@/hooks/use-language";
 import { useAdmin } from "@/hooks/use-admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface NavItem {
   href: string;
@@ -19,6 +19,7 @@ interface NavItem {
 export function Sidebar() {
   const pathname = usePathname();
   const t = useTranslations();
+  const passwordInputRef = useRef<HTMLInputElement>(null);
   const {
     isAdmin,
     adminPassword,
@@ -29,6 +30,16 @@ export function Sidebar() {
     handleAdminLogout,
     loginError,
   } = useAdmin();
+
+  // Ensure input stays focused when it becomes visible
+  useEffect(() => {
+    if (showAdminLogin && passwordInputRef.current) {
+      const timer = setTimeout(() => {
+        passwordInputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [showAdminLogin]);
 
   const navItems: NavItem[] = [
     {
@@ -108,11 +119,13 @@ export function Sidebar() {
             ) : (
               <div className="space-y-2">
                 <Input
+                  ref={passwordInputRef}
                   type="password"
                   placeholder={t.adminPassword}
                   value={adminPassword}
                   onChange={(e) => setAdminPassword(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleAdminLogin()}
+                  autoFocus
                   className="w-full bg-white/10 border-white/20 text-white text-sm"
                 />
                 <div className="flex gap-2">

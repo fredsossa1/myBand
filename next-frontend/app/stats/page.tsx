@@ -19,6 +19,7 @@ import {
   Member,
   AvailabilityRecord,
 } from "@/lib/types";
+import { StatsService } from "@/lib/stats-service";
 
 export default function StatsPage() {
   const router = useRouter();
@@ -56,79 +57,10 @@ export default function StatsPage() {
       };
     }
 
-    const membersByRole = groupMembersByRole(members);
-    const availabilityByDate = groupAvailabilityByDate(availability);
-
-    let totalResponses = 0;
-    const possibleResponses = members.length * events.length;
-
-    // Calculate stats by role
-    const byRole: Record<string, any> = {};
-    Object.entries(membersByRole).forEach(([role, roleMembers]) => {
-      let roleResponses = 0;
-      let roleAvailable = 0;
-      let roleUnavailable = 0;
-      let roleUncertain = 0;
-
-      events.forEach((event) => {
-        const dayAvail = availabilityByDate[event.date] || {};
-        roleMembers.forEach((member: Member) => {
-          const state = dayAvail[member.id];
-          if (state && state !== "?") {
-            roleResponses++;
-            totalResponses++;
-            if (state === "A") roleAvailable++;
-            else if (state === "U") roleUnavailable++;
-            else roleUncertain++;
-          }
-        });
-      });
-
-      byRole[role] = {
-        members: roleMembers,
-        totalPossible: roleMembers.length * events.length,
-        responses: roleResponses,
-        available: roleAvailable,
-        unavailable: roleUnavailable,
-        uncertain: roleUncertain,
-        responseRate:
-          roleMembers.length > 0
-            ? Math.round(
-                (roleResponses / (roleMembers.length * events.length)) * 100
-              )
-            : 0,
-      };
-    });
-
-    // Calculate stats by event
-    const byEvent = events.map((event) => {
-      const dayAvail = availabilityByDate[event.date] || {};
-      const responses = Object.values(dayAvail).filter(
-        (state) => state && state !== "?"
-      ).length;
-      const available = Object.values(dayAvail).filter(
-        (state) => state === "A"
-      ).length;
-      const unavailable = Object.values(dayAvail).filter(
-        (state) => state === "U"
-      ).length;
-      const uncertain = Object.values(dayAvail).filter(
-        (state) => state === "?"
-      ).length;
-
-      return {
-        ...event,
-        responses,
-        available,
-        unavailable,
-        uncertain,
-        responseRate:
-          members.length > 0
-            ? Math.round((responses / members.length) * 100)
-            : 0,
-        coverage: available >= Math.ceil(members.length * 0.7), // 70% coverage threshold
-      };
-    });
+    // Use the centralized stats service
+    const overallStats = StatsService.calculateOverallStats(members, events, availability);
+    const roleStats = StatsService.calculateRoleStats(members, events, availability);
+    const eventStats = StatsService.calculateAllEventStats(events, members, availability);
 
     // Recent activity (last 10 availability records)
     const recentActivity = (availability || [])
@@ -149,14 +81,35 @@ export default function StatsPage() {
         };
       });
 
+    // Convert stats to the format expected by the UI
+    const byRole: Record<string, any> = {};
+    Object.entries(roleStats).forEach(([role, stats]) => {
+      byRole[role] = {
+        members: stats.members,
+        totalPossible: stats.expectedResponses,
+        responses: stats.actualResponses,
+        available: stats.availableCount,
+        unavailable: stats.unavailableCount,
+        uncertain: stats.uncertainCount,
+        responseRate: stats.responseRate,
+      };
+    });
+
+    const byEvent = eventStats.map((eventStat) => ({
+      ...eventStat.event,
+      responses: eventStat.actualResponses,
+      available: eventStat.availableCount,
+      unavailable: eventStat.unavailableCount,
+      uncertain: eventStat.uncertainCount,
+      responseRate: eventStat.responseRate,
+      coverage: eventStat.coverage,
+    }));
+
     return {
-      totalMembers: members.length,
-      totalEvents: events.length,
-      totalResponses,
-      responseRate:
-        possibleResponses > 0
-          ? Math.round((totalResponses / possibleResponses) * 100)
-          : 0,
+      totalMembers: overallStats.totalMembers,
+      totalEvents: overallStats.totalEvents,
+      totalResponses: overallStats.totalActualResponses,
+      responseRate: overallStats.overallResponseRate,
       byRole,
       byEvent,
       recentActivity,

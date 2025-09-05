@@ -23,8 +23,9 @@ import {
   getEventTypeIcon,
   getAvailabilityIcon,
 } from "@/lib/constants";
-import { Event, Member, AvailabilityRecord } from "@/lib/types";
+import { Event, Member, AvailabilityRecord, AvailabilityState } from "@/lib/types";
 import { groupAvailabilityByDate } from "@/lib/utils";
+import { StatsService } from "@/lib/stats-service";
 
 export function Dashboard() {
   const t = useTranslations();
@@ -46,15 +47,6 @@ export function Dashboard() {
       };
     }
 
-    const totalEvents = events.length;
-    const totalMembers = members.length;
-    const totalPossibleResponses = totalEvents * totalMembers;
-    const totalResponses = availability.length;
-    const responseRate =
-      totalPossibleResponses > 0
-        ? Math.round((totalResponses / totalPossibleResponses) * 100)
-        : 0;
-
     // Get upcoming events (next 3)
     const upcomingEvents = events
       .filter((event) => !isPast(event.date))
@@ -63,6 +55,9 @@ export function Dashboard() {
 
     // Get next event
     const nextEvent = upcomingEvents[0] || null;
+
+    // Calculate overall stats using the centralized service
+    const overallStats = StatsService.calculateOverallStats(members, events, availability);
 
     // Recent activity (last 5)
     const recentActivity = availability
@@ -88,36 +83,29 @@ export function Dashboard() {
     if (selectedMember) {
       const member = members.find((m) => m.id === selectedMember);
       if (member) {
-        const memberAvailability = availability.filter(
-          (a) => a.person_id === selectedMember
-        );
-        const memberResponses = memberAvailability.length;
-        const memberResponseRate =
-          totalEvents > 0
-            ? Math.round((memberResponses / totalEvents) * 100)
-            : 0;
-
-        const availabilityByDate = groupAvailabilityByDate(memberAvailability);
-        const memberEventStatus = upcomingEvents.map((event) => ({
-          ...event,
-          status: availabilityByDate[event.date]?.[selectedMember] || null,
-        }));
+        const memberStatsData = StatsService.calculateMemberStats(member, events, availability);
+        const memberEventStatus = StatsService.getMemberEventStatus(member, upcomingEvents, availability);
 
         memberStats = {
           member,
-          responses: memberResponses,
-          responseRate: memberResponseRate,
-          eventStatus: memberEventStatus,
+          responses: memberStatsData.actualResponses,
+          expectedResponses: memberStatsData.expectedResponses,
+          responseRate: memberStatsData.responseRate,
+          eventStatus: memberEventStatus.map(({ event, status, shouldRespond }) => ({
+            ...event,
+            status,
+            shouldRespond,
+          })),
         };
       }
     }
 
     return {
-      totalEvents,
-      totalMembers,
-      responseRate,
-      totalResponses,
-      totalPossibleResponses,
+      totalEvents: events.length,
+      totalMembers: members.length,
+      responseRate: overallStats.overallResponseRate,
+      totalResponses: overallStats.totalActualResponses,
+      totalPossibleResponses: overallStats.totalExpectedResponses,
       upcomingEvents,
       recentActivity,
       memberStats,
@@ -242,7 +230,7 @@ export function Dashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="text-center p-4 rounded-lg bg-white/5">
                 <div className="text-2xl font-bold text-white">
-                  {stats.memberStats.responses}
+                  {stats.memberStats.responses}/{stats.memberStats.expectedResponses}
                 </div>
                 <div className="text-sm text-white/70">Responses Given</div>
               </div>
@@ -263,7 +251,9 @@ export function Dashboard() {
                   {stats.memberStats.eventStatus.map((event) => (
                     <div
                       key={event.id}
-                      className="flex items-center justify-between p-3 rounded-lg bg-white/5"
+                      className={`flex items-center justify-between p-3 rounded-lg ${
+                        event.shouldRespond ? "bg-white/5" : "bg-gray-500/10"
+                      }`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-lg">
@@ -272,6 +262,11 @@ export function Dashboard() {
                         <div>
                           <div className="text-white text-sm font-medium">
                             {event.title}
+                            {!event.shouldRespond && (
+                              <span className="text-gray-400 text-xs ml-2">
+                                (no response needed)
+                              </span>
+                            )}
                           </div>
                           <div className="text-white/60 text-xs">
                             {formatDate(event.date)}
@@ -281,7 +276,9 @@ export function Dashboard() {
                       <Badge
                         variant="outline"
                         className={`${
-                          event.status === "A"
+                          !event.shouldRespond
+                            ? "border-gray-500/50 text-gray-400"
+                            : event.status === "A"
                             ? "border-green-500/50 text-green-300"
                             : event.status === "U"
                             ? "border-red-500/50 text-red-300"
@@ -290,10 +287,14 @@ export function Dashboard() {
                             : "border-gray-500/50 text-gray-400"
                         }`}
                       >
-                        {event.status
-                          ? getAvailabilityIcon(event.status)
+                        {!event.shouldRespond
+                          ? "➖ Not Required"
+                          : event.status
+                          ? getAvailabilityIcon(event.status as AvailabilityState)
                           : "⭕"}
-                        {event.status === "A"
+                        {!event.shouldRespond
+                          ? ""
+                          : event.status === "A"
                           ? "Available"
                           : event.status === "U"
                           ? "Unavailable"

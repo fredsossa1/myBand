@@ -37,7 +37,8 @@ import {
   getCoverageStatusColor,
   formatEventType,
 } from "@/lib/utils";
-import { Role, AvailabilityState, Member, EventType } from "@/lib/types";
+import { Role, AvailabilityState, Member, EventType, Event as BandEvent } from "@/lib/types";
+import { StatsService } from "@/lib/stats-service";
 
 interface AddEventModalProps {
   isOpen: boolean;
@@ -274,7 +275,7 @@ export default function AvailabilityPage() {
 
   const membersByRole = groupMembersByRole(members);
 
-  // Calculate stats for upcoming events only
+  // Calculate stats for upcoming events only using the centralized service
   const upcomingEvents =
     events?.filter((event) => {
       const eventDate = new Date(event.date);
@@ -283,37 +284,36 @@ export default function AvailabilityPage() {
       return eventDate >= today;
     }) || [];
 
-  const stats = {
-    totalEvents: upcomingEvents.length,
-    totalMembers: members?.length || 0,
-    totalResponses: 0,
-    userResponses: 0,
-  };
+  // Use the centralized stats service
+  const overallStats = StatsService.calculateOverallStats(
+    members || [],
+    upcomingEvents,
+    // Convert availabilityByDate to AvailabilityRecord array
+    Object.entries(availabilityByDate).flatMap(([date, dayAvail]) => 
+      Object.entries(dayAvail).map(([personId, state]) => ({
+        person_id: personId,
+        date: date,
+        state,
+        created_at: new Date().toISOString()
+      }))
+    )
+  );
 
-  if (upcomingEvents && members) {
-    upcomingEvents.forEach((event) => {
-      const dayAvail = availabilityByDate[event.date] || {};
-      Object.values(dayAvail).forEach((state) => {
-        if (state) stats.totalResponses++; // Include all responses (A, U, and ?)
-      });
+  const userStats = currentUser ? StatsService.calculateMemberStats(
+    currentUser,
+    upcomingEvents,
+    Object.entries(availabilityByDate).flatMap(([date, dayAvail]) => 
+      Object.entries(dayAvail).map(([personId, state]) => ({
+        person_id: personId,
+        date: date,
+        state,
+        created_at: new Date().toISOString()
+      }))
+    )
+  ) : null;
 
-      if (currentUser && dayAvail[currentUser.id]) {
-        stats.userResponses++; // Include all user responses (A, U, and ?)
-      }
-    });
-  }
-
-  const overallRate =
-    stats.totalMembers && stats.totalEvents
-      ? Math.round(
-          (stats.totalResponses / (stats.totalMembers * stats.totalEvents)) *
-            100
-        )
-      : 0;
-  const userRate =
-    currentUser && stats.totalEvents
-      ? Math.round((stats.userResponses / stats.totalEvents) * 100)
-      : 0;
+  const overallRate = overallStats.overallResponseRate;
+  const userRate = userStats?.responseRate || 0;
 
   if (loading) {
     return (
@@ -495,13 +495,13 @@ export default function AvailabilityPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
             <div>
               <div className="text-2xl font-bold text-white">
-                {stats.totalEvents}
+                {upcomingEvents.length}
               </div>
               <div className="text-white/60 text-sm">{t.upcomingEvents}</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-white">
-                {stats.totalMembers}
+                {overallStats.totalMembers}
               </div>
               <div className="text-white/60 text-sm">{t.bandMembers}</div>
             </div>
