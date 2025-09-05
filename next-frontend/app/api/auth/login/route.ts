@@ -37,12 +37,14 @@ export async function POST(request: NextRequest) {
       ? (member.role as Role)
       : "bv";
 
-    // Create user context
+    // Create user context (legacy admin login - compatible with new auth system)
     const userContext: UserContext = {
       id: member.id,
       name: member.name,
-      role: memberRole,
+      email: `${member.name.toLowerCase().replace(/\s+/g, '.')}@myband.local`, // Generate email for compatibility
+      roles: [memberRole], // Convert single role to array
       isAdmin: memberRole === "admin",
+      mustChangePassword: false, // Legacy admin logins don't require password change
     };
 
     return NextResponse.json({ user: userContext });

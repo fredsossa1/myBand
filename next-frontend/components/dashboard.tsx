@@ -23,7 +23,7 @@ import {
   getEventTypeIcon,
   getAvailabilityIcon,
 } from "@/lib/constants";
-import { Event, Member, AvailabilityRecord, AvailabilityState } from "@/lib/types";
+import { Event, Member, AvailabilityRecord, AvailabilityState, Role } from "@/lib/types";
 import { groupAvailabilityByDate } from "@/lib/utils";
 import { StatsService } from "@/lib/stats-service";
 
@@ -73,7 +73,7 @@ export function Dashboard() {
         return {
           ...record,
           memberName: member?.name || "Unknown",
-          memberRole: member?.role,
+          memberRole: member ? ('role' in member ? member.role : (member.roles?.[0] || 'bv')) : 'unknown',
           eventTitle: event?.title || "Unknown Event",
         };
       });
@@ -142,11 +142,14 @@ export function Dashboard() {
                 <SelectValue placeholder={t.selectName} />
               </SelectTrigger>
               <SelectContent>
-                {members?.map((member) => (
-                  <SelectItem key={member.id} value={member.id}>
-                    {member.name} ({getRoleDisplayName(member.role)})
-                  </SelectItem>
-                )) || []}
+                {members?.map((member) => {
+                  const memberRole = ('role' in member ? member.role : (member.roles?.[0] || 'bv')) as Role;
+                  return (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.name} ({getRoleDisplayName(memberRole)})
+                    </SelectItem>
+                  );
+                }) || []}
               </SelectContent>
             </Select>
           </div>
@@ -223,7 +226,11 @@ export function Dashboard() {
             <CardTitle className="text-white flex items-center gap-3">
               <span className="text-xl">👤</span>
               {stats.memberStats.member.name} -{" "}
-              {getRoleDisplayName(stats.memberStats.member.role)}
+              {getRoleDisplayName(
+                ('role' in stats.memberStats.member 
+                  ? stats.memberStats.member.role 
+                  : (stats.memberStats.member.roles?.[0] || 'bv')) as Role
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -387,9 +394,9 @@ export function Dashboard() {
                         </span>
                       </div>
                       <div className="text-white/60 text-xs">
-                        {activity.memberRole &&
-                          getRoleDisplayName(activity.memberRole)}{" "}
-                        •{formatDateShort(activity.date)}
+                        {activity.memberRole ? 
+                          getRoleDisplayName(activity.memberRole as Role) + " • " : ""
+                        }{formatDateShort(activity.date)}
                       </div>
                     </div>
                   </div>

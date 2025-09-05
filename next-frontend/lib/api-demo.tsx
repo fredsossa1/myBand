@@ -17,6 +17,7 @@ import {
   getRoleDisplayName,
   getAvailabilityIcon,
 } from "./constants";
+import { Role } from "./types";
 
 export function ApiDemo() {
   const [selectedDate, setSelectedDate] = useState("2025-08-29");
@@ -161,7 +162,9 @@ export function ApiDemo() {
             <div key={member.id} className="flex items-center gap-3 text-sm">
               <span className="text-white">{member.name}</span>
               <span className="text-white/60">
-                ({getRoleDisplayName(member.role)})
+                ({getRoleDisplayName(
+                  ('role' in member ? member.role : (member.roles?.[0] || 'bv')) as Role
+                )})
               </span>
             </div>
           ))}
@@ -209,7 +212,9 @@ export function ApiDemo() {
                     value={member.id}
                     className="bg-gray-800"
                   >
-                    {member.name} ({getRoleDisplayName(member.role)})
+                    {member.name} ({getRoleDisplayName(
+                      ('role' in member ? member.role : (member.roles?.[0] || 'bv')) as Role
+                    )})
                   </option>
                 ))}
               </select>

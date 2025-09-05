@@ -21,6 +21,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { getAvailabilityIcon, getRoleDisplayName } from "@/lib/constants";
+import { Role } from "@/lib/types";
 
 export function AdvancedHooksDemo() {
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
@@ -158,11 +159,15 @@ export function AdvancedHooksDemo() {
                 <SelectValue placeholder="Select your name..." />
               </SelectTrigger>
               <SelectContent>
-                {members?.map((member) => (
-                  <SelectItem key={member.id} value={member.id}>
-                    {member.name} ({getRoleDisplayName(member.role)})
-                  </SelectItem>
-                ))}
+                {members?.map((member) => {
+                  // Handle both legacy (single role) and new (roles array) member formats
+                  const memberRole = ('role' in member ? member.role : (member.roles?.[0] || 'bv')) as Role;
+                  return (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.name} ({getRoleDisplayName(memberRole)})
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
 

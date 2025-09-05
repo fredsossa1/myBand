@@ -21,9 +21,26 @@ export type EventType =
 export interface Member {
   id: string;
   name: string;
+  email: string;
+  password_hash?: string; // Optional for API responses (never sent to frontend)
+  roles: Role[]; // Multiple roles support
+  is_admin: boolean;
+  must_change_password: boolean; // Force password change on first login
+  profile_picture?: string;
+  last_login?: string;
+  created_at?: string;
+}
+
+// Legacy Member interface for backward compatibility
+export interface LegacyMember {
+  id: string;
+  name: string;
   role: Role;
   created_at?: string;
 }
+
+// Union type for transition period - supports both legacy and new formats
+export type MemberData = Member | LegacyMember;
 
 // Members organized by role (as used in the members.json structure)
 export interface MembersByRole {
@@ -78,8 +95,30 @@ export type AvailabilityByRole = {
 export interface UserContext {
   id: string;
   name: string;
-  role: Role;
+  email: string;
+  roles: Role[];
   isAdmin: boolean;
+  mustChangePassword: boolean;
+  lastLogin?: string;
+}
+
+// Authentication types
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword?: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  user?: UserContext;
+  token?: string;
+  message?: string;
 }
 
 // Settings interface

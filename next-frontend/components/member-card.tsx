@@ -27,7 +27,9 @@ export function MemberCard({
   className,
   compact = false,
 }: MemberCardProps) {
-  const roleColor = ROLE_COLORS[member.role];
+  // Handle both legacy (single role) and new (roles array) member formats
+  const memberRole = ('role' in member ? member.role : (member.roles?.[0] || 'bv')) as Role;
+  const roleColor = ROLE_COLORS[memberRole];
   const availabilityColor = availability
     ? AVAILABILITY_COLORS[availability]
     : "";
@@ -41,13 +43,13 @@ export function MemberCard({
         )}
       >
         <div className="flex items-center gap-2">
-          <div className="text-lg">{getRoleIcon(member.role)}</div>
+          <div className="text-lg">{getRoleIcon(memberRole)}</div>
           <div className="flex-1 min-w-0">
             <div className="text-white font-medium text-sm truncate">
               {member.name}
             </div>
             <div className="text-white/60 text-xs">
-              {getRoleDisplayName(member.role)}
+              {getRoleDisplayName(memberRole)}
             </div>
           </div>
           {availability && (
@@ -74,7 +76,7 @@ export function MemberCard({
     >
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-3">
-          <div className="text-xl sm:text-2xl">{getRoleIcon(member.role)}</div>
+          <div className="text-xl sm:text-2xl">{getRoleIcon(memberRole)}</div>
           <div className="flex-1 min-w-0">
             <div className="text-white font-semibold text-sm sm:text-base truncate">
               {member.name}
@@ -86,7 +88,7 @@ export function MemberCard({
                 roleColor
               )}
             >
-              {getRoleDisplayName(member.role)}
+              {getRoleDisplayName(memberRole)}
             </Badge>
           </div>
         </CardTitle>

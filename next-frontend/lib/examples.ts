@@ -33,9 +33,30 @@ import {
 
 // Example data
 const exampleMembers: Member[] = [
-  { id: "bass1", name: "Josue Tatala", role: "bassist" },
-  { id: "piano1", name: "Guillaume Chambaud", role: "pianist" },
-  { id: "lead1", name: "Linda Claude K.", role: "lead" },
+  { 
+    id: "bass1", 
+    name: "Josue Tatala", 
+    email: "josue.tatala@myband.local",
+    roles: ["bassist"],
+    is_admin: false,
+    must_change_password: false
+  },
+  { 
+    id: "piano1", 
+    name: "Guillaume Chambaud", 
+    email: "guillaume.chambaud@myband.local",
+    roles: ["pianist"],
+    is_admin: false,
+    must_change_password: false
+  },
+  { 
+    id: "lead1", 
+    name: "Linda Claude K.", 
+    email: "linda.claude.k@myband.local",
+    roles: ["lead"],
+    is_admin: false,
+    must_change_password: false
+  },
 ];
 
 const exampleEvents: Event[] = [

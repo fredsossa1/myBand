@@ -18,11 +18,17 @@ export async function getUserFromRequest(
     }
 
     const member = members[0];
+    
+    // Handle both legacy (single role) and new (roles array) member formats  
+    const memberRole = (member as any).role || 'bv';
+    
     return {
       id: member.id,
       name: member.name,
-      role: member.role as Role,
-      isAdmin: member.role === "admin",
+      email: (member as any).email || `${member.name.toLowerCase().replace(/\s+/g, '.')}@myband.local`,
+      roles: [memberRole],
+      isAdmin: memberRole === "admin",
+      mustChangePassword: false, // Legacy auth doesn't require password change
     };
   } catch (error) {
     console.error("❌ Error getting user from request:", error);
@@ -38,7 +44,7 @@ export function requireRole(
   userContext: UserContext | null,
   requiredRole: string
 ): boolean {
-  return userContext !== null && userContext.role === requiredRole;
+  return userContext !== null && userContext.roles.includes(requiredRole as Role);
 }
 
 export function canAccessStats(userContext: UserContext | null): boolean {

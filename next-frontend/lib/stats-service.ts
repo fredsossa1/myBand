@@ -87,7 +87,10 @@ export class StatsService {
     const eventRequirements =
       requirements[event.type as keyof typeof requirements] ||
       requirements.service;
-    return (eventRequirements[member.role as keyof typeof eventRequirements] || 0) > 0;
+    
+    // Handle both legacy (single role) and new (roles array) member formats
+    const memberRole = (member as any).role || (member as any).roles?.[0] || 'bv';
+    return (eventRequirements[memberRole as keyof typeof eventRequirements] || 0) > 0;
   }
 
   /**
@@ -221,10 +224,13 @@ export class StatsService {
     // Group members by role
     const membersByRole: Record<string, Member[]> = {};
     members.forEach((member) => {
-      if (!membersByRole[member.role]) {
-        membersByRole[member.role] = [];
+      // Handle both legacy (single role) and new (roles array) member formats
+      const memberRole = (member as any).role || (member as any).roles?.[0] || 'bv';
+      
+      if (!membersByRole[memberRole]) {
+        membersByRole[memberRole] = [];
       }
-      membersByRole[member.role].push(member);
+      membersByRole[memberRole].push(member);
     });
 
     // Calculate stats for each role

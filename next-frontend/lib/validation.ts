@@ -83,7 +83,10 @@ export function validateMember(data: any): Member {
   return {
     id: data.id.trim(),
     name: data.name.trim(),
-    role: data.role,
+    email: data.email || `${data.name.toLowerCase().replace(/\s+/g, '.')}@myband.local`,
+    roles: [data.role], // Convert single role to array
+    is_admin: data.role === 'admin',
+    must_change_password: true, // Default to requiring password change
     created_at: data.created_at,
   };
 }

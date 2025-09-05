@@ -73,10 +73,16 @@ export default function StatsPage() {
       .map((record: AvailabilityRecord) => {
         const member = members.find((m) => m.id === record.person_id);
         const event = events.find((e) => e.date === record.date);
+        
+        // Handle both legacy (single role) and new (roles array) member formats
+        const memberRole = member 
+          ? ('role' in member ? member.role : (member.roles?.[0] || 'unknown'))
+          : 'unknown';
+        
         return {
           ...record,
           memberName: member?.name || "Unknown",
-          memberRole: member?.role || "unknown",
+          memberRole,
           eventTitle: event?.title || "Unknown Event",
         };
       });

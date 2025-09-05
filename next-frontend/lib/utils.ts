@@ -43,8 +43,11 @@ export function groupMembersByRole(
   }
 
   members.forEach((member) => {
-    if (grouped[member.role]) {
-      grouped[member.role].push(member);
+    // Handle both legacy (single role) and new (roles array) member formats
+    const memberRole = (member as any).role || (member as any).roles?.[0] || 'bv';
+    
+    if (grouped[memberRole as Role]) {
+      grouped[memberRole as Role].push(member);
     }
   });
 
@@ -68,8 +71,13 @@ export function flattenMembersByRole(membersByRole: MembersByRole): Member[] {
   return members.sort((a, b) => {
     // Sort by role first, then by name
     const roleOrder: Role[] = ["lead", "bv", "pianist", "bassist", "drummer"];
+    
+    // Handle both legacy and new member formats
+    const aRole = (a as any).role || (a as any).roles?.[0] || 'bv';
+    const bRole = (b as any).role || (b as any).roles?.[0] || 'bv';
+    
     const roleComparison =
-      roleOrder.indexOf(a.role) - roleOrder.indexOf(b.role);
+      roleOrder.indexOf(aRole) - roleOrder.indexOf(bRole);
     if (roleComparison !== 0) return roleComparison;
     return a.name.localeCompare(b.name);
   });
@@ -83,7 +91,10 @@ export function findMemberById(
 }
 
 export function getMembersByRole(members: Member[], role: Role): Member[] {
-  return members.filter((member) => member.role === role);
+  return members.filter((member) => {
+    const memberRole = (member as any).role || (member as any).roles?.[0] || 'bv';
+    return memberRole === role;
+  });
 }
 
 // Event utilities
@@ -172,13 +183,15 @@ export function groupAvailabilityByRole(
   // Populate availability data
   availability.forEach((record) => {
     const member = findMemberById(members, record.person_id);
-    if (
-      member &&
-      grouped[member.role] &&
-      grouped[member.role][record.person_id]
-    ) {
-      grouped[member.role][record.person_id].availability[record.date] =
-        record.state;
+    if (member) {
+      const memberRole = (member as any).role || (member as any).roles?.[0] || 'bv';
+      if (
+        grouped[memberRole as Role] &&
+        grouped[memberRole as Role][record.person_id]
+      ) {
+        grouped[memberRole as Role][record.person_id].availability[record.date] =
+          record.state;
+      }
     }
   });
 
@@ -255,7 +268,7 @@ export function calculateAvailabilityStats(
     return {
       id: member.id,
       name: member.name,
-      role: member.role,
+      role: (member as any).role || (member as any).roles?.[0] || 'bv',
       availabilityScore: Math.round(score),
     };
   });
@@ -463,7 +476,10 @@ export function calculateRoleCoverage(
   availabilityByDate: AvailabilityByDate,
   required: number
 ): RoleCoverage {
-  const roleMembers = members.filter((member) => member.role === role);
+  const roleMembers = members.filter((member) => {
+    const memberRole = (member as any).role || (member as any).roles?.[0] || 'bv';
+    return memberRole === role;
+  });
   const availableMembers = roleMembers
     .map((member) => ({
       id: member.id,

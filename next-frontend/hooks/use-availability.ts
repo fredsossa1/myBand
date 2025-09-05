@@ -182,7 +182,7 @@ export function useAvailability(): UseAvailabilityReturn {
             [personId]: {
               state,
               name: member?.name || "Unknown",
-              role: member?.role || "unknown",
+              role: (member ? ('role' in member ? member.role : (member.roles?.[0] || 'unknown')) : 'unknown') as string,
               isPending: true,
             },
           },
