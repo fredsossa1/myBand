@@ -456,10 +456,7 @@ export default function AvailabilityPage() {
                             {getRoleDisplayNameTranslated(role as Role, t)}
                           </div>
                           {people.map((member: Member) => (
-                            <SelectItem 
-                              key={member.id} 
-                              value={member.id}
-                            >
+                            <SelectItem key={member.id} value={member.id}>
                               {member.name}
                             </SelectItem>
                           ))}
