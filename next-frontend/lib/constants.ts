@@ -158,26 +158,38 @@ export function isToday(dateString: string): boolean {
   // Parse as local date to avoid timezone issues
   const [year, month, day] = dateString.split("-").map(Number);
   const date = new Date(year, month - 1, day);
-  const today = new Date();
-  return date.toDateString() === today.toDateString();
+  
+  // Get current date in Montreal EST timezone
+  const now = new Date();
+  const montrealTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Montreal"}));
+  
+  return date.toDateString() === montrealTime.toDateString();
 }
 
 export function isPast(dateString: string): boolean {
   // Parse as local date to avoid timezone issues
   const [year, month, day] = dateString.split("-").map(Number);
   const date = new Date(year, month - 1, day);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return date < today;
+  
+  // Get current date in Montreal EST timezone
+  const now = new Date();
+  const montrealTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Montreal"}));
+  montrealTime.setHours(0, 0, 0, 0);
+  
+  return date < montrealTime;
 }
 
 export function isFuture(dateString: string): boolean {
   // Parse as local date to avoid timezone issues
   const [year, month, day] = dateString.split("-").map(Number);
   const date = new Date(year, month - 1, day);
-  const today = new Date();
-  today.setHours(23, 59, 59, 999);
-  return date > today;
+  
+  // Get current date in Montreal EST timezone
+  const now = new Date();
+  const montrealTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Montreal"}));
+  montrealTime.setHours(23, 59, 59, 999);
+  
+  return date > montrealTime;
 }
 
 // Generate date string in YYYY-MM-DD format

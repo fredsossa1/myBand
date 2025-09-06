@@ -275,19 +275,40 @@ export default function AvailabilityPage() {
 
   const membersByRole = groupMembersByRole(members);
 
-  // Calculate stats for upcoming events only using the centralized service
+  // Calculate stats for events using the centralized service
+  // Separate today's events from upcoming events
+  const todaysEvents =
+    events?.filter((event) => {
+      const [year, month, day] = event.date.split("-").map(Number);
+      const eventDate = new Date(year, month - 1, day);
+      
+      // Get current date in Montreal EST timezone
+      const now = new Date();
+      const montrealTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Montreal"}));
+      
+      return eventDate.toDateString() === montrealTime.toDateString();
+    }) || [];
+
   const upcomingEvents =
     events?.filter((event) => {
-      const eventDate = new Date(event.date);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return eventDate >= today;
+      const [year, month, day] = event.date.split("-").map(Number);
+      const eventDate = new Date(year, month - 1, day);
+      
+      // Get current date in Montreal EST timezone
+      const now = new Date();
+      const montrealTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Montreal"}));
+      montrealTime.setHours(23, 59, 59, 999);
+      
+      return eventDate > montrealTime;
     }) || [];
+
+  // Combine today's and upcoming events for stats calculation
+  const allRelevantEvents = [...todaysEvents, ...upcomingEvents];
 
   // Use the centralized stats service
   const overallStats = StatsService.calculateOverallStats(
     members || [],
-    upcomingEvents,
+    allRelevantEvents,
     // Convert availabilityByDate to AvailabilityRecord array
     Object.entries(availabilityByDate).flatMap(([date, dayAvail]) => 
       Object.entries(dayAvail).map(([personId, state]) => ({
@@ -301,7 +322,7 @@ export default function AvailabilityPage() {
 
   const userStats = currentUser ? StatsService.calculateMemberStats(
     currentUser,
-    upcomingEvents,
+    allRelevantEvents,
     Object.entries(availabilityByDate).flatMap(([date, dayAvail]) => 
       Object.entries(dayAvail).map(([personId, state]) => ({
         person_id: personId,
@@ -495,9 +516,9 @@ export default function AvailabilityPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
             <div>
               <div className="text-2xl font-bold text-white">
-                {upcomingEvents.length}
+                {allRelevantEvents.length}
               </div>
-              <div className="text-white/60 text-sm">{t.upcomingEvents}</div>
+              <div className="text-white/60 text-sm">Today & Upcoming</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-white">
@@ -592,9 +613,375 @@ export default function AvailabilityPage() {
       )}
 
       {/* Events */}
-      <div className="space-y-4">
-        {upcomingEvents && upcomingEvents.length > 0 ? (
-          upcomingEvents.map((event, index) => {
+      <div className="space-y-6">
+        {/* Today's Events */}
+        {todaysEvents && todaysEvents.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl font-bold text-white">🎯 Today's Events</h2>
+              <Badge variant="outline" className="border-orange-400/50 text-orange-300">
+                {todaysEvents.length} event{todaysEvents.length !== 1 ? 's' : ''}
+              </Badge>
+            </div>
+            {todaysEvents.map((event, index) => {
+              const userAvailability = currentUser
+                ? getUserAvailability(event.date, currentUser.id)
+                : null;
+              const needsResponse = currentUser && userAvailability === null;
+              const dayAvail = availabilityByDate[event.date] || {};
+              const hasResponses = Object.keys(dayAvail).length > 0;
+
+              // Calculate coverage for this event
+              const coverage = calculateEventCoverage(
+                event,
+                members || [],
+                availabilityByDate
+              );
+
+              return (
+                <Card
+                  key={event.id}
+                  className={`glass border-orange-400/30 bg-orange-500/5 fade-in ${
+                    needsResponse ? "border-l-4 border-l-red-500" : ""
+                  }`}
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <CardHeader>
+                    <CardTitle className="text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <span className="text-orange-400">🎯</span>
+                        <span className="truncate">{event.title}</span>
+                        {needsResponse && (
+                          <span className="flex-shrink-0">⚠️</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
+                        <Badge
+                          variant="outline"
+                          className={`${getCoverageStatusColor(
+                            coverage.status
+                          )} text-xs flex-shrink-0`}
+                        >
+                          {getCoverageStatusIcon(coverage.status)}{" "}
+                          {coverage.coverageScore}%
+                        </Badge>
+                        <Badge
+                          variant="outline"
+                          className="border-blue-500/30 text-blue-300 text-xs flex-shrink-0"
+                        >
+                          {formatEventType(event.type)}
+                        </Badge>
+                        <Badge
+                          variant="outline"
+                          className="border-orange-400/30 text-orange-300 whitespace-nowrap flex-shrink-0 text-xs"
+                        >
+                          TODAY - {formatDate(event.date)}
+                        </Badge>
+                      </div>
+                    </CardTitle>
+                    {event.description && (
+                      <p className="text-white/70">{event.description}</p>
+                    )}
+                  </CardHeader>
+
+                  <CardContent className="space-y-6">
+                    {/* Coverage Summary */}
+                    <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <h4 className="text-white font-medium mb-3 flex items-center gap-2">
+                        🎼 Band Coverage
+                        <Badge
+                          variant="outline"
+                          className={getCoverageStatusColor(coverage.status)}
+                        >
+                          {getCoverageStatusIcon(coverage.status)}{" "}
+                          {coverage.status.replace("-", " ")}
+                        </Badge>
+                      </h4>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 text-sm">
+                        {Object.entries(coverage.coverageByRole).map(
+                          ([role, roleCoverage]) => (
+                            <div key={role} className="text-center">
+                              <div className="text-white/70 capitalize flex items-center justify-center gap-1">
+                                {getRoleDisplayNameTranslated(role as Role, t)}
+                                {role === "violinist" && (
+                                  <span
+                                    className="text-xs text-blue-400"
+                                    title="Optional - Special Guest"
+                                  >
+                                    ✨
+                                  </span>
+                                )}
+                              </div>
+                              <div
+                                className={`font-medium ${
+                                  role === "violinist"
+                                    ? roleCoverage!.available > 0
+                                      ? "text-blue-400"
+                                      : "text-yellow-500"
+                                    : roleCoverage!.available >=
+                                      roleCoverage!.required
+                                    ? "text-green-400"
+                                    : "text-red-400"
+                                }`}
+                              >
+                                {role === "violinist" ? (
+                                  // Special display for violinist
+                                  roleCoverage!.available > 0 ? (
+                                    <span className="flex items-center justify-center gap-1">
+                                      ✨ <span className="text-xs">Guest</span>
+                                    </span>
+                                  ) : (
+                                    <span className="text-yellow-500">0/1</span>
+                                  )
+                                ) : event.type === "jam-session" ? (
+                                  // For jam sessions, show available count with a "+" if it exceeds minimum
+                                  roleCoverage!.available >=
+                                  roleCoverage!.required ? (
+                                    roleCoverage!.available >
+                                    roleCoverage!.required ? (
+                                      <>
+                                        {roleCoverage!.required}
+                                        <span className="text-blue-400">
+                                          +
+                                          {roleCoverage!.available -
+                                            roleCoverage!.required}
+                                        </span>
+                                      </>
+                                    ) : (
+                                      `${roleCoverage!.available}✓`
+                                    )
+                                  ) : (
+                                    `${roleCoverage!.available}/${
+                                      roleCoverage!.required
+                                    }`
+                                  )
+                                ) : (
+                                  // For other events, show standard format
+                                  `${roleCoverage!.available}/${
+                                    roleCoverage!.required
+                                  }`
+                                )}
+                              </div>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+
+                    {/* User's availability */}
+                    {currentUser && (
+                      <div className="space-y-3">
+                        <h4 className="text-white font-medium">
+                          🎯 Your Availability
+                        </h4>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            onClick={() => {
+                              if (!currentUser) return;
+                              // Create a safe cycle function that handles the null case
+                              const safeCycle = (
+                                state: typeof userAvailability
+                              ): AvailabilityState => {
+                                if (state === null) return "A";
+                                return state === "?"
+                                  ? "A"
+                                  : state === "A"
+                                  ? "U"
+                                  : "?";
+                              };
+                              const nextState = safeCycle(userAvailability);
+                              setAvailabilityLocal(
+                                event.date,
+                                currentUser.id,
+                                nextState
+                              );
+                            }}
+                            className={`min-w-[140px] ${
+                              userAvailability === "A"
+                                ? "bg-green-600 hover:bg-green-700"
+                                : userAvailability === "U"
+                                ? "bg-red-600 hover:bg-red-700"
+                                : userAvailability === "?"
+                                ? "bg-yellow-600 hover:bg-yellow-700"
+                                : "bg-gray-600 hover:bg-gray-700"
+                            } text-white`}
+                          >
+                            {getAvailabilityIconOrDefault(userAvailability)}{" "}
+                            {getAvailabilityDisplayNameOrDefault(
+                              userAvailability
+                            )}
+                          </Button>
+
+                          {Array.from(pendingChanges.values()).some(
+                            (change) =>
+                              change.date === event.date &&
+                              change.personId === currentUser.id
+                          ) && (
+                            <Badge
+                              variant="outline"
+                              className="border-orange-400/50 text-orange-300"
+                            >
+                              Pending
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Responses by role */}
+                    {hasResponses ? (
+                      <div className="space-y-4">
+                        {/* Coverage optimization indicator */}
+                        {coverage.status === "fully-covered" &&
+                          event.type === "jam-session" && (
+                            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                              <div className="flex items-center gap-2 text-blue-300 text-sm">
+                                <span>🎵</span>
+                                <span>
+                                  {t.fullyCovered} - {t.jamSessionEncouragement}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        {coverage.status === "fully-covered" &&
+                          event.type !== "jam-session" && (
+                            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                              <div className="flex items-center gap-2 text-green-300 text-sm">
+                                <span>✅</span>
+                                <span>
+                                  {t.fullyCovered} -{" "}
+                                  {t.availableMembers.toLowerCase()}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+
+                        {/* Special indicator when violinist is available */}
+                        {coverage.coverageByRole.violinist &&
+                          coverage.coverageByRole.violinist.available > 0 && (
+                            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                              <div className="flex items-center gap-2 text-blue-300 text-sm">
+                                <span>✨</span>
+                                <span>
+                                  {t.specialGuestPerformance} -{" "}
+                                  {
+                                    coverage.coverageByRole.violinist?.members.find(
+                                      (m) => m.state === "A"
+                                    )?.name
+                                  }{" "}
+                                  {t.willJoinOnViolin}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+
+                        {Object.entries(membersByRole).map(([role, people]) => {
+                          const roleResponses = people.filter(
+                            (person: Member) => {
+                              const state = dayAvail[person.id];
+                              if (!state) return false;
+
+                              // For jam sessions, always show all responses to encourage participation
+                              if (event.type === "jam-session") {
+                                return true;
+                              }
+
+                              // For other events, if fully covered, only show available responses
+                              if (coverage.status === "fully-covered") {
+                                return state === "A";
+                              }
+
+                              // Otherwise show all responses (A, U, and ?)
+                              return true;
+                            }
+                          );
+
+                          if (roleResponses.length === 0) return null;
+
+                          return (
+                            <div key={role} className="space-y-2">
+                              <h4 className="text-white font-medium">
+                                🎵 {getRoleDisplayNameTranslated(role as Role, t)}{" "}
+                                ({roleResponses.length}/
+                                {event.type === "jam-session"
+                                  ? people.length
+                                  : coverage.status === "fully-covered"
+                                  ? people.filter(
+                                      (p: Member) => dayAvail[p.id] === "A"
+                                    ).length
+                                  : people.length}{" "}
+                                {event.type === "jam-session"
+                                  ? "responded"
+                                  : coverage.status === "fully-covered"
+                                  ? t.availableMembers.toLowerCase()
+                                  : "responded"}
+                                )
+                              </h4>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2 auto-rows-fr">
+                                {roleResponses.map((person: Member) => {
+                                  const state = dayAvail[person.id];
+                                  const isCurrentUser =
+                                    currentUser?.id === person.id;
+
+                                  return (
+                                    <div
+                                      key={person.id}
+                                      className={`flex items-center justify-between p-3 rounded-lg bg-white/5 border ${
+                                        isCurrentUser
+                                          ? "border-blue-500/30 bg-blue-500/10"
+                                          : "border-white/10"
+                                      }`}
+                                    >
+                                      <span className="text-white">
+                                        {person.name}
+                                      </span>
+                                      <Badge
+                                        variant="outline"
+                                        className={`${
+                                          state === "A"
+                                            ? "border-green-500/50 text-green-300"
+                                            : state === "U"
+                                            ? "border-red-500/50 text-red-300"
+                                            : "border-gray-500/50 text-gray-300"
+                                        }`}
+                                      >
+                                        {getAvailabilityIconOrDefault(state)}{" "}
+                                        {state === "A"
+                                          ? "Available"
+                                          : state === "U"
+                                          ? "Unavailable"
+                                          : "Uncertain"}
+                                      </Badge>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-white/60">
+                        <p>{t.noResponsesYet}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Upcoming Events */}
+        {upcomingEvents && upcomingEvents.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl font-bold text-white">📅 Upcoming Events</h2>
+              <Badge variant="outline" className="border-blue-400/50 text-blue-300">
+                {upcomingEvents.length} event{upcomingEvents.length !== 1 ? 's' : ''}
+              </Badge>
+            </div>
+            {upcomingEvents.map((event, index) => {
             const userAvailability = currentUser
               ? getUserAvailability(event.date, currentUser.id)
               : null;
@@ -887,7 +1274,7 @@ export default function AvailabilityPage() {
                                 : "responded"}
                               )
                             </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2 auto-rows-fr">
                               {roleResponses.map((person: Member) => {
                                 const state = dayAvail[person.id];
                                 const isCurrentUser =
@@ -938,8 +1325,12 @@ export default function AvailabilityPage() {
                 </CardContent>
               </Card>
             );
-          })
-        ) : (
+          })}
+          </div>
+        )}
+
+        {/* No events message */}
+        {(!todaysEvents || todaysEvents.length === 0) && (!upcomingEvents || upcomingEvents.length === 0) && (
           <Card className="glass border-white/20">
             <CardContent className="p-12 text-center">
               <div className="text-white/60">

@@ -93,6 +93,14 @@
       "description": "",
       "type": "service",
       "createdAt": "2025-08-27T02:05:09.491Z"
+    },
+    {
+      "id": "1725647100000",
+      "date": "2025-09-06",
+      "title": "GC Jam",
+      "description": "Jam de l'équipe de louange",
+      "type": "jam-session",
+      "createdAt": "2025-09-06T12:00:00.000Z"
     }
   ],
   "settings": {

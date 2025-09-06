@@ -104,22 +104,26 @@ export function getEventsForDateRange(
 }
 
 export function getUpcomingEvents(events: Event[], days = 30): Event[] {
-  const today = new Date();
-  const cutoffDate = new Date(today.getTime() + days * 24 * 60 * 60 * 1000);
+  // Get current date in Montreal EST timezone
+  const now = new Date();
+  const montrealTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Montreal"}));
+  const cutoffDate = new Date(montrealTime.getTime() + days * 24 * 60 * 60 * 1000);
 
   return events.filter((event) => {
     const eventDate = new Date(event.date);
-    return eventDate >= today && eventDate <= cutoffDate;
+    return eventDate >= montrealTime && eventDate <= cutoffDate;
   });
 }
 
 export function getPastEvents(events: Event[], days = 30): Event[] {
-  const today = new Date();
-  const cutoffDate = new Date(today.getTime() - days * 24 * 60 * 60 * 1000);
+  // Get current date in Montreal EST timezone
+  const now = new Date();
+  const montrealTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Montreal"}));
+  const cutoffDate = new Date(montrealTime.getTime() - days * 24 * 60 * 60 * 1000);
 
   return events.filter((event) => {
     const eventDate = new Date(event.date);
-    return eventDate < today && eventDate >= cutoffDate;
+    return eventDate < montrealTime && eventDate >= cutoffDate;
   });
 }
 
