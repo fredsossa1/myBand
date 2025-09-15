@@ -1,6 +1,7 @@
 "use client";
 
 import { useAppData } from "@/lib/api-hooks";
+import { useAdmin } from "@/hooks/use-admin";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,118 +20,180 @@ import {
   formatDateShort,
   isToday,
   isPast,
-  getRoleDisplayName,
   getEventTypeIcon,
+  getRoleDisplayName,
   getAvailabilityIcon,
 } from "@/lib/constants";
-import { Event, Member, AvailabilityRecord, AvailabilityState } from "@/lib/types";
-import { groupAvailabilityByDate } from "@/lib/utils";
-import { StatsService } from "@/lib/stats-service";
+import type { Member, AvailabilityState } from "@/lib/types";
 
-export function Dashboard() {
+interface StatsData {
+  totalEvents: number;
+  totalMembers: number;
+  totalResponses: number;
+  totalPossibleResponses: number;
+  responseRate: number;
+  memberStats?: {
+    member: Member;
+    responses: number;
+    expectedResponses: number;
+    responseRate: number;
+    recentResponses: Array<{
+      eventTitle: string;
+      eventDate: string;
+      status: AvailabilityState;
+      shouldRespond: boolean;
+    }>;
+  };
+  upcomingEvents: Array<{
+    id: string;
+    title: string;
+    date: string;
+    type: string;
+  }>;
+  recentActivity: Array<{
+    memberName: string;
+    memberRole: string;
+    eventTitle: string;
+    state: AvailabilityState;
+    date: string;
+  }>;
+}
+
+export default function Dashboard() {
+  const appData = useAppData();
+  const isAdmin = useAdmin();
   const t = useTranslations();
   const router = useRouter();
-  const { members, events, availability, loading } = useAppData();
   const [selectedMember, setSelectedMember] = useState<string>("");
 
-  // Calculate various stats and data
-  const stats = useMemo(() => {
-    if (!members || !events || !availability) {
+  // Recent activity (last 5) - simplified version using availability data
+  const recentActivity = useMemo(() => {
+    if (!appData?.availability || !appData?.members || !appData?.events) return [];
+
+    const activities: StatsData["recentActivity"] = [];
+    
+    // Get recent availability records (sorted by creation date if available)
+    const recentAvailability = appData.availability
+      .filter(record => record.created_at)
+      .sort((a, b) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime())
+      .slice(0, 5);
+
+    recentAvailability.forEach(record => {
+      const member = appData.members!.find(m => m.id === record.person_id);
+      const event = appData.events!.find(e => e.date === record.date);
+      
+      if (member && event) {
+        activities.push({
+          memberName: member.name,
+          memberRole: member.role,
+          eventTitle: event.title,
+          state: record.state,
+          date: record.created_at || record.date,
+        });
+      }
+    });
+
+    return activities;
+  }, [appData?.availability, appData?.members, appData?.events]);
+
+  const stats: StatsData = useMemo(() => {
+    if (!appData?.events || !appData?.members || !appData?.availability) {
       return {
         totalEvents: 0,
         totalMembers: 0,
+        totalResponses: 0,
+        totalPossibleResponses: 0,
         responseRate: 0,
         upcomingEvents: [],
         recentActivity: [],
-        memberStats: null,
-        nextEvent: null,
       };
     }
 
-    // Get upcoming events (next 3)
-    const upcomingEvents = events
-      .filter((event) => !isPast(event.date))
+    const upcomingEvents = appData.events
+      .filter(event => !isPast(event.date))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(0, 3);
-
-    // Get next event
-    const nextEvent = upcomingEvents[0] || null;
-
-    // Calculate overall stats using the centralized service
-    const overallStats = StatsService.calculateOverallStats(members, events, availability);
-
-    // Recent activity (last 5)
-    const recentActivity = availability
-      .filter((record) => record.created_at)
-      .sort(
-        (a, b) =>
-          new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime()
-      )
       .slice(0, 5)
-      .map((record) => {
-        const member = members.find((m) => m.id === record.person_id);
-        const event = events.find((e) => e.date === record.date);
-        return {
-          ...record,
-          memberName: member?.name || "Unknown",
-          memberRole: member?.role,
-          eventTitle: event?.title || "Unknown Event",
-        };
-      });
+      .map(event => ({
+        id: event.id.toString(),
+        title: event.title,
+        date: event.date,
+        type: event.type
+      }));
 
-    // Member-specific stats if selected
-    let memberStats = null;
+    const totalResponses = appData.availability.length;
+    const totalPossibleResponses = appData.events.length * appData.members.length;
+
+    const responseRate = totalPossibleResponses > 0 
+      ? Math.round((totalResponses / totalPossibleResponses) * 100) 
+      : 0;
+
+    // Filter recent activity based on privacy settings
+    let filteredRecentActivity = recentActivity;
+    if (!isAdmin) {
+      if (selectedMember) {
+        // Show only selected member's activity
+        filteredRecentActivity = recentActivity.filter(activity => {
+          const member = appData.members!.find(m => m.name === activity.memberName);
+          return member?.id === selectedMember;
+        });
+      } else {
+        // Show no activity if no member selected (privacy protection)
+        filteredRecentActivity = [];
+      }
+    }
+
+    let memberStats: StatsData["memberStats"] | undefined;
     if (selectedMember) {
-      const member = members.find((m) => m.id === selectedMember);
+      const member = appData.members!.find(m => m.id === selectedMember);
       if (member) {
-        const memberStatsData = StatsService.calculateMemberStats(member, events, availability);
-        const memberEventStatus = StatsService.getMemberEventStatus(member, upcomingEvents, availability);
+        const memberAvailability = appData.availability.filter(a => a.person_id === member.id);
+        const memberResponses = memberAvailability.length;
+        const memberExpectedResponses = appData.events.length;
+        
+        const recentResponses = memberAvailability
+          .map(record => {
+            const event = appData.events!.find(e => e.date === record.date);
+            return event ? {
+              eventTitle: event.title,
+              eventDate: event.date,
+              status: record.state,
+              shouldRespond: true,
+            } : null;
+          })
+          .filter(Boolean)
+          .slice(0, 10);
+
+        const memberResponseRate = memberExpectedResponses > 0 
+          ? Math.round((memberResponses / memberExpectedResponses) * 100) 
+          : 0;
 
         memberStats = {
           member,
-          responses: memberStatsData.actualResponses,
-          expectedResponses: memberStatsData.expectedResponses,
-          responseRate: memberStatsData.responseRate,
-          eventStatus: memberEventStatus.map(({ event, status, shouldRespond }) => ({
-            ...event,
-            status,
-            shouldRespond,
-          })),
+          responses: memberResponses,
+          expectedResponses: memberExpectedResponses,
+          responseRate: memberResponseRate,
+          recentResponses: recentResponses as any,
         };
       }
     }
 
     return {
-      totalEvents: events.length,
-      totalMembers: members.length,
-      responseRate: overallStats.overallResponseRate,
-      totalResponses: overallStats.totalActualResponses,
-      totalPossibleResponses: overallStats.totalExpectedResponses,
+      totalEvents: appData.events.length,
+      totalMembers: appData.members.length,
+      totalResponses,
+      totalPossibleResponses,
+      responseRate,
       upcomingEvents,
-      recentActivity,
+      recentActivity: filteredRecentActivity,
       memberStats,
-      nextEvent,
     };
-  }, [members, events, availability, selectedMember]);
+  }, [appData, selectedMember, recentActivity, isAdmin]);
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <Card className="glass border-white/20">
-          <CardContent className="p-6">
-            <div className="text-white text-center flex items-center justify-center gap-3">
-              <div className="text-2xl">⏳</div>
-              <span>{t.loading}...</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const members = appData?.members || [];
 
   return (
     <div className="space-y-6">
-      {/* User Selection */}
+      {/* Member Selection */}
       <Card className="glass border-white/20">
         <CardContent className="p-4">
           <div className="space-y-2">
@@ -232,53 +295,37 @@ export function Dashboard() {
                 <div className="text-2xl font-bold text-white">
                   {stats.memberStats.responses}/{stats.memberStats.expectedResponses}
                 </div>
-                <div className="text-sm text-white/70">Responses Given</div>
+                <div className="text-sm text-white/70">{t.responses}</div>
               </div>
               <div className="text-center p-4 rounded-lg bg-white/5">
                 <div className="text-2xl font-bold text-white">
                   {stats.memberStats.responseRate}%
                 </div>
-                <div className="text-sm text-white/70">Response Rate</div>
+                <div className="text-sm text-white/70">{t.yourResponseRate}</div>
               </div>
             </div>
 
-            {stats.memberStats.eventStatus.length > 0 && (
+            {/* Recent responses for selected member */}
+            {stats.memberStats.recentResponses.length > 0 && (
               <div className="space-y-2">
-                <h4 className="text-white font-medium">
-                  Upcoming Events Status:
+                <h4 className="text-white font-medium text-sm">
+                  {t.recentResponses}:
                 </h4>
-                <div className="space-y-2">
-                  {stats.memberStats.eventStatus.map((event) => (
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {stats.memberStats.recentResponses.map((event, index) => (
                     <div
-                      key={event.id}
-                      className={`flex items-center justify-between p-3 rounded-lg ${
-                        event.shouldRespond ? "bg-white/5" : "bg-gray-500/10"
-                      }`}
+                      key={index}
+                      className="flex items-center justify-between p-3 rounded-lg bg-white/5 text-sm"
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg">
-                          {getEventTypeIcon(event.type)}
-                        </span>
-                        <div>
-                          <div className="text-white text-sm font-medium">
-                            {event.title}
-                            {!event.shouldRespond && (
-                              <span className="text-gray-400 text-xs ml-2">
-                                (no response needed)
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-white/60 text-xs">
-                            {formatDate(event.date)}
-                          </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-white truncate">{event.eventTitle}</div>
+                        <div className="text-white/60 text-xs">
+                          {formatDateShort(event.eventDate)}
                         </div>
                       </div>
                       <Badge
-                        variant="outline"
-                        className={`${
-                          !event.shouldRespond
-                            ? "border-gray-500/50 text-gray-400"
-                            : event.status === "A"
+                        className={`ml-3 ${
+                          event.status === "A"
                             ? "border-green-500/50 text-green-300"
                             : event.status === "U"
                             ? "border-red-500/50 text-red-300"
@@ -330,7 +377,7 @@ export function Dashboard() {
                     className="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
                   >
                     <div className="text-2xl">
-                      {getEventTypeIcon(event.type)}
+                      {getEventTypeIcon(event.type as any)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-white font-medium text-sm truncate">
@@ -362,7 +409,12 @@ export function Dashboard() {
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-3">
               <span className="text-xl">🕒</span>
-              Recent Activity
+              {isAdmin ? t.recentActivity : selectedMember ? t.yourRecentActivity : t.recentActivity}
+              {!isAdmin && (
+                <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded">
+                  {t.private}
+                </span>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -388,7 +440,7 @@ export function Dashboard() {
                       </div>
                       <div className="text-white/60 text-xs">
                         {activity.memberRole &&
-                          getRoleDisplayName(activity.memberRole)}{" "}
+                          getRoleDisplayName(activity.memberRole as any)}{" "}
                         •{formatDateShort(activity.date)}
                       </div>
                     </div>
@@ -397,8 +449,18 @@ export function Dashboard() {
               </div>
             ) : (
               <div className="text-center py-8 text-white/60">
-                <div className="text-2xl mb-2">📭</div>
-                <p>No recent activity</p>
+                {!isAdmin && !selectedMember ? (
+                  <div className="space-y-2">
+                    <div className="text-2xl mb-2">🔒</div>
+                    <p>{t.selectNameToViewActivity}</p>
+                    <p className="text-sm">{t.activityFromOthersPrivate}</p>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="text-2xl mb-2">📭</div>
+                    <p>{t.noRecentActivity}</p>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

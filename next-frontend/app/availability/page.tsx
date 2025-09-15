@@ -688,18 +688,31 @@ export default function AvailabilityPage() {
                     {/* Coverage Summary */}
                     <div className="bg-white/5 rounded-lg p-4 border border-white/10">
                       <h4 className="text-white font-medium mb-3 flex items-center gap-2">
-                        🎼 Band Coverage
-                        <Badge
-                          variant="outline"
-                          className={getCoverageStatusColor(coverage.status)}
-                        >
-                          {getCoverageStatusIcon(coverage.status)}{" "}
-                          {coverage.status.replace("-", " ")}
-                        </Badge>
+                        {isAdmin ? (
+                          <>
+                            🎼 Band Coverage
+                            <Badge
+                              variant="outline"
+                              className={getCoverageStatusColor(coverage.status)}
+                            >
+                              {getCoverageStatusIcon(coverage.status)}{" "}
+                              {coverage.status.replace("-", " ")}
+                            </Badge>
+                          </>
+                        ) : (
+                          <>🎼 Band Needs</>
+                        )}
                       </h4>
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 text-sm">
-                        {Object.entries(coverage.coverageByRole).map(
-                          ([role, roleCoverage]) => (
+                        {Object.entries(coverage.coverageByRole)
+                          .filter(([role, roleCoverage]) => {
+                            // For non-admin users, hide violinist roles with 0 requirements
+                            if (!isAdmin && role === "violinist" && roleCoverage!.required === 0) {
+                              return false;
+                            }
+                            return true;
+                          })
+                          .map(([role, roleCoverage]) => (
                             <div key={role} className="text-center">
                               <div className="text-white/70 capitalize flex items-center justify-center gap-1">
                                 {getRoleDisplayNameTranslated(role as Role, t)}
@@ -714,52 +727,65 @@ export default function AvailabilityPage() {
                               </div>
                               <div
                                 className={`font-medium ${
-                                  role === "violinist"
-                                    ? roleCoverage!.available > 0
-                                      ? "text-blue-400"
-                                      : "text-yellow-500"
-                                    : roleCoverage!.available >=
-                                      roleCoverage!.required
-                                    ? "text-green-400"
-                                    : "text-red-400"
+                                  isAdmin ? (
+                                    role === "violinist"
+                                      ? roleCoverage!.available > 0
+                                        ? "text-blue-400"
+                                        : "text-yellow-500"
+                                      : roleCoverage!.available >=
+                                        roleCoverage!.required
+                                      ? "text-green-400"
+                                      : "text-red-400"
+                                  ) : (
+                                    "text-blue-400"
+                                  )
                                 }`}
                               >
-                                {role === "violinist" ? (
-                                  // Special display for violinist
-                                  roleCoverage!.available > 0 ? (
-                                    <span className="flex items-center justify-center gap-1">
-                                      ✨ <span className="text-xs">Guest</span>
-                                    </span>
-                                  ) : (
-                                    <span className="text-yellow-500">0/1</span>
-                                  )
-                                ) : event.type === "jam-session" ? (
-                                  // For jam sessions, show available count with a "+" if it exceeds minimum
-                                  roleCoverage!.available >=
-                                  roleCoverage!.required ? (
-                                    roleCoverage!.available >
-                                    roleCoverage!.required ? (
-                                      <>
-                                        {roleCoverage!.required}
-                                        <span className="text-blue-400">
-                                          +
-                                          {roleCoverage!.available -
-                                            roleCoverage!.required}
-                                        </span>
-                                      </>
+                                {isAdmin ? (
+                                  role === "violinist" ? (
+                                    // Special display for violinist
+                                    roleCoverage!.available > 0 ? (
+                                      <span className="flex items-center justify-center gap-1">
+                                        ✨ <span className="text-xs">Guest</span>
+                                      </span>
                                     ) : (
-                                      `${roleCoverage!.available}✓`
+                                      <span className="text-yellow-500">0/1</span>
+                                    )
+                                  ) : event.type === "jam-session" ? (
+                                    // For jam sessions, show available count with a "+" if it exceeds minimum
+                                    roleCoverage!.available >=
+                                    roleCoverage!.required ? (
+                                      roleCoverage!.available >
+                                      roleCoverage!.required ? (
+                                        <>
+                                          {roleCoverage!.required}
+                                          <span className="text-blue-400">
+                                            +
+                                            {roleCoverage!.available -
+                                              roleCoverage!.required}
+                                          </span>
+                                        </>
+                                      ) : (
+                                        `${roleCoverage!.available}✓`
+                                      )
+                                    ) : (
+                                      `${roleCoverage!.available}/${
+                                        roleCoverage!.required
+                                      }`
                                     )
                                   ) : (
+                                    // For other events, show standard format
                                     `${roleCoverage!.available}/${
                                       roleCoverage!.required
                                     }`
                                   )
                                 ) : (
-                                  // For other events, show standard format
-                                  `${roleCoverage!.available}/${
+                                  // Non-admin view: show only requirements
+                                  role === "violinist" && roleCoverage!.required === 0 ? (
+                                    null
+                                  ) : (
                                     roleCoverage!.required
-                                  }`
+                                  )
                                 )}
                               </div>
                             </div>
@@ -875,23 +901,43 @@ export default function AvailabilityPage() {
                             </div>
                           )}
 
+                      {/* Privacy notice for non-admin users */}
+                      {!isAdmin && currentUser && (
+                        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                          <div className="flex items-start gap-3 text-blue-300 text-sm">
+                            <span className="text-lg">🔒</span>
+                            <div>
+                              <div className="font-medium mb-1">{t.privacyModeActive}</div>
+                              <div>{t.privacyModeDescription}</div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                         {Object.entries(membersByRole).map(([role, people]) => {
                           const roleResponses = people.filter(
                             (person: Member) => {
                               const state = dayAvail[person.id];
                               if (!state) return false;
 
-                              // For jam sessions, always show all responses to encourage participation
+                              // Privacy filter: non-admin users only see their own responses
+                              // If no user is selected, don't show any responses to non-admin users
+                              if (!isAdmin) {
+                                if (!currentUser) return false; // No user selected - show nothing
+                                if (person.id !== currentUser.id) return false; // Different user - hide
+                              }
+
+                              // For jam sessions, always show all responses to encourage participation (if user has permission)
                               if (event.type === "jam-session") {
                                 return true;
                               }
 
-                              // For other events, if fully covered, only show available responses
+                              // For other events, if fully covered, only show available responses (if user has permission)
                               if (coverage.status === "fully-covered") {
                                 return state === "A";
                               }
 
-                              // Otherwise show all responses (A, U, and ?)
+                              // Otherwise show all responses (A, U, and ?) (if user has permission)
                               return true;
                             }
                           );
@@ -902,20 +948,14 @@ export default function AvailabilityPage() {
                             <div key={role} className="space-y-2">
                               <h4 className="text-white font-medium">
                                 🎵 {getRoleDisplayNameTranslated(role as Role, t)}{" "}
-                                ({roleResponses.length}/
-                                {event.type === "jam-session"
-                                  ? people.length
+                                ({roleResponses.length}
+                                {!isAdmin && currentUser && roleResponses.length > 0 ? " (your response)" : 
+                                 !isAdmin ? "/?" : 
+                                 event.type === "jam-session"
+                                  ? `/${people.length} responded`
                                   : coverage.status === "fully-covered"
-                                  ? people.filter(
-                                      (p: Member) => dayAvail[p.id] === "A"
-                                    ).length
-                                  : people.length}{" "}
-                                {event.type === "jam-session"
-                                  ? "responded"
-                                  : coverage.status === "fully-covered"
-                                  ? t.availableMembers.toLowerCase()
-                                  : "responded"}
-                                )
+                                  ? `/${people.filter((p: Member) => dayAvail[p.id] === "A").length} ${t.availableMembers.toLowerCase()}`
+                                  : `/${people.length} responded`})
                               </h4>
                               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2 auto-rows-fr">
                                 {roleResponses.map((person: Member) => {
@@ -962,7 +1002,14 @@ export default function AvailabilityPage() {
                       </div>
                     ) : (
                       <div className="text-center py-8 text-white/60">
-                        <p>{t.noResponsesYet}</p>
+                        {!isAdmin && !currentUser ? (
+                          <div className="space-y-2">
+                            <p>🔒 {t.selectMemberToViewResponses}</p>
+                            <p className="text-sm">{t.privacyProtectionMessage}</p>
+                          </div>
+                        ) : (
+                          <p>{t.noResponsesYet}</p>
+                        )}
                       </div>
                     )}
                   </CardContent>
@@ -1045,18 +1092,31 @@ export default function AvailabilityPage() {
                   {/* Coverage Summary */}
                   <div className="bg-white/5 rounded-lg p-4 border border-white/10">
                     <h4 className="text-white font-medium mb-3 flex items-center gap-2">
-                      🎼 Band Coverage
-                      <Badge
-                        variant="outline"
-                        className={getCoverageStatusColor(coverage.status)}
-                      >
-                        {getCoverageStatusIcon(coverage.status)}{" "}
-                        {coverage.status.replace("-", " ")}
-                      </Badge>
+                      {isAdmin ? (
+                        <>
+                          🎼 Band Coverage
+                          <Badge
+                            variant="outline"
+                            className={getCoverageStatusColor(coverage.status)}
+                          >
+                            {getCoverageStatusIcon(coverage.status)}{" "}
+                            {coverage.status.replace("-", " ")}
+                          </Badge>
+                        </>
+                      ) : (
+                        <>🎼 Band Needs</>
+                      )}
                     </h4>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 text-sm">
-                      {Object.entries(coverage.coverageByRole).map(
-                        ([role, roleCoverage]) => (
+                      {Object.entries(coverage.coverageByRole)
+                        .filter(([role, roleCoverage]) => {
+                          // For non-admin users, hide violinist roles with 0 requirements
+                          if (!isAdmin && role === "violinist" && roleCoverage!.required === 0) {
+                            return false;
+                          }
+                          return true;
+                        })
+                        .map(([role, roleCoverage]) => (
                           <div key={role} className="text-center">
                             <div className="text-white/70 capitalize flex items-center justify-center gap-1">
                               {getRoleDisplayNameTranslated(role as Role, t)}
@@ -1071,52 +1131,65 @@ export default function AvailabilityPage() {
                             </div>
                             <div
                               className={`font-medium ${
-                                role === "violinist"
-                                  ? roleCoverage!.available > 0
-                                    ? "text-blue-400"
-                                    : "text-yellow-500"
-                                  : roleCoverage!.available >=
-                                    roleCoverage!.required
-                                  ? "text-green-400"
-                                  : "text-red-400"
+                                isAdmin ? (
+                                  role === "violinist"
+                                    ? roleCoverage!.available > 0
+                                      ? "text-blue-400"
+                                      : "text-yellow-500"
+                                    : roleCoverage!.available >=
+                                      roleCoverage!.required
+                                    ? "text-green-400"
+                                    : "text-red-400"
+                                ) : (
+                                  "text-blue-400"
+                                )
                               }`}
                             >
-                              {role === "violinist" ? (
-                                // Special display for violinist
-                                roleCoverage!.available > 0 ? (
-                                  <span className="flex items-center justify-center gap-1">
-                                    ✨ <span className="text-xs">Guest</span>
-                                  </span>
-                                ) : (
-                                  <span className="text-yellow-500">0/1</span>
-                                )
-                              ) : event.type === "jam-session" ? (
-                                // For jam sessions, show available count with a "+" if it exceeds minimum
-                                roleCoverage!.available >=
-                                roleCoverage!.required ? (
-                                  roleCoverage!.available >
-                                  roleCoverage!.required ? (
-                                    <>
-                                      {roleCoverage!.required}
-                                      <span className="text-blue-400">
-                                        +
-                                        {roleCoverage!.available -
-                                          roleCoverage!.required}
-                                      </span>
-                                    </>
+                              {isAdmin ? (
+                                role === "violinist" ? (
+                                  // Special display for violinist
+                                  roleCoverage!.available > 0 ? (
+                                    <span className="flex items-center justify-center gap-1">
+                                      ✨ <span className="text-xs">Guest</span>
+                                    </span>
                                   ) : (
-                                    `${roleCoverage!.available}✓`
+                                    <span className="text-yellow-500">0/1</span>
+                                  )
+                                ) : event.type === "jam-session" ? (
+                                  // For jam sessions, show available count with a "+" if it exceeds minimum
+                                  roleCoverage!.available >=
+                                  roleCoverage!.required ? (
+                                    roleCoverage!.available >
+                                    roleCoverage!.required ? (
+                                      <>
+                                        {roleCoverage!.required}
+                                        <span className="text-blue-400">
+                                          +
+                                          {roleCoverage!.available -
+                                            roleCoverage!.required}
+                                        </span>
+                                      </>
+                                    ) : (
+                                      `${roleCoverage!.available}✓`
+                                    )
+                                  ) : (
+                                    `${roleCoverage!.available}/${
+                                      roleCoverage!.required
+                                    }`
                                   )
                                 ) : (
+                                  // For other events, show standard format
                                   `${roleCoverage!.available}/${
                                     roleCoverage!.required
                                   }`
                                 )
                               ) : (
-                                // For other events, show standard format
-                                `${roleCoverage!.available}/${
+                                // Non-admin view: show only requirements
+                                role === "violinist" && roleCoverage!.required === 0 ? (
+                                  null
+                                ) : (
                                   roleCoverage!.required
-                                }`
+                                )
                               )}
                             </div>
                           </div>
@@ -1232,23 +1305,43 @@ export default function AvailabilityPage() {
                           </div>
                         )}
 
+                      {/* Privacy notice for non-admin users */}
+                      {!isAdmin && currentUser && (
+                        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                          <div className="flex items-start gap-3 text-blue-300 text-sm">
+                            <span className="text-lg">🔒</span>
+                            <div>
+                              <div className="font-medium mb-1">{t.privacyModeActive}</div>
+                              <div>{t.privacyModeDescription}</div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {Object.entries(membersByRole).map(([role, people]) => {
                         const roleResponses = people.filter(
                           (person: Member) => {
                             const state = dayAvail[person.id];
                             if (!state) return false;
 
-                            // For jam sessions, always show all responses to encourage participation
+                            // Privacy filter: non-admin users only see their own responses
+                            // If no user is selected, don't show any responses to non-admin users
+                            if (!isAdmin) {
+                              if (!currentUser) return false; // No user selected - show nothing
+                              if (person.id !== currentUser.id) return false; // Different user - hide
+                            }
+
+                            // For jam sessions, always show all responses to encourage participation (if user has permission)
                             if (event.type === "jam-session") {
                               return true;
                             }
 
-                            // For other events, if fully covered, only show available responses
+                            // For other events, if fully covered, only show available responses (if user has permission)
                             if (coverage.status === "fully-covered") {
                               return state === "A";
                             }
 
-                            // Otherwise show all responses (A, U, and ?)
+                            // Otherwise show all responses (A, U, and ?) (if user has permission)
                             return true;
                           }
                         );
@@ -1259,20 +1352,14 @@ export default function AvailabilityPage() {
                           <div key={role} className="space-y-2">
                             <h4 className="text-white font-medium">
                               🎵 {getRoleDisplayNameTranslated(role as Role, t)}{" "}
-                              ({roleResponses.length}/
-                              {event.type === "jam-session"
-                                ? people.length
+                              ({roleResponses.length}
+                              {!isAdmin && currentUser && roleResponses.length > 0 ? " (your response)" : 
+                               !isAdmin ? "/?" : 
+                               event.type === "jam-session"
+                                ? `/${people.length} responded`
                                 : coverage.status === "fully-covered"
-                                ? people.filter(
-                                    (p: Member) => dayAvail[p.id] === "A"
-                                  ).length
-                                : people.length}{" "}
-                              {event.type === "jam-session"
-                                ? "responded"
-                                : coverage.status === "fully-covered"
-                                ? t.availableMembers.toLowerCase()
-                                : "responded"}
-                              )
+                                ? `/${people.filter((p: Member) => dayAvail[p.id] === "A").length} ${t.availableMembers.toLowerCase()}`
+                                : `/${people.length} responded`})
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2 auto-rows-fr">
                               {roleResponses.map((person: Member) => {
@@ -1319,7 +1406,14 @@ export default function AvailabilityPage() {
                     </div>
                   ) : (
                     <div className="text-center py-8 text-white/60">
-                      <p>{t.noResponsesYet}</p>
+                      {!isAdmin && !currentUser ? (
+                        <div className="space-y-2">
+                          <p>🔒 {t.selectMemberToViewResponses}</p>
+                          <p className="text-sm">{t.privacyProtectionMessage}</p>
+                        </div>
+                      ) : (
+                        <p>{t.noResponsesYet}</p>
+                      )}
                     </div>
                   )}
                 </CardContent>

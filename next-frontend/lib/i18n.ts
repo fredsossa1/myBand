@@ -170,6 +170,17 @@ export interface Translations {
   errorLoading: string;
   tryAgain: string;
   noResponsesYet: string;
+  selectMemberToViewResponses: string;
+  privacyProtectionMessage: string;
+  privacyModeActive: string;
+  privacyModeDescription: string;
+  yourRecentActivity: string;
+  recentActivity: string;
+  activityFromOthersPrivate: string;
+  selectNameToViewActivity: string;
+  private: string;
+  noRecentActivity: string;
+  recentResponses: string;
   beFirstToRespond: string;
   sessionExpired: string;
   loginFailed: string;
@@ -372,6 +383,17 @@ export const translations: Record<Language, Translations> = {
     errorLoadingData: "Error loading data",
     tryAgain: "Try Again",
     noResponsesYet: "No responses yet. Be the first to respond!",
+    selectMemberToViewResponses: "Please select your name to view responses",
+    privacyProtectionMessage: "Availability responses are private to protect member privacy",
+    privacyModeActive: "Privacy Mode Active",
+    privacyModeDescription: "You can only see your own availability responses. Other members' responses are hidden to prevent social influence on your decisions.",
+    yourRecentActivity: "Your Recent Activity",
+    recentActivity: "Recent Activity",
+    activityFromOthersPrivate: "Activity from other members is private",
+    selectNameToViewActivity: "Select your name above to view your recent activity",
+    private: "Private",
+    noRecentActivity: "No recent activity",
+    recentResponses: "Recent responses",
     beFirstToRespond: "Be the first to respond!",
     sessionExpired: "Session expired",
     loginFailed: "Login failed",
@@ -578,6 +600,17 @@ export const translations: Record<Language, Translations> = {
     tryAgain: "Réessayer",
     noResponsesYet:
       "Aucune réponse pour le moment. Soyez le premier à répondre !",
+    selectMemberToViewResponses: "Veuillez sélectionner votre nom pour voir les réponses",
+    privacyProtectionMessage: "Les réponses de disponibilité sont privées pour protéger la vie privée des membres",
+    privacyModeActive: "Mode Privé Activé",
+    privacyModeDescription: "Vous ne pouvez voir que vos propres réponses de disponibilité. Les réponses des autres membres sont cachées pour éviter l'influence sociale sur vos décisions.",
+    yourRecentActivity: "Votre Activité Récente",
+    recentActivity: "Activité Récente",
+    activityFromOthersPrivate: "L'activité des autres membres est privée",
+    selectNameToViewActivity: "Sélectionnez votre nom ci-dessus pour voir votre activité récente",
+    private: "Privé",
+    noRecentActivity: "Aucune activité récente",
+    recentResponses: "Réponses récentes",
     beFirstToRespond: "Soyez le premier à répondre !",
     sessionExpired: "Session expirée",
     loginFailed: "Échec de la connexion",
