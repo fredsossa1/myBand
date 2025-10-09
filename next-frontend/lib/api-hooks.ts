@@ -103,8 +103,8 @@ export function useAvailability(): UseApiState<AvailabilityRecord[]> {
 /**
  * Hook to fetch availability organized by role
  */
-export function useAvailabilityByRole(): UseApiState<AvailabilityByRole> {
-  return useApiCall(() => BandApi.getAvailabilityByRole());
+export function useAvailabilityByRole(eventId?: number): UseApiState<AvailabilityByRole> {
+  return useApiCall(() => BandApi.getAvailabilityByRole(eventId));
 }
 
 // ========== MUTATION HOOKS ==========
@@ -166,8 +166,8 @@ function useMutation<T, TArgs extends any[]>(
  */
 export function useSetAvailability() {
   return useMutation(
-    (date: string, personId: string, state: "A" | "U" | "?") =>
-      BandApi.setAvailability(date, personId, state)
+    (eventId: string | number, personId: string, state: "A" | "U" | "?") =>
+      BandApi.setAvailability(eventId, personId, state)
   );
 }
 
@@ -224,26 +224,29 @@ export function useResetData() {
 /**
  * Combined hook that fetches all core data needed for the app
  */
-export function useAppData() {
+export function useAppData(eventId?: number) {
   const members = useMembers();
   const events = useEvents();
-  const availability = useAvailability();
+  const availability = eventId ? useApiCall(() => BandApi.getAvailability()) : useAvailability();
+  const availabilityByRole = useAvailabilityByRole(eventId);
 
-  const loading = members.loading || events.loading || availability.loading;
-  const error = members.error || events.error || availability.error;
+  const loading = members.loading || events.loading || availability.loading || availabilityByRole.loading;
+  const error = members.error || events.error || availability.error || availabilityByRole.error;
 
   const refetchAll = useCallback(async () => {
     await Promise.all([
       members.refetch(),
       events.refetch(),
       availability.refetch(),
+      availabilityByRole.refetch(),
     ]);
-  }, [members.refetch, events.refetch, availability.refetch]);
+  }, [members.refetch, events.refetch, availability.refetch, availabilityByRole.refetch]);
 
   return {
     members: members.data,
     events: events.data,
     availability: availability.data,
+    availabilityByRole: availabilityByRole.data,
     loading,
     error,
     refetch: refetchAll,

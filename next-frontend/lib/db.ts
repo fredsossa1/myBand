@@ -33,7 +33,7 @@ export interface Event {
 
 export interface AvailabilityRecord {
   id?: number;
-  date: string;
+  event_id: string | number;
   person_id: string;
   state: "A" | "U" | "?";
   created_at?: string;
@@ -211,7 +211,7 @@ export async function addDate(date: string): Promise<void> {
 
 // Availability functions
 export async function setAvailability(
-  date: string,
+  eventId: string | number,
   personId: string,
   state: "A" | "U" | "?"
 ): Promise<void> {
@@ -225,13 +225,13 @@ export async function setAvailability(
   const { error } = await supabase.from("availability").upsert(
     [
       {
-        date,
+        event_id: eventId,
         person_id: personId,
         state,
       },
     ],
     {
-      onConflict: "date,person_id",
+      onConflict: "event_id,person_id",
     }
   );
 
@@ -245,7 +245,7 @@ export async function getAvailability(): Promise<AvailabilityRecord[]> {
   const { data, error } = await supabase
     .from("availability")
     .select("*")
-    .order("date, person_id");
+    .order("event_id, person_id");
 
   if (error) {
     console.error("❌ Error fetching availability:", error);
@@ -255,28 +255,34 @@ export async function getAvailability(): Promise<AvailabilityRecord[]> {
   return data || [];
 }
 
-export async function getAvailabilityByRole(): Promise<
+export async function getAvailabilityByRole(eventId?: number): Promise<
   Record<
     string,
     Record<string, Array<{ id: string; name: string; state: string }>>
   >
 > {
-  // Get all availability records with member info
-  const { data, error } = await supabase
-    .from("availability")
+  let query = supabase
+    .from("availability_by_date")
     .select(
       `
       date,
       person_id,
       state,
+      event_id,
       members!inner (
         id,
         name,
         role
       )
     `
-    )
-    .order("date, person_id");
+    );
+
+  // If eventId is provided, filter by that specific event
+  if (eventId) {
+    query = query.eq("event_id", eventId);
+  }
+
+  const { data, error } = await query.order("date, person_id");
 
   if (error) {
     console.error("❌ Error fetching availability by role:", error);

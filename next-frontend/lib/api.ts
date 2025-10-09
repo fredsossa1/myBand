@@ -167,20 +167,23 @@ export class BandApi {
   /**
    * Get availability organized by role and date
    */
-  static async getAvailabilityByRole(): Promise<AvailabilityByRole> {
-    return get<AvailabilityByRole>("/api/availability/by-role");
+  static async getAvailabilityByRole(eventId?: number): Promise<AvailabilityByRole> {
+    const url = eventId 
+      ? `/api/availability/by-role?eventId=${eventId}`
+      : "/api/availability/by-role";
+    return get<AvailabilityByRole>(url);
   }
 
   /**
-   * Set availability for a specific person and date
+   * Set availability for a specific person and event
    */
   static async setAvailability(
-    date: string,
+    eventId: string | number,
     personId: string,
     state: "A" | "U" | "?"
   ): Promise<{ ok: boolean }> {
     return post<{ ok: boolean }>("/api/availability", {
-      date,
+      eventId,
       personId,
       state,
     });
@@ -231,7 +234,7 @@ export class BandApi {
   // ========== UTILITY METHODS ==========
 
   /**
-   * Bulk set availability for multiple members and dates
+   * Bulk set availability for multiple members and events
    * (Client-side implementation using multiple API calls)
    */
   static async setBulkAvailability(
@@ -243,17 +246,17 @@ export class BandApi {
       errors: [] as string[],
     };
 
-    // Execute all combinations of dates and members
-    for (const date of update.dates) {
+    // Execute all combinations of events and members
+    for (const eventId of update.eventIds) {
       for (const memberId of update.memberIds) {
         try {
-          await this.setAvailability(date, memberId, update.state);
+          await this.setAvailability(eventId, memberId, update.state);
           results.success++;
         } catch (error) {
           results.failed++;
           const errorMessage =
             error instanceof ApiError ? error.message : "Unknown error";
-          results.errors.push(`${date} - ${memberId}: ${errorMessage}`);
+          results.errors.push(`Event ${eventId} - ${memberId}: ${errorMessage}`);
         }
       }
     }

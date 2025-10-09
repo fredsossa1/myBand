@@ -49,7 +49,7 @@ export interface Event {
 // Availability record interface
 export interface AvailabilityRecord {
   id?: number;
-  date: string; // ISO date string (YYYY-MM-DD)
+  event_id: string | number;
   person_id: string;
   state: AvailabilityState;
   created_at?: string;
@@ -58,6 +58,13 @@ export interface AvailabilityRecord {
 // Availability organized by date and member
 export interface AvailabilityByDate {
   [date: string]: {
+    [memberId: string]: AvailabilityState;
+  };
+}
+
+// Availability organized by event and member
+export interface AvailabilityByEvent {
+  [eventId: string]: {
     [memberId: string]: AvailabilityState;
   };
 }
@@ -97,7 +104,7 @@ export interface ApiResponse<T> {
 
 // Bulk operation types
 export interface BulkAvailabilityUpdate {
-  dates: string[];
+  eventIds: (string | number)[];
   memberIds: string[];
   state: AvailabilityState;
 }

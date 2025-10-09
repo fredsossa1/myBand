@@ -12,6 +12,7 @@ import {
 import { groupAvailabilityByDate } from "@/lib/utils";
 
 export interface PendingChange {
+  eventId: number;
   date: string;
   personId: string;
   state: AvailabilityState;
@@ -20,6 +21,7 @@ export interface PendingChange {
 
 export interface UndoAction {
   type: "availability";
+  eventId: number;
   date: string;
   personId: string;
   previousState: AvailabilityState;
@@ -58,12 +60,12 @@ export interface UseAvailabilityReturn {
 
   // Actions
   setAvailabilityLocal: (
-    date: string,
+    eventIdOrDate: string | number,
     personId: string,
     state: AvailabilityState
   ) => void;
   setAvailabilityRemote: (
-    date: string,
+    eventIdOrDate: string | number,
     personId: string,
     state: AvailabilityState
   ) => Promise<void>;
@@ -112,8 +114,8 @@ export function useAvailability(): UseAvailabilityReturn {
 
   // Transform array of availability records to grouped by date format
   const baseAvailabilityByDate = useMemo(() => {
-    return groupAvailabilityByDate(availability || undefined);
-  }, [availability]);
+    return groupAvailabilityByDate(availability || undefined, events || undefined);
+  }, [availability, events]);
 
   // Merge server data with local optimistic updates
   const availabilityByDate = useMemo(() => {
@@ -157,17 +159,34 @@ export function useAvailability(): UseAvailabilityReturn {
 
   // Set availability locally (for immediate UI feedback)
   const setAvailabilityLocal = useCallback(
-    (date: string, personId: string, state: AvailabilityState) => {
-      const previousState = getUserAvailability(date, personId); // Can be null for untouched dates
+    (eventIdOrDate: string | number, personId: string, state: AvailabilityState) => {
+      // Handle both event ID (new) and date (legacy) for backward compatibility
+      let eventId: number;
+      let date: string;
+      
+      if (typeof eventIdOrDate === 'number') {
+        // New event-based approach
+        eventId = eventIdOrDate;
+        const event = events?.find(e => e.id === eventId);
+        date = event?.date || '';
+      } else {
+        // Legacy date-based approach - find first event on that date
+        date = eventIdOrDate;
+        const event = events?.find(e => e.date === date);
+        eventId = typeof event?.id === 'number' ? event.id : parseInt(event?.id || '0');
+      }
+
+      const previousState = getUserAvailability(date, personId);
 
       // Add to pending changes
       setPendingChanges((prev) => {
         const newChanges = new Map(prev);
-        newChanges.set(`${date}-${personId}`, {
+        newChanges.set(`${eventId}-${personId}`, {
+          eventId,
           date,
           personId,
           state,
-          previousState: previousState || "?", // Default to '?' for API compatibility
+          previousState: previousState || "?",
         });
         return newChanges;
       });
@@ -189,30 +208,45 @@ export function useAvailability(): UseAvailabilityReturn {
         };
       });
     },
-    [getUserAvailability, members]
+    [getUserAvailability, members, events]
   );
 
   // Set availability remotely (save to server)
   const setAvailabilityRemote = useCallback(
-    async (date: string, personId: string, state: AvailabilityState) => {
-      const previousState = getUserAvailability(date, personId); // Can be null for untouched dates
+    async (eventIdOrDate: string | number, personId: string, state: AvailabilityState) => {
+      // Handle both event ID (new) and date (legacy)
+      let eventId: number;
+      let date: string;
+      
+      if (typeof eventIdOrDate === 'number') {
+        eventId = eventIdOrDate;
+        const event = events?.find(e => e.id === eventId);
+        date = event?.date || '';
+      } else {
+        date = eventIdOrDate;
+        const event = events?.find(e => e.date === date);
+        eventId = typeof event?.id === 'number' ? event.id : parseInt(event?.id || '0');
+      }
+
+      const previousState = getUserAvailability(date, personId);
 
       try {
         // Store for undo
         setLastAction({
           type: "availability",
+          eventId,
           date,
           personId,
-          previousState: previousState || "?", // Use '?' for undo if previously untouched
+          previousState: previousState || "?",
           newState: state,
         });
 
-        await setAvailabilityAPI(date, personId, state);
+        await setAvailabilityAPI(eventId, personId, state);
 
         // Remove from pending changes if it exists
         setPendingChanges((prev) => {
           const newChanges = new Map(prev);
-          newChanges.delete(`${date}-${personId}`);
+          newChanges.delete(`${eventId}-${personId}`);
           return newChanges;
         });
 
@@ -248,7 +282,7 @@ export function useAvailability(): UseAvailabilityReturn {
       // Submit all changes in parallel
       await Promise.all(
         changes.map((change) =>
-          setAvailabilityAPI(change.date, change.personId, change.state)
+          setAvailabilityAPI(change.eventId, change.personId, change.state)
         )
       );
 
@@ -293,7 +327,7 @@ export function useAvailability(): UseAvailabilityReturn {
 
     try {
       await setAvailabilityAPI(
-        lastAction.date,
+        lastAction.eventId,
         lastAction.personId,
         lastAction.previousState
       );

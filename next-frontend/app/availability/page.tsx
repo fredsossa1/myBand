@@ -646,18 +646,35 @@ export default function AvailabilityPage() {
               </Badge>
             </div>
             {todaysEvents.map((event, index) => {
-              const userAvailability = currentUser
-                ? getUserAvailability(event.date, currentUser.id)
-                : null;
-              const needsResponse = currentUser && userAvailability === null;
-              const dayAvail = availabilityByDate[event.date] || {};
-              const hasResponses = Object.keys(dayAvail).length > 0;
+              // Filter availability to only this specific event, not all events on this date
+              const eventAvailability = (availability || []).filter(a => a.event_id === event.id);
+              const eventAvailMap = eventAvailability.reduce((acc, a) => {
+                acc[a.person_id] = a.state;
+                return acc;
+              }, {} as Record<string, AvailabilityState>);
+              const hasResponses = eventAvailability.length > 0;
 
-              // Calculate coverage for this event
+              // Get user's availability for this specific event (check pending changes first)
+              const userAvailability = currentUser ? (() => {
+                // Check for pending changes first (optimistic UI)
+                const pendingKey = `${event.id}-${currentUser.id}`;
+                const pendingChange = pendingChanges.get(pendingKey);
+                if (pendingChange) {
+                  return pendingChange.state;
+                }
+                // Fall back to server data
+                return (eventAvailMap[currentUser.id] as AvailabilityState) || null;
+              })() : null;
+              const needsResponse = currentUser && userAvailability === null;
+
+              // Calculate coverage for this event using event-specific data
+              const eventSpecificAvailByDate = { 
+                [event.date]: eventAvailMap
+              };
               const coverage = calculateEventCoverage(
                 event,
                 members || [],
-                availabilityByDate
+                eventSpecificAvailByDate
               );
 
               // Check if there are multiple events on the same date
@@ -857,7 +874,7 @@ export default function AvailabilityPage() {
                               };
                               const nextState = safeCycle(userAvailability);
                               setAvailabilityLocal(
-                                event.date,
+                                event.id,
                                 currentUser.id,
                                 nextState
                               );
@@ -959,7 +976,7 @@ export default function AvailabilityPage() {
                         {Object.entries(membersByRole).map(([role, people]) => {
                           const roleResponses = people.filter(
                             (person: Member) => {
-                              const state = dayAvail[person.id];
+                              const state = eventAvailMap[person.id];
                               if (!state) return false;
 
                               // Privacy filter: non-admin users only see their own responses
@@ -1003,7 +1020,7 @@ export default function AvailabilityPage() {
                                   : coverage.status === "fully-covered"
                                   ? `/${
                                       people.filter(
-                                        (p: Member) => dayAvail[p.id] === "A"
+                                        (p: Member) => eventAvailMap[p.id] === "A"
                                       ).length
                                     } ${t.availableMembers.toLowerCase()}`
                                   : `/${people.length} responded`}
@@ -1011,7 +1028,7 @@ export default function AvailabilityPage() {
                               </h4>
                               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2 auto-rows-fr">
                                 {roleResponses.map((person: Member) => {
-                                  const state = dayAvail[person.id];
+                                  const state = eventAvailMap[person.id];
                                   const isCurrentUser =
                                     currentUser?.id === person.id;
 
@@ -1089,18 +1106,35 @@ export default function AvailabilityPage() {
               </Badge>
             </div>
             {upcomingEvents.map((event, index) => {
-              const userAvailability = currentUser
-                ? getUserAvailability(event.date, currentUser.id)
-                : null;
-              const needsResponse = currentUser && userAvailability === null;
-              const dayAvail = availabilityByDate[event.date] || {};
-              const hasResponses = Object.keys(dayAvail).length > 0;
+              // Filter availability to only this specific event, not all events on this date
+              const eventAvailability = (availability || []).filter(a => a.event_id === event.id);
+              const eventAvailMap = eventAvailability.reduce((acc, a) => {
+                acc[a.person_id] = a.state;
+                return acc;
+              }, {} as Record<string, AvailabilityState>);
+              const hasResponses = eventAvailability.length > 0;
 
-              // Calculate coverage for this event
+              // Get user's availability for this specific event (check pending changes first)
+              const userAvailability = currentUser ? (() => {
+                // Check for pending changes first (optimistic UI)
+                const pendingKey = `${event.id}-${currentUser.id}`;
+                const pendingChange = pendingChanges.get(pendingKey);
+                if (pendingChange) {
+                  return pendingChange.state;
+                }
+                // Fall back to server data
+                return (eventAvailMap[currentUser.id] as AvailabilityState) || null;
+              })() : null;
+              const needsResponse = currentUser && userAvailability === null;
+
+              // Calculate coverage for this event using event-specific data
+              const eventSpecificAvailByDate = { 
+                [event.date]: eventAvailMap
+              };
               const coverage = calculateEventCoverage(
                 event,
                 members || [],
-                availabilityByDate
+                eventSpecificAvailByDate
               );
 
               // Check if there are multiple events on the same date
@@ -1299,7 +1333,7 @@ export default function AvailabilityPage() {
                               };
                               const nextState = safeCycle(userAvailability);
                               setAvailabilityLocal(
-                                event.date,
+                                event.id,
                                 currentUser.id,
                                 nextState
                               );
@@ -1401,7 +1435,7 @@ export default function AvailabilityPage() {
                         {Object.entries(membersByRole).map(([role, people]) => {
                           const roleResponses = people.filter(
                             (person: Member) => {
-                              const state = dayAvail[person.id];
+                              const state = eventAvailMap[person.id];
                               if (!state) return false;
 
                               // Privacy filter: non-admin users only see their own responses
@@ -1445,7 +1479,7 @@ export default function AvailabilityPage() {
                                   : coverage.status === "fully-covered"
                                   ? `/${
                                       people.filter(
-                                        (p: Member) => dayAvail[p.id] === "A"
+                                        (p: Member) => eventAvailMap[p.id] === "A"
                                       ).length
                                     } ${t.availableMembers.toLowerCase()}`
                                   : `/${people.length} responded`}
@@ -1453,7 +1487,7 @@ export default function AvailabilityPage() {
                               </h4>
                               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2 auto-rows-fr">
                                 {roleResponses.map((person: Member) => {
-                                  const state = dayAvail[person.id];
+                                  const state = eventAvailMap[person.id];
                                   const isCurrentUser =
                                     currentUser?.id === person.id;
 
