@@ -33,7 +33,7 @@ export interface Event {
 
 export interface AvailabilityRecord {
   id?: number;
-  date: string;
+  event_id: number;
   person_id: string;
   state: "A" | "U" | "?";
   created_at?: string;
@@ -211,7 +211,7 @@ export async function addDate(date: string): Promise<void> {
 
 // Availability functions
 export async function setAvailability(
-  date: string,
+  eventId: number,
   personId: string,
   state: "A" | "U" | "?"
 ): Promise<void> {
@@ -221,17 +221,28 @@ export async function setAvailability(
     throw new Error("Person not found");
   }
 
+  // Verify event exists
+  const { data: event, error: eventError } = await supabase
+    .from("events")
+    .select("id")
+    .eq("id", eventId)
+    .single();
+
+  if (eventError || !event) {
+    throw new Error("Event not found");
+  }
+
   // Upsert availability
   const { error } = await supabase.from("availability").upsert(
     [
       {
-        date,
+        event_id: eventId,
         person_id: personId,
         state,
       },
     ],
     {
-      onConflict: "date,person_id",
+      onConflict: "event_id,person_id",
     }
   );
 
