@@ -166,8 +166,8 @@ function useMutation<T, TArgs extends any[]>(
  */
 export function useSetAvailability() {
   return useMutation(
-    (eventId: number, personId: string, state: "A" | "U" | "?") =>
-      BandApi.setAvailability(eventId, personId, state)
+    (date: string, personId: string, state: "A" | "U" | "?") =>
+      BandApi.setAvailability(date, personId, state)
   );
 }
 

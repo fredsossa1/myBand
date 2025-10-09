@@ -224,8 +224,11 @@ export function validateAvailabilityRecord(data: any): AvailabilityRecord {
     throw new ValidationError("Availability data must be an object");
   }
 
-  if (!data.event_id) {
-    throw new ValidationError("Event ID is required", "event_id");
+  if (!isValidDate(data.date)) {
+    throw new ValidationError(
+      "Invalid date format (must be YYYY-MM-DD)",
+      "date"
+    );
   }
 
   if (
@@ -245,7 +248,7 @@ export function validateAvailabilityRecord(data: any): AvailabilityRecord {
 
   return {
     id: data.id,
-    event_id: data.event_id,
+    date: data.date,
     person_id: data.person_id.trim(),
     state: data.state,
     created_at: data.created_at,

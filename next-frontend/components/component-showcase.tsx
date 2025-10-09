@@ -197,7 +197,7 @@ export function ComponentShowcase() {
           {events?.slice(0, 3).map((event) => {
             // Calculate mock coverage stats - handle undefined availability
             const eventAvailability =
-              availability?.filter((a) => a._event?.date === event.date || a.event_id.toString() === event.id.toString()) || [];
+              availability?.filter((a) => a.date === event.date) || [];
             const coverageStats = {
               totalResponses: eventAvailability.length,
               totalMembers: members?.length || 0,

@@ -172,15 +172,15 @@ export class BandApi {
   }
 
   /**
-   * Set availability for a specific person and event
+   * Set availability for a specific person and date
    */
   static async setAvailability(
-    eventId: number,
+    date: string,
     personId: string,
     state: "A" | "U" | "?"
   ): Promise<{ ok: boolean }> {
     return post<{ ok: boolean }>("/api/availability", {
-      eventId,
+      date,
       personId,
       state,
     });
@@ -231,7 +231,7 @@ export class BandApi {
   // ========== UTILITY METHODS ==========
 
   /**
-   * Bulk set availability for multiple members and events
+   * Bulk set availability for multiple members and dates
    * (Client-side implementation using multiple API calls)
    */
   static async setBulkAvailability(
@@ -243,21 +243,17 @@ export class BandApi {
       errors: [] as string[],
     };
 
-    // Execute all combinations of events and members
-    for (const eventId of update.eventIds) {
+    // Execute all combinations of dates and members
+    for (const date of update.dates) {
       for (const memberId of update.memberIds) {
         try {
-          await this.setAvailability(
-            typeof eventId === "string" ? parseInt(eventId) : eventId,
-            memberId,
-            update.state
-          );
+          await this.setAvailability(date, memberId, update.state);
           results.success++;
         } catch (error) {
           results.failed++;
           const errorMessage =
             error instanceof ApiError ? error.message : "Unknown error";
-          results.errors.push(`${eventId} - ${memberId}: ${errorMessage}`);
+          results.errors.push(`${date} - ${memberId}: ${errorMessage}`);
         }
       }
     }

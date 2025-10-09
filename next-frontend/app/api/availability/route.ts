@@ -18,11 +18,11 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { eventId, personId, state } = await request.json();
+    const { date, personId, state } = await request.json();
 
-    if (!eventId) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return NextResponse.json(
-        { error: "Event ID is required" },
+        { error: "Invalid date format" },
         { status: 400 }
       );
     }
@@ -34,16 +34,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await setAvailability(eventId, personId, state);
+    await setAvailability(date, personId, state);
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("❌ Error in POST /api/availability:", error);
 
     if (error instanceof Error && error.message === "Person not found") {
-      return NextResponse.json({ error: error.message }, { status: 404 });
-    }
-
-    if (error instanceof Error && error.message === "Event not found") {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
 

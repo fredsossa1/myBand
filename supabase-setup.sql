@@ -22,11 +22,11 @@ CREATE TABLE IF NOT EXISTS events (
 -- Create availability table
 CREATE TABLE IF NOT EXISTS availability (
   id SERIAL PRIMARY KEY,
-  event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
   person_id TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
   state TEXT NOT NULL CHECK (state IN ('A', 'U', '?')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(event_id, person_id)
+  UNIQUE(date, person_id)
 );
 
 -- Create settings table
@@ -54,7 +54,7 @@ BEGIN
 END $$;
 
 -- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_availability_event ON availability(event_id);
+CREATE INDEX IF NOT EXISTS idx_availability_date ON availability(date);
 CREATE INDEX IF NOT EXISTS idx_availability_person ON availability(person_id);
 CREATE INDEX IF NOT EXISTS idx_events_date ON events(date);
 CREATE INDEX IF NOT EXISTS idx_members_role ON members(role);
