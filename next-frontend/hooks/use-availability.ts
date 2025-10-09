@@ -12,7 +12,7 @@ import {
 import { groupAvailabilityByDate } from "@/lib/utils";
 
 export interface PendingChange {
-  date: string;
+  eventId: string | number;
   personId: string;
   state: AvailabilityState;
   previousState: AvailabilityState;
@@ -20,7 +20,7 @@ export interface PendingChange {
 
 export interface UndoAction {
   type: "availability";
-  date: string;
+  eventId: string | number;
   personId: string;
   previousState: AvailabilityState;
   newState: AvailabilityState;
@@ -58,12 +58,12 @@ export interface UseAvailabilityReturn {
 
   // Actions
   setAvailabilityLocal: (
-    date: string,
+    dateOrEventId: string | number,
     personId: string,
     state: AvailabilityState
   ) => void;
   setAvailabilityRemote: (
-    date: string,
+    dateOrEventId: string | number,
     personId: string,
     state: AvailabilityState
   ) => Promise<void>;
@@ -72,7 +72,7 @@ export interface UseAvailabilityReturn {
 
   // Bulk operations
   setBulkAvailability: (
-    dates: string[],
+    datesOrEventIds: (string | number)[],
     personId: string,
     state: AvailabilityState
   ) => Promise<void>;
@@ -112,8 +112,8 @@ export function useAvailability(): UseAvailabilityReturn {
 
   // Transform array of availability records to grouped by date format
   const baseAvailabilityByDate = useMemo(() => {
-    return groupAvailabilityByDate(availability || undefined);
-  }, [availability]);
+    return groupAvailabilityByDate(availability || undefined, events || []);
+  }, [availability, events]);
 
   // Merge server data with local optimistic updates
   const availabilityByDate = useMemo(() => {
@@ -157,14 +157,38 @@ export function useAvailability(): UseAvailabilityReturn {
 
   // Set availability locally (for immediate UI feedback)
   const setAvailabilityLocal = useCallback(
-    (date: string, personId: string, state: AvailabilityState) => {
+    (dateOrEventId: string | number, personId: string, state: AvailabilityState) => {
+      // Support both date (string) and eventId (number) for backward compatibility
+      let eventId: number;
+      let date: string;
+      
+      if (typeof dateOrEventId === 'string') {
+        // It's a date, find the corresponding event
+        const event = events?.find(e => e.date === dateOrEventId);
+        if (!event) {
+          console.error(`No event found for date: ${dateOrEventId}`);
+          return;
+        }
+        eventId = typeof event.id === 'string' ? parseInt(event.id) : event.id;
+        date = dateOrEventId;
+      } else {
+        // It's an eventId
+        eventId = dateOrEventId;
+        const event = events?.find(e => e.id === eventId);
+        if (!event) {
+          console.error(`No event found for id: ${eventId}`);
+          return;
+        }
+        date = event.date;
+      }
+      
       const previousState = getUserAvailability(date, personId); // Can be null for untouched dates
 
       // Add to pending changes
       setPendingChanges((prev) => {
         const newChanges = new Map(prev);
-        newChanges.set(`${date}-${personId}`, {
-          date,
+        newChanges.set(`${eventId}-${personId}`, {
+          eventId,
           personId,
           state,
           previousState: previousState || "?", // Default to '?' for API compatibility
@@ -189,30 +213,54 @@ export function useAvailability(): UseAvailabilityReturn {
         };
       });
     },
-    [getUserAvailability, members]
+    [getUserAvailability, members, events]
   );
 
   // Set availability remotely (save to server)
   const setAvailabilityRemote = useCallback(
-    async (date: string, personId: string, state: AvailabilityState) => {
+    async (dateOrEventId: string | number, personId: string, state: AvailabilityState) => {
+      // Support both date (string) and eventId (number) for backward compatibility
+      let eventId: number;
+      let date: string;
+      
+      if (typeof dateOrEventId === 'string') {
+        // It's a date, find the corresponding event
+        const event = events?.find(e => e.date === dateOrEventId);
+        if (!event) {
+          console.error(`No event found for date: ${dateOrEventId}`);
+          return;
+        }
+        eventId = typeof event.id === 'string' ? parseInt(event.id) : event.id;
+        date = dateOrEventId;
+      } else {
+        // It's an eventId
+        eventId = dateOrEventId;
+        const event = events?.find(e => e.id === eventId);
+        if (!event) {
+          console.error(`No event found for id: ${eventId}`);
+          return;
+        }
+        date = event.date;
+      }
+      
       const previousState = getUserAvailability(date, personId); // Can be null for untouched dates
 
       try {
         // Store for undo
         setLastAction({
           type: "availability",
-          date,
+          eventId,
           personId,
           previousState: previousState || "?", // Use '?' for undo if previously untouched
           newState: state,
         });
 
-        await setAvailabilityAPI(date, personId, state);
+        await setAvailabilityAPI(eventId, personId, state);
 
         // Remove from pending changes if it exists
         setPendingChanges((prev) => {
           const newChanges = new Map(prev);
-          newChanges.delete(`${date}-${personId}`);
+          newChanges.delete(`${eventId}-${personId}`);
           return newChanges;
         });
 
@@ -235,7 +283,7 @@ export function useAvailability(): UseAvailabilityReturn {
         throw error;
       }
     },
-    [getUserAvailability, setAvailabilityAPI, refetch]
+    [getUserAvailability, setAvailabilityAPI, refetch, events]
   );
 
   // Submit all pending changes
@@ -248,7 +296,11 @@ export function useAvailability(): UseAvailabilityReturn {
       // Submit all changes in parallel
       await Promise.all(
         changes.map((change) =>
-          setAvailabilityAPI(change.date, change.personId, change.state)
+          setAvailabilityAPI(
+            typeof change.eventId === 'string' ? parseInt(change.eventId) : change.eventId,
+            change.personId,
+            change.state
+          )
         )
       );
 
@@ -270,21 +322,34 @@ export function useAvailability(): UseAvailabilityReturn {
     setLocalAvailability({});
   }, []);
 
-  // Set bulk availability for multiple dates
+  // Set bulk availability for multiple dates or events
   const setBulkAvailability = useCallback(
-    async (dates: string[], personId: string, state: AvailabilityState) => {
+    async (datesOrEventIds: (string | number)[], personId: string, state: AvailabilityState) => {
       try {
-        await Promise.all(
-          dates.map((date) => setAvailabilityAPI(date, personId, state))
-        );
+        const promises = datesOrEventIds.map((dateOrEventId) => {
+          if (typeof dateOrEventId === 'string') {
+            // It's a date, find the corresponding event
+            const event = events?.find(e => e.date === dateOrEventId);
+            if (!event) {
+              console.error(`No event found for date: ${dateOrEventId}`);
+              return Promise.resolve();
+            }
+            const eventId = typeof event.id === 'string' ? parseInt(event.id) : event.id;
+            return setAvailabilityAPI(eventId, personId, state);
+          } else {
+            // It's an eventId
+            return setAvailabilityAPI(dateOrEventId, personId, state);
+          }
+        });
 
+        await Promise.all(promises);
         await refetch();
       } catch (error) {
         console.error("Failed to set bulk availability:", error);
         throw error;
       }
     },
-    [setAvailabilityAPI, refetch]
+    [setAvailabilityAPI, refetch, events]
   );
 
   // Undo last action
@@ -292,8 +357,12 @@ export function useAvailability(): UseAvailabilityReturn {
     if (!lastAction || lastAction.type !== "availability") return false;
 
     try {
+      const eventId = typeof lastAction.eventId === 'string' 
+        ? parseInt(lastAction.eventId) 
+        : lastAction.eventId;
+        
       await setAvailabilityAPI(
-        lastAction.date,
+        eventId,
         lastAction.personId,
         lastAction.previousState
       );

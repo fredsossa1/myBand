@@ -33,7 +33,7 @@ export interface Event {
 
 export interface AvailabilityRecord {
   id?: number;
-  date: string;
+  event_id: number;
   person_id: string;
   state: "A" | "U" | "?";
   created_at?: string;
@@ -211,7 +211,7 @@ export async function addDate(date: string): Promise<void> {
 
 // Availability functions
 export async function setAvailability(
-  date: string,
+  eventId: number,
   personId: string,
   state: "A" | "U" | "?"
 ): Promise<void> {
@@ -221,17 +221,28 @@ export async function setAvailability(
     throw new Error("Person not found");
   }
 
+  // Verify event exists
+  const { data: event, error: eventError } = await supabase
+    .from("events")
+    .select("id")
+    .eq("id", eventId)
+    .single();
+
+  if (eventError || !event) {
+    throw new Error("Event not found");
+  }
+
   // Upsert availability
   const { error } = await supabase.from("availability").upsert(
     [
       {
-        date,
+        event_id: eventId,
         person_id: personId,
         state,
       },
     ],
     {
-      onConflict: "date,person_id",
+      onConflict: "event_id,person_id",
     }
   );
 
@@ -242,17 +253,39 @@ export async function setAvailability(
 }
 
 export async function getAvailability(): Promise<AvailabilityRecord[]> {
-  const { data, error } = await supabase
+  const { data, error} = await supabase
     .from("availability")
-    .select("*")
-    .order("date, person_id");
+    .select(`
+      id,
+      event_id,
+      person_id,
+      state,
+      created_at,
+      events!inner (
+        id,
+        date,
+        title
+      )
+    `)
+    .order("event_id");
 
   if (error) {
     console.error("❌ Error fetching availability:", error);
     throw new Error("Failed to fetch availability");
   }
 
-  return data || [];
+  // Transform the data to include event_id and flatten the structure
+  const transformed = data?.map((record: any) => ({
+    id: record.id,
+    event_id: record.event_id,
+    person_id: record.person_id,
+    state: record.state,
+    created_at: record.created_at,
+    // Include event info for convenience (can be used by utils)
+    _event: record.events,
+  })) || [];
+
+  return transformed as AvailabilityRecord[];
 }
 
 export async function getAvailabilityByRole(): Promise<

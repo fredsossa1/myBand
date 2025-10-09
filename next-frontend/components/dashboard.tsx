@@ -84,7 +84,7 @@ export default function Dashboard() {
 
     recentAvailability.forEach((record) => {
       const member = appData.members!.find((m) => m.id === record.person_id);
-      const event = appData.events!.find((e) => e.date === record.date);
+      const event = appData.events!.find((e) => e.id.toString() === record.event_id.toString());
 
       if (member && event) {
         activities.push({
@@ -92,7 +92,7 @@ export default function Dashboard() {
           memberRole: member.role,
           eventTitle: event.title,
           state: record.state,
-          date: record.created_at || record.date,
+          date: record.created_at || record._event?.date || event.date,
         });
       }
     });
@@ -162,7 +162,7 @@ export default function Dashboard() {
 
         const recentResponses = memberAvailability
           .map((record) => {
-            const event = appData.events!.find((e) => e.date === record.date);
+            const event = appData.events!.find((e) => e.id.toString() === record.event_id.toString());
             return event
               ? {
                   eventTitle: event.title,
