@@ -82,7 +82,7 @@ export function ComponentShowcase() {
   }
 
   const membersByRole = groupMembersByRole(members);
-  const availabilityByDate = groupAvailabilityByDate(availability);
+  const availabilityByDate = groupAvailabilityByDate(availability, events);
 
   return (
     <div className="space-y-8">
@@ -197,7 +197,10 @@ export function ComponentShowcase() {
           {events?.slice(0, 3).map((event) => {
             // Calculate mock coverage stats - handle undefined availability
             const eventAvailability =
-              availability?.filter((a) => a.date === event.date) || [];
+              availability?.filter((a) => {
+                const matchingEvent = events?.find(e => e.id.toString() === a.event_id.toString());
+                return matchingEvent?.date === event.date;
+              }) || [];
             const coverageStats = {
               totalResponses: eventAvailability.length,
               totalMembers: members?.length || 0,

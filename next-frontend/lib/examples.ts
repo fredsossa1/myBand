@@ -49,9 +49,9 @@ const exampleEvents: Event[] = [
 ];
 
 const exampleAvailability: AvailabilityRecord[] = [
-  { id: 1, date: "2025-08-29", person_id: "bass1", state: "A" },
-  { id: 2, date: "2025-08-29", person_id: "piano1", state: "U" },
-  { id: 3, date: "2025-08-29", person_id: "lead1", state: "?" },
+  { id: 1, event_id: "1", person_id: "bass1", state: "A" },
+  { id: 2, event_id: "1", person_id: "piano1", state: "U" },
+  { id: 3, event_id: "1", person_id: "lead1", state: "?" },
 ];
 
 // Example usage functions
@@ -95,7 +95,7 @@ export function demoTypeUsage() {
 
   // 5. Availability summary
   console.log("Availability for 2025-08-29:");
-  const availabilityByDate = groupAvailabilityByDate(exampleAvailability);
+  const availabilityByDate = groupAvailabilityByDate(exampleAvailability, exampleEvents);
   const dateAvailability = availabilityByDate["2025-08-29"] || {};
 
   exampleMembers.forEach((member) => {

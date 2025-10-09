@@ -4,6 +4,7 @@ import {
   Event,
   AvailabilityRecord,
   AvailabilityByDate,
+  AvailabilityByEvent,
   AvailabilityByRole,
   Role,
   AvailabilityState,
@@ -160,9 +161,33 @@ export function groupEventsByDate(events: Event[]): {
 
 // Availability utilities
 export function groupAvailabilityByDate(
-  availability: AvailabilityRecord[] | undefined
+  availability: AvailabilityRecord[] | undefined,
+  events: Event[] | undefined
 ): AvailabilityByDate {
   const grouped: AvailabilityByDate = {};
+
+  // Handle case where data hasn't loaded yet
+  if (!availability || !Array.isArray(availability) || !events) {
+    return grouped;
+  }
+
+  availability.forEach((record) => {
+    const event = events.find(e => e.id.toString() === record.event_id.toString());
+    if (event) {
+      if (!grouped[event.date]) {
+        grouped[event.date] = {};
+      }
+      grouped[event.date][record.person_id] = record.state;
+    }
+  });
+
+  return grouped;
+}
+
+export function groupAvailabilityByEvent(
+  availability: AvailabilityRecord[] | undefined
+): AvailabilityByEvent {
+  const grouped: AvailabilityByEvent = {};
 
   // Handle case where availability data hasn't loaded yet
   if (!availability || !Array.isArray(availability)) {
@@ -170,10 +195,10 @@ export function groupAvailabilityByDate(
   }
 
   availability.forEach((record) => {
-    if (!grouped[record.date]) {
-      grouped[record.date] = {};
+    if (!grouped[record.event_id.toString()]) {
+      grouped[record.event_id.toString()] = {};
     }
-    grouped[record.date][record.person_id] = record.state;
+    grouped[record.event_id.toString()][record.person_id] = record.state;
   });
 
   return grouped;
@@ -181,7 +206,8 @@ export function groupAvailabilityByDate(
 
 export function groupAvailabilityByRole(
   availability: AvailabilityRecord[],
-  members: Member[]
+  members: Member[],
+  events: Event[]
 ): AvailabilityByRole {
   const membersByRole = groupMembersByRole(members);
   const grouped = {} as AvailabilityByRole;
@@ -200,12 +226,14 @@ export function groupAvailabilityByRole(
   // Populate availability data
   availability.forEach((record) => {
     const member = findMemberById(members, record.person_id);
+    const event = events.find(e => e.id.toString() === record.event_id.toString());
     if (
       member &&
+      event &&
       grouped[member.role] &&
       grouped[member.role][record.person_id]
     ) {
-      grouped[member.role][record.person_id].availability[record.date] =
+      grouped[member.role][record.person_id].availability[event.date] =
         record.state;
     }
   });
@@ -215,9 +243,18 @@ export function groupAvailabilityByRole(
 
 export function getAvailabilityForDate(
   availability: AvailabilityRecord[],
-  date: string
+  date: string,
+  events: Event[]
 ): AvailabilityRecord[] {
-  return availability.filter((record) => record.date === date);
+  const eventIds = events.filter(e => e.date === date).map(e => e.id.toString());
+  return availability.filter((record) => eventIds.includes(record.event_id.toString()));
+}
+
+export function getAvailabilityForEvent(
+  availability: AvailabilityRecord[],
+  eventId: string | number
+): AvailabilityRecord[] {
+  return availability.filter((record) => record.event_id.toString() === eventId.toString());
 }
 
 export function getAvailabilityForMember(
@@ -230,10 +267,23 @@ export function getAvailabilityForMember(
 export function getMemberAvailabilityState(
   availability: AvailabilityRecord[],
   memberId: string,
-  date: string
+  date: string,
+  events: Event[]
+): AvailabilityState | null {
+  const eventIds = events.filter(e => e.date === date).map(e => e.id.toString());
+  const record = availability.find(
+    (r) => r.person_id === memberId && eventIds.includes(r.event_id.toString())
+  );
+  return record ? record.state : null;
+}
+
+export function getMemberAvailabilityStateForEvent(
+  availability: AvailabilityRecord[],
+  memberId: string,
+  eventId: string | number
 ): AvailabilityState | null {
   const record = availability.find(
-    (r) => r.person_id === memberId && r.date === date
+    (r) => r.person_id === memberId && r.event_id.toString() === eventId.toString()
   );
   return record ? record.state : null;
 }
@@ -294,7 +344,7 @@ export function calculateAvailabilityStats(
 
   // Calculate least covered events
   const eventCoverage = events.map((event) => {
-    const eventAvailability = getAvailabilityForDate(availability, event.date);
+    const eventAvailability = getAvailabilityForDate(availability, event.date, events);
     const availableCount = eventAvailability.filter(
       (r) => r.state === "A"
     ).length;
@@ -326,7 +376,8 @@ export function calculateAvailabilityStats(
 export function getEventCoverage(
   availability: AvailabilityRecord[],
   members: Member[],
-  date: string
+  date: string,
+  events: Event[]
 ): {
   [role in Role]: {
     available: Member[];
@@ -335,7 +386,7 @@ export function getEventCoverage(
   };
 } {
   const membersByRole = groupMembersByRole(members);
-  const eventAvailability = getAvailabilityForDate(availability, date);
+  const eventAvailability = getAvailabilityForDate(availability, date, events);
 
   const coverage = {} as {
     [role in Role]: {
@@ -356,7 +407,8 @@ export function getEventCoverage(
       const memberState = getMemberAvailabilityState(
         availability,
         member.id,
-        date
+        date,
+        events
       );
 
       if (memberState === "A") {
@@ -376,7 +428,8 @@ export function getEventCoverage(
 export function getRoleCompleteness(
   availability: AvailabilityRecord[],
   members: Member[],
-  date: string
+  date: string,
+  events: Event[]
 ): { [role in Role]: number } {
   const membersByRole = groupMembersByRole(members);
   const completeness = {} as { [role in Role]: number };
@@ -385,7 +438,7 @@ export function getRoleCompleteness(
     const roleMembers = membersByRole[role];
     const respondedMembers = roleMembers.filter(
       (member) =>
-        getMemberAvailabilityState(availability, member.id, date) !== null
+        getMemberAvailabilityState(availability, member.id, date, events) !== null
     );
 
     completeness[role] =
@@ -399,16 +452,16 @@ export function getRoleCompleteness(
 
 // Bulk operation utilities
 export function createBulkAvailabilityRecords(
-  dates: string[],
+  eventIds: (string | number)[],
   memberIds: string[],
   state: AvailabilityState
 ): Omit<AvailabilityRecord, "id" | "created_at">[] {
   const records: Omit<AvailabilityRecord, "id" | "created_at">[] = [];
 
-  dates.forEach((date) => {
+  eventIds.forEach((eventId) => {
     memberIds.forEach((memberId) => {
       records.push({
-        date,
+        event_id: eventId,
         person_id: memberId,
         state,
       });
@@ -440,9 +493,15 @@ export function filterEventsByTitle(events: Event[], query: string): Event[] {
 }
 
 export function getUniqueDatesFromAvailability(
-  availability: AvailabilityRecord[]
+  availability: AvailabilityRecord[],
+  events: Event[]
 ): string[] {
-  const dates = new Set(availability.map((record) => record.date));
+  const eventIds = new Set(availability.map((record) => record.event_id.toString()));
+  const dates = new Set(
+    events
+      .filter(event => eventIds.has(event.id.toString()))
+      .map(event => event.date)
+  );
   return sortDateStrings(Array.from(dates));
 }
 

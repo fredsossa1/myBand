@@ -93,14 +93,19 @@ export class StatsService {
   /**
    * Groups availability records by date and member ID for easy lookup
    */
-  static groupAvailabilityByDate(availability: AvailabilityRecord[]): Record<string, Record<string, string>> {
+  static groupAvailabilityByDate(availability: AvailabilityRecord[], events?: Event[]): Record<string, Record<string, string>> {
     const grouped: Record<string, Record<string, string>> = {};
     
+    if (!events) return grouped;
+    
     availability.forEach((record) => {
-      if (!grouped[record.date]) {
-        grouped[record.date] = {};
+      const event = events.find(e => e.id.toString() === record.event_id.toString());
+      if (event) {
+        if (!grouped[event.date]) {
+          grouped[event.date] = {};
+        }
+        grouped[event.date][record.person_id] = record.state;
       }
-      grouped[record.date][record.person_id] = record.state;
     });
     
     return grouped;

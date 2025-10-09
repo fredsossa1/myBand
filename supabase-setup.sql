@@ -19,15 +19,60 @@ CREATE TABLE IF NOT EXISTS events (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create availability table
+-- Create availability table (event-based)
 CREATE TABLE IF NOT EXISTS availability (
   id SERIAL PRIMARY KEY,
-  date DATE NOT NULL,
+  event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
   person_id TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
   state TEXT NOT NULL CHECK (state IN ('A', 'U', '?')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(date, person_id)
+  UNIQUE(event_id, person_id)
 );
+
+-- Migration: Add event_id column and migrate existing date-based data
+DO $$ 
+BEGIN
+    -- Check if we need to migrate from date-based to event-based availability
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'availability' AND column_name = 'date') THEN
+        -- Add event_id column if it doesn't exist
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'availability' AND column_name = 'event_id') THEN
+            ALTER TABLE availability ADD COLUMN event_id INTEGER;
+        END IF;
+        
+        -- Migrate existing availability data to use event_id
+        -- For each availability record, find the corresponding event by date
+        UPDATE availability 
+        SET event_id = events.id 
+        FROM events 
+        WHERE availability.date = events.date 
+        AND availability.event_id IS NULL;
+        
+        -- Remove records that couldn't be migrated (no matching event)
+        DELETE FROM availability WHERE event_id IS NULL;
+        
+        -- Drop the old date column and unique constraint
+        ALTER TABLE availability DROP CONSTRAINT IF EXISTS availability_date_person_id_key;
+        ALTER TABLE availability DROP COLUMN IF EXISTS date;
+        
+        -- Add foreign key constraint and new unique constraint
+        ALTER TABLE availability ADD CONSTRAINT availability_event_id_fkey 
+            FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
+        ALTER TABLE availability ADD CONSTRAINT availability_event_id_person_id_key 
+            UNIQUE(event_id, person_id);
+    END IF;
+END $$;
+
+-- Create backward compatibility view for date-based queries
+CREATE OR REPLACE VIEW availability_by_date AS
+SELECT 
+    a.id,
+    e.date,
+    a.person_id,
+    a.state,
+    a.event_id,
+    a.created_at
+FROM availability a
+JOIN events e ON a.event_id = e.id;
 
 -- Create settings table
 CREATE TABLE IF NOT EXISTS settings (
@@ -54,7 +99,7 @@ BEGIN
 END $$;
 
 -- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_availability_date ON availability(date);
+CREATE INDEX IF NOT EXISTS idx_availability_event_id ON availability(event_id);
 CREATE INDEX IF NOT EXISTS idx_availability_person ON availability(person_id);
 CREATE INDEX IF NOT EXISTS idx_events_date ON events(date);
 CREATE INDEX IF NOT EXISTS idx_members_role ON members(role);

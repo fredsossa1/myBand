@@ -262,13 +262,15 @@ export async function getAvailabilityByRole(eventId?: number): Promise<
   >
 > {
   let query = supabase
-    .from("availability_by_date")
+    .from("availability")
     .select(
       `
-      date,
       person_id,
       state,
       event_id,
+      events!inner (
+        date
+      ),
       members!inner (
         id,
         name,
@@ -282,7 +284,7 @@ export async function getAvailabilityByRole(eventId?: number): Promise<
     query = query.eq("event_id", eventId);
   }
 
-  const { data, error } = await query.order("date, person_id");
+  const { data, error } = await query.order("event_id, person_id");
 
   if (error) {
     console.error("❌ Error fetching availability by role:", error);
@@ -295,7 +297,8 @@ export async function getAvailabilityByRole(eventId?: number): Promise<
   > = {};
 
   (data || []).forEach((record: any) => {
-    const { date, person_id, state, members } = record;
+    const { person_id, state, events, members } = record;
+    const { date } = events;
     const { name, role } = members;
 
     if (!result[date]) {
