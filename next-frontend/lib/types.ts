@@ -53,6 +53,12 @@ export interface AvailabilityRecord {
   person_id: string;
   state: AvailabilityState;
   created_at?: string;
+  // Optional event info for convenience (populated by some queries)
+  _event?: {
+    id: number;
+    date: string;
+    title: string;
+  };
 }
 
 // Availability organized by date and member

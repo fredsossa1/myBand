@@ -158,9 +158,10 @@ export function groupEventsByDate(events: Event[]): {
   }, {} as { [date: string]: Event[] });
 }
 
-// Availability utilities
+// Availability utilities  
 export function groupAvailabilityByDate(
-  availability: AvailabilityRecord[] | undefined
+  availability: AvailabilityRecord[] | undefined,
+  events?: Event[]
 ): AvailabilityByDate {
   const grouped: AvailabilityByDate = {};
 
@@ -169,11 +170,25 @@ export function groupAvailabilityByDate(
     return grouped;
   }
 
+  // If records have _event field (from joined query), use that
   availability.forEach((record) => {
-    if (!grouped[record.date]) {
-      grouped[record.date] = {};
+    let date: string | undefined;
+    
+    if (record._event?.date) {
+      // Use the joined event data
+      date = record._event.date;
+    } else if (events) {
+      // Look up date from events array
+      const event = events.find((e) => e.id.toString() === record.event_id.toString());
+      date = event?.date;
     }
-    grouped[record.date][record.person_id] = record.state;
+    
+    if (date) {
+      if (!grouped[date]) {
+        grouped[date] = {};
+      }
+      grouped[date][record.person_id] = record.state;
+    }
   });
 
   return grouped;
