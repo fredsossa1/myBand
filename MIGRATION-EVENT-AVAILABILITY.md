@@ -65,6 +65,9 @@ Before running the migration, backup your database:
 # Using Supabase CLI
 supabase db dump > backup-$(date +%Y%m%d).sql
 
+# Or for cross-platform compatibility
+supabase db dump > backup-YYYYMMDD.sql  # Replace YYYYMMDD with current date
+
 # Or using PostgreSQL directly
 pg_dump -h your-host -U your-user -d your-db > backup.sql
 ```
@@ -225,6 +228,6 @@ For questions or issues:
 
 ## Version Compatibility
 
-- **Backend:** Requires database schema v2.0+
-- **Frontend:** Compatible with both old and new schema (transition period)
-- **API:** Version 2.0+ (backward compatible with v1.0 during transition)
+- **Backend:** Requires post-migration database schema with `event_id` column
+- **Frontend:** Compatible with both pre-migration and post-migration schemas (transition period)
+- **API:** Post-migration API uses `eventId` parameter (backward compatible during transition)

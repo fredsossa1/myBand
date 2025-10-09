@@ -101,32 +101,34 @@ The implementation maintains backward compatibility during the transition:
 
 ## Testing Checklist
 
+Complete these tasks to verify the migration:
+
 ### Database Migration
-- [ ] Run migration script on test database
-- [ ] Verify all availability records have `event_id`
-- [ ] Check no orphaned records exist
-- [ ] Confirm unique constraint works
+- Run migration script on test database
+- Verify all availability records have `event_id`
+- Check no orphaned records exist
+- Confirm unique constraint works
 
 ### API Testing
-- [ ] POST availability with `eventId` - success
-- [ ] POST availability with invalid `eventId` - error
-- [ ] GET availability returns `_event` data
-- [ ] Bulk operations work with event IDs
+- POST availability with `eventId` - success
+- POST availability with invalid `eventId` - error
+- GET availability returns `_event` data
+- Bulk operations work with event IDs
 
 ### Frontend Testing
-- [ ] Create two events on same day
-- [ ] Set different availability for each event
-- [ ] Verify availability displays correctly per event
-- [ ] Test pending changes for multiple events
-- [ ] Verify undo functionality
-- [ ] Test bulk availability setting
+- Create two events on same day
+- Set different availability for each event
+- Verify availability displays correctly per event
+- Test pending changes for multiple events
+- Verify undo functionality
+- Test bulk availability setting
 
 ### UI Validation
-- [ ] Events on same day show separately
-- [ ] Availability badges show per event
-- [ ] Coverage calculation correct per event
-- [ ] Stats page shows correct data
-- [ ] Dashboard shows recent activity correctly
+- Events on same day show separately
+- Availability badges show per event
+- Coverage calculation correct per event
+- Stats page shows correct data
+- Dashboard shows recent activity correctly
 
 ## Migration Instructions
 
