@@ -169,24 +169,35 @@ export async function getDates(): Promise<string[]> {
 
 export async function addEvent(
   event: Omit<Event, "id" | "created_at">
-): Promise<void> {
-  // Check if event already exists
+): Promise<Event> {
+  // Check for exact duplicates (same date, title, and type)
   const { data: existing } = await supabase
     .from("events")
     .select("id")
     .eq("date", event.date)
+    .eq("title", event.title)
+    .eq("type", event.type)
     .single();
 
   if (existing) {
-    throw new Error("Event already exists for this date");
+    throw new Error(
+      `An event with the same title "${event.title}" and type "${event.type}" already exists on ${event.date}`
+    );
   }
 
-  const { error } = await supabase.from("events").insert([event]);
+  // Allow multiple different events on the same date
+  const { data, error } = await supabase
+    .from("events")
+    .insert([event])
+    .select()
+    .single();
 
   if (error) {
     console.error("❌ Error adding event:", error);
     throw new Error("Failed to add event");
   }
+
+  return data;
 }
 
 export async function addDate(date: string): Promise<void> {

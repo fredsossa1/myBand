@@ -68,20 +68,24 @@ export default function Dashboard() {
 
   // Recent activity (last 5) - simplified version using availability data
   const recentActivity = useMemo(() => {
-    if (!appData?.availability || !appData?.members || !appData?.events) return [];
+    if (!appData?.availability || !appData?.members || !appData?.events)
+      return [];
 
     const activities: StatsData["recentActivity"] = [];
-    
+
     // Get recent availability records (sorted by creation date if available)
     const recentAvailability = appData.availability
-      .filter(record => record.created_at)
-      .sort((a, b) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime())
+      .filter((record) => record.created_at)
+      .sort(
+        (a, b) =>
+          new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime()
+      )
       .slice(0, 5);
 
-    recentAvailability.forEach(record => {
-      const member = appData.members!.find(m => m.id === record.person_id);
-      const event = appData.events!.find(e => e.date === record.date);
-      
+    recentAvailability.forEach((record) => {
+      const member = appData.members!.find((m) => m.id === record.person_id);
+      const event = appData.events!.find((e) => e.date === record.date);
+
       if (member && event) {
         activities.push({
           memberName: member.name,
@@ -110,30 +114,34 @@ export default function Dashboard() {
     }
 
     const upcomingEvents = appData.events
-      .filter(event => !isPast(event.date))
+      .filter((event) => !isPast(event.date))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .slice(0, 5)
-      .map(event => ({
+      .map((event) => ({
         id: event.id.toString(),
         title: event.title,
         date: event.date,
-        type: event.type
+        type: event.type,
       }));
 
     const totalResponses = appData.availability.length;
-    const totalPossibleResponses = appData.events.length * appData.members.length;
+    const totalPossibleResponses =
+      appData.events.length * appData.members.length;
 
-    const responseRate = totalPossibleResponses > 0 
-      ? Math.round((totalResponses / totalPossibleResponses) * 100) 
-      : 0;
+    const responseRate =
+      totalPossibleResponses > 0
+        ? Math.round((totalResponses / totalPossibleResponses) * 100)
+        : 0;
 
     // Filter recent activity based on privacy settings
     let filteredRecentActivity = recentActivity;
     if (!isAdmin) {
       if (selectedMember) {
         // Show only selected member's activity
-        filteredRecentActivity = recentActivity.filter(activity => {
-          const member = appData.members!.find(m => m.name === activity.memberName);
+        filteredRecentActivity = recentActivity.filter((activity) => {
+          const member = appData.members!.find(
+            (m) => m.name === activity.memberName
+          );
           return member?.id === selectedMember;
         });
       } else {
@@ -144,28 +152,33 @@ export default function Dashboard() {
 
     let memberStats: StatsData["memberStats"] | undefined;
     if (selectedMember) {
-      const member = appData.members!.find(m => m.id === selectedMember);
+      const member = appData.members!.find((m) => m.id === selectedMember);
       if (member) {
-        const memberAvailability = appData.availability.filter(a => a.person_id === member.id);
+        const memberAvailability = appData.availability.filter(
+          (a) => a.person_id === member.id
+        );
         const memberResponses = memberAvailability.length;
         const memberExpectedResponses = appData.events.length;
-        
+
         const recentResponses = memberAvailability
-          .map(record => {
-            const event = appData.events!.find(e => e.date === record.date);
-            return event ? {
-              eventTitle: event.title,
-              eventDate: event.date,
-              status: record.state,
-              shouldRespond: true,
-            } : null;
+          .map((record) => {
+            const event = appData.events!.find((e) => e.date === record.date);
+            return event
+              ? {
+                  eventTitle: event.title,
+                  eventDate: event.date,
+                  status: record.state,
+                  shouldRespond: true,
+                }
+              : null;
           })
           .filter(Boolean)
           .slice(0, 10);
 
-        const memberResponseRate = memberExpectedResponses > 0 
-          ? Math.round((memberResponses / memberExpectedResponses) * 100) 
-          : 0;
+        const memberResponseRate =
+          memberExpectedResponses > 0
+            ? Math.round((memberResponses / memberExpectedResponses) * 100)
+            : 0;
 
         memberStats = {
           member,
@@ -293,7 +306,8 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="text-center p-4 rounded-lg bg-white/5">
                 <div className="text-2xl font-bold text-white">
-                  {stats.memberStats.responses}/{stats.memberStats.expectedResponses}
+                  {stats.memberStats.responses}/
+                  {stats.memberStats.expectedResponses}
                 </div>
                 <div className="text-sm text-white/70">{t.responses}</div>
               </div>
@@ -301,7 +315,9 @@ export default function Dashboard() {
                 <div className="text-2xl font-bold text-white">
                   {stats.memberStats.responseRate}%
                 </div>
-                <div className="text-sm text-white/70">{t.yourResponseRate}</div>
+                <div className="text-sm text-white/70">
+                  {t.yourResponseRate}
+                </div>
               </div>
             </div>
 
@@ -318,7 +334,9 @@ export default function Dashboard() {
                       className="flex items-center justify-between p-3 rounded-lg bg-white/5 text-sm"
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="text-white truncate">{event.eventTitle}</div>
+                        <div className="text-white truncate">
+                          {event.eventTitle}
+                        </div>
                         <div className="text-white/60 text-xs">
                           {formatDateShort(event.eventDate)}
                         </div>
@@ -337,7 +355,9 @@ export default function Dashboard() {
                         {!event.shouldRespond
                           ? "➖ Not Required"
                           : event.status
-                          ? getAvailabilityIcon(event.status as AvailabilityState)
+                          ? getAvailabilityIcon(
+                              event.status as AvailabilityState
+                            )
                           : "⭕"}
                         {!event.shouldRespond
                           ? ""
@@ -409,7 +429,11 @@ export default function Dashboard() {
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-3">
               <span className="text-xl">🕒</span>
-              {isAdmin ? t.recentActivity : selectedMember ? t.yourRecentActivity : t.recentActivity}
+              {isAdmin
+                ? t.recentActivity
+                : selectedMember
+                ? t.yourRecentActivity
+                : t.recentActivity}
               {!isAdmin && (
                 <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded">
                   {t.private}

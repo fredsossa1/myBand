@@ -106,8 +106,12 @@ export function getEventsForDateRange(
 export function getUpcomingEvents(events: Event[], days = 30): Event[] {
   // Get current date in Montreal EST timezone
   const now = new Date();
-  const montrealTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Montreal"}));
-  const cutoffDate = new Date(montrealTime.getTime() + days * 24 * 60 * 60 * 1000);
+  const montrealTime = new Date(
+    now.toLocaleString("en-US", { timeZone: "America/Montreal" })
+  );
+  const cutoffDate = new Date(
+    montrealTime.getTime() + days * 24 * 60 * 60 * 1000
+  );
 
   return events.filter((event) => {
     const eventDate = new Date(event.date);
@@ -118,8 +122,12 @@ export function getUpcomingEvents(events: Event[], days = 30): Event[] {
 export function getPastEvents(events: Event[], days = 30): Event[] {
   // Get current date in Montreal EST timezone
   const now = new Date();
-  const montrealTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Montreal"}));
-  const cutoffDate = new Date(montrealTime.getTime() - days * 24 * 60 * 60 * 1000);
+  const montrealTime = new Date(
+    now.toLocaleString("en-US", { timeZone: "America/Montreal" })
+  );
+  const cutoffDate = new Date(
+    montrealTime.getTime() - days * 24 * 60 * 60 * 1000
+  );
 
   return events.filter((event) => {
     const eventDate = new Date(event.date);
@@ -132,6 +140,22 @@ export function findEventByDate(
   date: string
 ): Event | undefined {
   return events.find((event) => event.date === date);
+}
+
+export function findEventsByDate(events: Event[], date: string): Event[] {
+  return events.filter((event) => event.date === date);
+}
+
+export function groupEventsByDate(events: Event[]): {
+  [date: string]: Event[];
+} {
+  return events.reduce((groups, event) => {
+    if (!groups[event.date]) {
+      groups[event.date] = [];
+    }
+    groups[event.date].push(event);
+    return groups;
+  }, {} as { [date: string]: Event[] });
 }
 
 // Availability utilities

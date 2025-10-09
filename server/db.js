@@ -419,29 +419,38 @@ export async function addEvent(event) {
   const { date, title, description, type = "service" } = event;
 
   try {
-    // Check if event exists
+    // Check for exact duplicates (same date, title, and type)
     const { data: existing } = await supabase
       .from("events")
       .select("*")
       .eq("date", date)
+      .eq("title", title)
+      .eq("type", type)
       .single();
 
     if (existing) {
-      // Update existing event
-      await supabase
-        .from("events")
-        .update({ title, description, type })
-        .eq("date", date);
-    } else {
-      // Add new event
-      await supabase.from("events").insert({
+      throw new Error(
+        `An event with the same title "${title}" and type "${type}" already exists on ${date}`
+      );
+    }
+
+    // Add new event (multiple different events on same date are allowed)
+    const { data, error } = await supabase
+      .from("events")
+      .insert({
         date,
         title,
         description,
         type,
         created_at: new Date().toISOString(),
-      });
+      })
+      .select();
+
+    if (error) {
+      throw error;
     }
+
+    return data[0];
   } catch (e) {
     console.error("Error adding event to Supabase:", e.message);
     throw e;

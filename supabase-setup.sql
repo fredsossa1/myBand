@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS members (
 -- Create events table
 CREATE TABLE IF NOT EXISTS events (
   id SERIAL PRIMARY KEY,
-  date DATE NOT NULL UNIQUE,
+  date DATE NOT NULL,
   title TEXT NOT NULL DEFAULT 'Service',
   description TEXT DEFAULT '',
   type TEXT DEFAULT 'service',
@@ -39,6 +39,19 @@ CREATE TABLE IF NOT EXISTS settings (
 -- Insert default admin password
 INSERT INTO settings (key, value) VALUES ('adminPassword', 'band2025')
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
+
+-- Migration: Remove UNIQUE constraint on events.date (if it exists)
+-- This allows multiple events on the same date
+DO $$ 
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE constraint_name = 'events_date_key' 
+        AND table_name = 'events'
+    ) THEN
+        ALTER TABLE events DROP CONSTRAINT events_date_key;
+    END IF;
+END $$;
 
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_availability_date ON availability(date);
