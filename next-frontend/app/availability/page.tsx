@@ -329,10 +329,6 @@ export default function AvailabilityPage() {
         allRelevantEvents,
         availability || []
       )
-            created_at: new Date().toISOString(),
-          }))
-        )
-      )
     : null;
 
   const overallRate = overallStats.overallResponseRate;

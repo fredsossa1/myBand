@@ -72,12 +72,13 @@ export default function StatsPage() {
       .slice(0, 10)
       .map((record: AvailabilityRecord) => {
         const member = members.find((m) => m.id === record.person_id);
-        const event = events.find((e) => e.date === record.date);
+        const event = events.find((e) => e.id.toString() === record.event_id.toString());
         return {
           ...record,
           memberName: member?.name || "Unknown",
           memberRole: member?.role || "unknown",
           eventTitle: event?.title || "Unknown Event",
+          eventDate: event?.date || record._event?.date || "",
         };
       });
 
@@ -428,7 +429,7 @@ export default function StatsPage() {
                       </div>
                       <div className="text-white/60 text-sm">
                         {getRoleDisplayName(activity.memberRole as Role)} •{" "}
-                        {formatDate(activity.date)}
+                        {formatDate(activity.eventDate)}
                       </div>
                     </div>
                   </div>
