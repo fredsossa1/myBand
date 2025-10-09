@@ -207,6 +207,7 @@ export default function AvailabilityPage() {
   const {
     members,
     events,
+    availability,
     availabilityByDate,
     loading,
     error,
@@ -319,26 +320,15 @@ export default function AvailabilityPage() {
   const overallStats = StatsService.calculateOverallStats(
     members || [],
     allRelevantEvents,
-    // Convert availabilityByDate to AvailabilityRecord array
-    Object.entries(availabilityByDate).flatMap(([date, dayAvail]) =>
-      Object.entries(dayAvail).map(([personId, state]) => ({
-        person_id: personId,
-        date: date,
-        state,
-        created_at: new Date().toISOString(),
-      }))
-    )
+    availability || []
   );
 
   const userStats = currentUser
     ? StatsService.calculateMemberStats(
         currentUser,
         allRelevantEvents,
-        Object.entries(availabilityByDate).flatMap(([date, dayAvail]) =>
-          Object.entries(dayAvail).map(([personId, state]) => ({
-            person_id: personId,
-            date: date,
-            state,
+        availability || []
+      )
             created_at: new Date().toISOString(),
           }))
         )
@@ -894,7 +884,7 @@ export default function AvailabilityPage() {
 
                           {Array.from(pendingChanges.values()).some(
                             (change) =>
-                              change.date === event.date &&
+                              change.eventId.toString() === event.id.toString() &&
                               change.personId === currentUser.id
                           ) && (
                             <Badge
@@ -1336,7 +1326,7 @@ export default function AvailabilityPage() {
 
                           {Array.from(pendingChanges.values()).some(
                             (change) =>
-                              change.date === event.date &&
+                              change.eventId.toString() === event.id.toString() &&
                               change.personId === currentUser.id
                           ) && (
                             <Badge

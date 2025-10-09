@@ -4,6 +4,7 @@ import {
   Event,
   AvailabilityRecord,
   AvailabilityByDate,
+  AvailabilityByEvent,
   AvailabilityByRole,
   Role,
   AvailabilityState,
@@ -249,8 +250,12 @@ export function groupAvailabilityByRole(
       grouped[member.role] &&
       grouped[member.role][record.person_id]
     ) {
-      grouped[member.role][record.person_id].availability[record.date] =
-        record.state;
+      // Use event date from _event field if available
+      const date = record._event?.date;
+      if (date) {
+        grouped[member.role][record.person_id].availability[date] =
+          record.state;
+      }
     }
   });
 
@@ -261,7 +266,7 @@ export function getAvailabilityForDate(
   availability: AvailabilityRecord[],
   date: string
 ): AvailabilityRecord[] {
-  return availability.filter((record) => record.date === date);
+  return availability.filter((record) => record._event?.date === date);
 }
 
 export function getAvailabilityForEvent(
@@ -286,7 +291,7 @@ export function getMemberAvailabilityState(
   date: string
 ): AvailabilityState | null {
   const record = availability.find(
-    (r) => r.person_id === memberId && r.date === date
+    (r) => r.person_id === memberId && r._event?.date === date
   );
   return record ? record.state : null;
 }
@@ -464,16 +469,16 @@ export function getRoleCompleteness(
 
 // Bulk operation utilities
 export function createBulkAvailabilityRecords(
-  dates: string[],
+  eventIds: (string | number)[],
   memberIds: string[],
   state: AvailabilityState
-): Omit<AvailabilityRecord, "id" | "created_at">[] {
-  const records: Omit<AvailabilityRecord, "id" | "created_at">[] = [];
+): Omit<AvailabilityRecord, "id" | "created_at" | "_event">[] {
+  const records: Omit<AvailabilityRecord, "id" | "created_at" | "_event">[] = [];
 
-  dates.forEach((date) => {
+  eventIds.forEach((eventId) => {
     memberIds.forEach((memberId) => {
       records.push({
-        date,
+        event_id: eventId,
         person_id: memberId,
         state,
       });
@@ -507,7 +512,11 @@ export function filterEventsByTitle(events: Event[], query: string): Event[] {
 export function getUniqueDatesFromAvailability(
   availability: AvailabilityRecord[]
 ): string[] {
-  const dates = new Set(availability.map((record) => record.date));
+  const dates = new Set(
+    availability
+      .map((record) => record._event?.date)
+      .filter((date): date is string => date !== undefined)
+  );
   return sortDateStrings(Array.from(dates));
 }
 
