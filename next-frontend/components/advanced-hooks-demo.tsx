@@ -259,7 +259,7 @@ export function AdvancedHooksDemo() {
                   getUserAvailability(event.date, currentUser.id) || "?";
                 const isPending = Array.from(pendingChanges.values()).some(
                   (change) =>
-                    change.eventId.toString() === event.id.toString() &&
+                    change.date === event.date &&
                     change.personId === currentUser.id
                 );
 

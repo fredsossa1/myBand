@@ -880,7 +880,7 @@ export default function AvailabilityPage() {
 
                           {Array.from(pendingChanges.values()).some(
                             (change) =>
-                              change.eventId.toString() === event.id.toString() &&
+                              change.date === event.date &&
                               change.personId === currentUser.id
                           ) && (
                             <Badge
@@ -1322,7 +1322,7 @@ export default function AvailabilityPage() {
 
                           {Array.from(pendingChanges.values()).some(
                             (change) =>
-                              change.eventId.toString() === event.id.toString() &&
+                              change.date === event.date &&
                               change.personId === currentUser.id
                           ) && (
                             <Badge
