@@ -4,7 +4,6 @@ import {
   Event,
   AvailabilityRecord,
   AvailabilityByDate,
-  AvailabilityByEvent,
   AvailabilityByRole,
   Role,
   AvailabilityState,
@@ -159,10 +158,9 @@ export function groupEventsByDate(events: Event[]): {
   }, {} as { [date: string]: Event[] });
 }
 
-// Availability utilities  
+// Availability utilities
 export function groupAvailabilityByDate(
-  availability: AvailabilityRecord[] | undefined,
-  events?: Event[]
+  availability: AvailabilityRecord[] | undefined
 ): AvailabilityByDate {
   const grouped: AvailabilityByDate = {};
 
@@ -171,54 +169,11 @@ export function groupAvailabilityByDate(
     return grouped;
   }
 
-  // If records have _event field (from joined query), use that
   availability.forEach((record) => {
-    let date: string | undefined;
-    
-    if (record._event?.date) {
-      // Use the joined event data
-      date = record._event.date;
-    } else if (events) {
-      // Look up date from events array
-      const event = events.find((e) => e.id.toString() === record.event_id.toString());
-      date = event?.date;
+    if (!grouped[record.date]) {
+      grouped[record.date] = {};
     }
-    
-    if (date) {
-      if (!grouped[date]) {
-        grouped[date] = {};
-      }
-      grouped[date][record.person_id] = record.state;
-    }
-  });
-
-  return grouped;
-}
-
-// New: Group availability by event ID
-export function groupAvailabilityByEvent(
-  availability: AvailabilityRecord[] | undefined,
-  events: Event[]
-): AvailabilityByEvent {
-  const grouped: AvailabilityByEvent = {};
-
-  // Handle case where availability data hasn't loaded yet
-  if (!availability || !Array.isArray(availability)) {
-    return grouped;
-  }
-
-  // Initialize groups for all events
-  events.forEach((event) => {
-    grouped[event.id.toString()] = {};
-  });
-
-  // Populate availability data
-  availability.forEach((record) => {
-    const eventId = record.event_id.toString();
-    if (!grouped[eventId]) {
-      grouped[eventId] = {};
-    }
-    grouped[eventId][record.person_id] = record.state;
+    grouped[record.date][record.person_id] = record.state;
   });
 
   return grouped;
@@ -250,12 +205,8 @@ export function groupAvailabilityByRole(
       grouped[member.role] &&
       grouped[member.role][record.person_id]
     ) {
-      // Use event date from _event field if available
-      const date = record._event?.date;
-      if (date) {
-        grouped[member.role][record.person_id].availability[date] =
-          record.state;
-      }
+      grouped[member.role][record.person_id].availability[record.date] =
+        record.state;
     }
   });
 
@@ -266,16 +217,7 @@ export function getAvailabilityForDate(
   availability: AvailabilityRecord[],
   date: string
 ): AvailabilityRecord[] {
-  return availability.filter((record) => record._event?.date === date);
-}
-
-export function getAvailabilityForEvent(
-  availability: AvailabilityRecord[],
-  eventId: string | number
-): AvailabilityRecord[] {
-  return availability.filter(
-    (record) => record.event_id.toString() === eventId.toString()
-  );
+  return availability.filter((record) => record.date === date);
 }
 
 export function getAvailabilityForMember(
@@ -291,19 +233,7 @@ export function getMemberAvailabilityState(
   date: string
 ): AvailabilityState | null {
   const record = availability.find(
-    (r) => r.person_id === memberId && r._event?.date === date
-  );
-  return record ? record.state : null;
-}
-
-export function getMemberAvailabilityStateForEvent(
-  availability: AvailabilityRecord[],
-  memberId: string,
-  eventId: string | number
-): AvailabilityState | null {
-  const record = availability.find(
-    (r) =>
-      r.person_id === memberId && r.event_id.toString() === eventId.toString()
+    (r) => r.person_id === memberId && r.date === date
   );
   return record ? record.state : null;
 }
@@ -469,16 +399,16 @@ export function getRoleCompleteness(
 
 // Bulk operation utilities
 export function createBulkAvailabilityRecords(
-  eventIds: (string | number)[],
+  dates: string[],
   memberIds: string[],
   state: AvailabilityState
-): Omit<AvailabilityRecord, "id" | "created_at" | "_event">[] {
-  const records: Omit<AvailabilityRecord, "id" | "created_at" | "_event">[] = [];
+): Omit<AvailabilityRecord, "id" | "created_at">[] {
+  const records: Omit<AvailabilityRecord, "id" | "created_at">[] = [];
 
-  eventIds.forEach((eventId) => {
+  dates.forEach((date) => {
     memberIds.forEach((memberId) => {
       records.push({
-        event_id: eventId,
+        date,
         person_id: memberId,
         state,
       });
@@ -512,11 +442,7 @@ export function filterEventsByTitle(events: Event[], query: string): Event[] {
 export function getUniqueDatesFromAvailability(
   availability: AvailabilityRecord[]
 ): string[] {
-  const dates = new Set(
-    availability
-      .map((record) => record._event?.date)
-      .filter((date): date is string => date !== undefined)
-  );
+  const dates = new Set(availability.map((record) => record.date));
   return sortDateStrings(Array.from(dates));
 }
 
@@ -585,35 +511,6 @@ export function calculateRoleCoverage(
   };
 }
 
-// New version that uses event ID
-export function calculateRoleCoverageForEvent(
-  members: Member[],
-  role: Role,
-  eventId: string | number,
-  availabilityByEvent: AvailabilityByEvent,
-  required: number
-): RoleCoverage {
-  const roleMembers = members.filter((member) => member.role === role);
-  const eventIdStr = eventId.toString();
-  const availableMembers = roleMembers
-    .map((member) => ({
-      id: member.id,
-      name: member.name,
-      state: availabilityByEvent[eventIdStr]?.[member.id] || null,
-    }))
-    .filter((member) => member.state === "A");
-
-  return {
-    required,
-    available: availableMembers.length,
-    members: roleMembers.map((member) => ({
-      id: member.id,
-      name: member.name,
-      state: availabilityByEvent[eventIdStr]?.[member.id] || null,
-    })),
-  };
-}
-
 export function calculateEventCoverage(
   event: Event,
   members: Member[],
@@ -639,88 +536,6 @@ export function calculateEventCoverage(
         role,
         event.date,
         availabilityByDate,
-        required
-      );
-      coverageByRole[role] = roleCoverage;
-
-      // Special handling for violinist - treat as optional
-      if (role === "violinist") {
-        // Don't count violinist in required/met calculations for coverage status
-        // but still include in the display
-        totalAvailable += roleCoverage.available;
-      } else {
-        totalRequired += required;
-        totalMet += Math.min(roleCoverage.available, required);
-        totalAvailable += roleCoverage.available;
-      }
-    }
-  });
-
-  // For jam sessions, calculate coverage differently to encourage more participants
-  let coverageScore: number;
-  if (event.type === "jam-session") {
-    // For jam sessions, score is based on having at least minimum + bonus for extras
-    const minimumMet =
-      totalRequired > 0 ? Math.round((totalMet / totalRequired) * 100) : 100;
-
-    // Give bonus points for having more than minimum (up to 150% total)
-    const bonusAvailable = Math.max(0, totalAvailable - totalRequired);
-    const bonusScore = Math.min(50, bonusAvailable * 10); // 10 points per extra person, max 50
-
-    coverageScore = Math.min(150, minimumMet + bonusScore);
-  } else {
-    // For other events, use standard calculation (excluding violinist from requirements)
-    coverageScore =
-      totalRequired > 0 ? Math.round((totalMet / totalRequired) * 100) : 100;
-  }
-
-  // Determine coverage status (violinist doesn't affect this)
-  let status: CoverageStatus;
-  if (coverageScore >= 100) {
-    status = "fully-covered";
-  } else if (coverageScore >= 50) {
-    status = "partially-covered";
-  } else {
-    status = "not-covered";
-  }
-
-  return {
-    eventId: event.id,
-    date: event.date,
-    title: event.title,
-    type: event.type as EventType,
-    status,
-    coverageByRole,
-    coverageScore,
-  };
-}
-
-// New version using event-based availability
-export function calculateEventCoverageByEvent(
-  event: Event,
-  members: Member[],
-  availabilityByEvent: AvailabilityByEvent
-): EventCoverage {
-  const requirements =
-    COVERAGE_REQUIREMENTS[event.type as keyof CoverageRequirements] ||
-    COVERAGE_REQUIREMENTS.service;
-
-  const coverageByRole: EventCoverage["coverageByRole"] = {};
-  let totalRequired = 0;
-  let totalMet = 0;
-  let totalAvailable = 0;
-
-  // Calculate coverage for each role
-  (Object.keys(requirements) as Role[]).forEach((role) => {
-    if (role === "admin") return; // Skip admin role for coverage
-
-    const required = requirements[role];
-    if (required > 0) {
-      const roleCoverage = calculateRoleCoverageForEvent(
-        members,
-        role,
-        event.id,
-        availabilityByEvent,
         required
       );
       coverageByRole[role] = roleCoverage;

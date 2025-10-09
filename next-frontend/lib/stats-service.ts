@@ -97,13 +97,10 @@ export class StatsService {
     const grouped: Record<string, Record<string, string>> = {};
     
     availability.forEach((record) => {
-      const date = record._event?.date;
-      if (date) {
-        if (!grouped[date]) {
-          grouped[date] = {};
-        }
-        grouped[date][record.person_id] = record.state;
+      if (!grouped[record.date]) {
+        grouped[record.date] = {};
       }
+      grouped[record.date][record.person_id] = record.state;
     });
     
     return grouped;
