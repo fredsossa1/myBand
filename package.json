@@ -1,0 +1,13 @@
+{
+  "name": "myband-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "cd next-frontend && npm ci && npm run build",
+    "start": "cd next-frontend && NODE_ENV=production npx next start -H 0.0.0.0 -p ${PORT:-3000}",
+    "dev": "cd next-frontend && npm run dev"
+  },
+  "workspaces": [
+    "next-frontend"
+  ]
+}
