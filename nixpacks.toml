@@ -5,7 +5,7 @@ nixPkgs = ["nodejs_20"]
 cmd = "cd next-frontend && npm install"
 
 [phases.build]
-cmd = "cd next-frontend && npx next build"
+cmd = "cd next-frontend && npm run build && ls -la .next"
 
 [start]
 cmd = "cd next-frontend && NODE_ENV=production npm start"
