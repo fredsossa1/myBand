@@ -8,4 +8,4 @@ cmd = "cd next-frontend && npm install"
 cmd = "cd next-frontend && npm run build"
 
 [start]
-cmd = "cd next-frontend && NODE_ENV=production npm start"
+cmd = "cd next-frontend && npm start"

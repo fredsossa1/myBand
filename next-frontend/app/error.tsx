@@ -9,11 +9,5 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  return (
-    <ErrorPage
-      error={error}
-      onRetry={reset}
-      showRetry={true}
-    />
-  );
+  return <ErrorPage error={error} onRetry={reset} showRetry={true} />;
 }

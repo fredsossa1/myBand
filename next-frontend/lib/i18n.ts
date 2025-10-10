@@ -448,15 +448,20 @@ export const translations: Record<Language, Translations> = {
 
     // Error Page Messages
     errorPageTitle: "Worship Availability Unavailable!",
-    errorPageSubtitle: "You wanted to set your availabilities, but we're currently unavailable!",
+    errorPageSubtitle:
+      "You wanted to set your availabilities, but we're currently unavailable!",
     divineWisdom: "Divine Wisdom:",
     technicalDetails: "Technical Details:",
-    errorPageEncouragement1: "Don't worry! Even Moses had server issues when he came down from Mount Sinai.",
-    errorPageEncouragement2: "Our tech team is praying for a miracle... or at least a server restart.",
+    errorPageEncouragement1:
+      "Don't worry! Even Moses had server issues when he came down from Mount Sinai.",
+    errorPageEncouragement2:
+      "Our tech team is praying for a miracle... or at least a server restart.",
     tryAgainFaith: "🔄 Try Again (Have Faith!)",
     goToHomepage: "🏠 Go to Homepage",
-    errorPageMosesJoke: "🙏 Don't worry! Even Moses had server issues when he came down from Mount Sinai.",
-    errorPagePrayingJoke: "Our tech team is praying for a miracle... or at least a server restart.",
+    errorPageMosesJoke:
+      "🙏 Don't worry! Even Moses had server issues when he came down from Mount Sinai.",
+    errorPagePrayingJoke:
+      "Our tech team is praying for a miracle... or at least a server restart.",
   },
 
   fr: {
@@ -683,15 +688,20 @@ export const translations: Record<Language, Translations> = {
 
     // Error Page Messages
     errorPageTitle: "Disponibilités de Louange Indisponibles!",
-    errorPageSubtitle: "Vous vouliez définir vos disponibilités, mais nous sommes actuellement indisponibles!",
+    errorPageSubtitle:
+      "Vous vouliez définir vos disponibilités, mais nous sommes actuellement indisponibles!",
     divineWisdom: "Sagesse Divine:",
     technicalDetails: "Détails Techniques:",
-    errorPageEncouragement1: "Ne vous inquiétez pas! Même Moïse a eu des problèmes de serveur en descendant du mont Sinaï.",
-    errorPageEncouragement2: "Notre équipe technique prie pour un miracle... ou au moins un redémarrage de serveur.",
+    errorPageEncouragement1:
+      "Ne vous inquiétez pas! Même Moïse a eu des problèmes de serveur en descendant du mont Sinaï.",
+    errorPageEncouragement2:
+      "Notre équipe technique prie pour un miracle... ou au moins un redémarrage de serveur.",
     tryAgainFaith: "🔄 Réessayer (Ayez Foi!)",
     goToHomepage: "🏠 Aller à l'Accueil",
-    errorPageMosesJoke: "🙏 Ne vous inquiétez pas! Même Moïse a eu des problèmes de serveur en descendant du mont Sinaï.",
-    errorPagePrayingJoke: "Notre équipe technique prie pour un miracle... ou au moins un redémarrage de serveur.",
+    errorPageMosesJoke:
+      "🙏 Ne vous inquiétez pas! Même Moïse a eu des problèmes de serveur en descendant du mont Sinaï.",
+    errorPagePrayingJoke:
+      "Notre équipe technique prie pour un miracle... ou au moins un redémarrage de serveur.",
   },
 };
 

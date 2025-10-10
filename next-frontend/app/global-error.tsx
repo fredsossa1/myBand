@@ -12,11 +12,7 @@ export default function GlobalError({
   return (
     <html>
       <body>
-        <ErrorPage
-          error={error}
-          onRetry={reset}
-          showRetry={true}
-        />
+        <ErrorPage error={error} onRetry={reset} showRetry={true} />
       </body>
     </html>
   );
