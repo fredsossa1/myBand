@@ -133,22 +133,8 @@ export default function Dashboard() {
         ? Math.round((totalResponses / totalPossibleResponses) * 100)
         : 0;
 
-    // Filter recent activity based on privacy settings
-    let filteredRecentActivity = recentActivity;
-    if (!isAdmin) {
-      if (selectedMember) {
-        // Show only selected member's activity
-        filteredRecentActivity = recentActivity.filter((activity) => {
-          const member = appData.members!.find(
-            (m) => m.name === activity.memberName
-          );
-          return member?.id === selectedMember;
-        });
-      } else {
-        // Show no activity if no member selected (privacy protection)
-        filteredRecentActivity = [];
-      }
-    }
+    // Recent activity is only shown to admins
+    const filteredRecentActivity = isAdmin ? recentActivity : [];
 
     let memberStats: StatsData["memberStats"] | undefined;
     if (selectedMember) {
@@ -378,8 +364,8 @@ export default function Dashboard() {
         </Card>
       )}
 
-      {/* Two column layout for upcoming events and recent activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Upcoming Events - full width for non-admin, two column for admin */}
+      <div className={`grid gap-6 ${isAdmin ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
         {/* Upcoming Events */}
         <Card className="glass border-white/20" data-upcoming-events>
           <CardHeader>
@@ -424,71 +410,54 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Recent Activity */}
-        <Card className="glass border-white/20">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-3">
-              <span className="text-xl">🕒</span>
-              {isAdmin
-                ? t.recentActivity
-                : selectedMember
-                ? t.yourRecentActivity
-                : t.recentActivity}
-              {!isAdmin && (
-                <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded">
-                  {t.private}
-                </span>
+        {/* Recent Activity - Only visible to admins */}
+        {isAdmin && (
+          <Card className="glass border-white/20">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-3">
+                <span className="text-xl">🕒</span>
+                {t.recentActivity}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {stats.recentActivity.length > 0 ? (
+                <div className="space-y-3">
+                  {stats.recentActivity.map((activity, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 p-3 rounded-lg bg-white/5"
+                    >
+                      <div className="text-xl">
+                        {getAvailabilityIcon(activity.state)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-white text-sm">
+                          <span className="font-medium">
+                            {activity.memberName}
+                          </span>
+                          <span className="text-white/60">
+                            {" "}
+                            • {activity.eventTitle}
+                          </span>
+                        </div>
+                        <div className="text-white/60 text-xs">
+                          {activity.memberRole &&
+                            getRoleDisplayName(activity.memberRole as any)}{" "}
+                          •{formatDateShort(activity.date)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-white/60">
+                  <div className="text-2xl mb-2">📭</div>
+                  <p>{t.noRecentActivity}</p>
+                </div>
               )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {stats.recentActivity.length > 0 ? (
-              <div className="space-y-3">
-                {stats.recentActivity.map((activity, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-white/5"
-                  >
-                    <div className="text-xl">
-                      {getAvailabilityIcon(activity.state)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-white text-sm">
-                        <span className="font-medium">
-                          {activity.memberName}
-                        </span>
-                        <span className="text-white/60">
-                          {" "}
-                          • {activity.eventTitle}
-                        </span>
-                      </div>
-                      <div className="text-white/60 text-xs">
-                        {activity.memberRole &&
-                          getRoleDisplayName(activity.memberRole as any)}{" "}
-                        •{formatDateShort(activity.date)}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-white/60">
-                {!isAdmin && !selectedMember ? (
-                  <div className="space-y-2">
-                    <div className="text-2xl mb-2">🔒</div>
-                    <p>{t.selectNameToViewActivity}</p>
-                    <p className="text-sm">{t.activityFromOthersPrivate}</p>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="text-2xl mb-2">📭</div>
-                    <p>{t.noRecentActivity}</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
