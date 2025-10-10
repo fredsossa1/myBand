@@ -388,24 +388,6 @@ export default function AvailabilityPage() {
               <p className="text-white/70 mt-2 text-sm sm:text-base">
                 {t.appSubtitle}
               </p>
-              {/* Help text for multiple events on same date */}
-              <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                <div className="flex items-start gap-2 text-blue-300 text-xs sm:text-sm">
-                  <span>💡</span>
-                  <div>
-                    <strong>Multiple Events:</strong> When there are multiple
-                    events on the same date, your availability applies to all
-                    events on that day. Look for the purple
-                    <Badge
-                      variant="outline"
-                      className="border-purple-400/50 text-purple-300 text-xs mx-1"
-                    >
-                      1/2
-                    </Badge>
-                    indicator to see which event you're viewing.
-                  </div>
-                </div>
-              </div>
             </div>
 
             {/* Button Section */}
