@@ -10,14 +10,17 @@ export async function GET() {
       service: "myBand-availability",
       env: {
         NODE_ENV: process.env.NODE_ENV,
-        PORT: process.env.PORT || "3000"
-      }
+        PORT: process.env.PORT || "3000",
+      },
     });
   } catch (error) {
-    return NextResponse.json({
-      status: "error",
-      timestamp: new Date().toISOString(),
-      error: error instanceof Error ? error.message : "Unknown error"
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        status: "error",
+        timestamp: new Date().toISOString(),
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }

@@ -629,7 +629,9 @@ export default function AvailabilityPage() {
             </div>
             {todaysEvents.map((event, index) => {
               // Filter availability to only this specific event, not all events on this date
-              const eventAvailability = (availability || []).filter(a => a.event_id === event.id);
+              const eventAvailability = (availability || []).filter(
+                (a) => a.event_id === event.id
+              );
               const eventAvailMap = eventAvailability.reduce((acc, a) => {
                 acc[a.person_id] = a.state;
                 return acc;
@@ -637,21 +639,26 @@ export default function AvailabilityPage() {
               const hasResponses = eventAvailability.length > 0;
 
               // Get user's availability for this specific event (check pending changes first)
-              const userAvailability = currentUser ? (() => {
-                // Check for pending changes first (optimistic UI)
-                const pendingKey = `${event.id}-${currentUser.id}`;
-                const pendingChange = pendingChanges.get(pendingKey);
-                if (pendingChange) {
-                  return pendingChange.state;
-                }
-                // Fall back to server data
-                return (eventAvailMap[currentUser.id] as AvailabilityState) || null;
-              })() : null;
+              const userAvailability = currentUser
+                ? (() => {
+                    // Check for pending changes first (optimistic UI)
+                    const pendingKey = `${event.id}-${currentUser.id}`;
+                    const pendingChange = pendingChanges.get(pendingKey);
+                    if (pendingChange) {
+                      return pendingChange.state;
+                    }
+                    // Fall back to server data
+                    return (
+                      (eventAvailMap[currentUser.id] as AvailabilityState) ||
+                      null
+                    );
+                  })()
+                : null;
               const needsResponse = currentUser && userAvailability === null;
 
               // Calculate coverage for this event using event-specific data
-              const eventSpecificAvailByDate = { 
-                [event.date]: eventAvailMap
+              const eventSpecificAvailByDate = {
+                [event.date]: eventAvailMap,
               };
               const coverage = calculateEventCoverage(
                 event,
@@ -1002,7 +1009,8 @@ export default function AvailabilityPage() {
                                   : coverage.status === "fully-covered"
                                   ? `/${
                                       people.filter(
-                                        (p: Member) => eventAvailMap[p.id] === "A"
+                                        (p: Member) =>
+                                          eventAvailMap[p.id] === "A"
                                       ).length
                                     } ${t.availableMembers.toLowerCase()}`
                                   : `/${people.length} responded`}
@@ -1089,7 +1097,9 @@ export default function AvailabilityPage() {
             </div>
             {upcomingEvents.map((event, index) => {
               // Filter availability to only this specific event, not all events on this date
-              const eventAvailability = (availability || []).filter(a => a.event_id === event.id);
+              const eventAvailability = (availability || []).filter(
+                (a) => a.event_id === event.id
+              );
               const eventAvailMap = eventAvailability.reduce((acc, a) => {
                 acc[a.person_id] = a.state;
                 return acc;
@@ -1097,21 +1107,26 @@ export default function AvailabilityPage() {
               const hasResponses = eventAvailability.length > 0;
 
               // Get user's availability for this specific event (check pending changes first)
-              const userAvailability = currentUser ? (() => {
-                // Check for pending changes first (optimistic UI)
-                const pendingKey = `${event.id}-${currentUser.id}`;
-                const pendingChange = pendingChanges.get(pendingKey);
-                if (pendingChange) {
-                  return pendingChange.state;
-                }
-                // Fall back to server data
-                return (eventAvailMap[currentUser.id] as AvailabilityState) || null;
-              })() : null;
+              const userAvailability = currentUser
+                ? (() => {
+                    // Check for pending changes first (optimistic UI)
+                    const pendingKey = `${event.id}-${currentUser.id}`;
+                    const pendingChange = pendingChanges.get(pendingKey);
+                    if (pendingChange) {
+                      return pendingChange.state;
+                    }
+                    // Fall back to server data
+                    return (
+                      (eventAvailMap[currentUser.id] as AvailabilityState) ||
+                      null
+                    );
+                  })()
+                : null;
               const needsResponse = currentUser && userAvailability === null;
 
               // Calculate coverage for this event using event-specific data
-              const eventSpecificAvailByDate = { 
-                [event.date]: eventAvailMap
+              const eventSpecificAvailByDate = {
+                [event.date]: eventAvailMap,
               };
               const coverage = calculateEventCoverage(
                 event,
@@ -1461,7 +1476,8 @@ export default function AvailabilityPage() {
                                   : coverage.status === "fully-covered"
                                   ? `/${
                                       people.filter(
-                                        (p: Member) => eventAvailMap[p.id] === "A"
+                                        (p: Member) =>
+                                          eventAvailMap[p.id] === "A"
                                       ).length
                                     } ${t.availableMembers.toLowerCase()}`
                                   : `/${people.length} responded`}
