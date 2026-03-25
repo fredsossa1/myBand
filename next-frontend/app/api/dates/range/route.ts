@@ -1,23 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { addDate, verifyAdmin } from "@/lib/db";
+import { addDate } from "@/lib/db";
+import { requireAdmin } from "@/lib/supabase/admin-check";
 
-export const dynamic = 'force-dynamic';export async function POST(request: NextRequest) {
+export const dynamic = "force-dynamic";
+
+export async function POST(request: NextRequest) {
   try {
-    const { start, end, stepDays = 7, adminPassword } = await request.json();
-
-    // Require admin access for creating date ranges
-    if (!adminPassword || !(await verifyAdmin(adminPassword))) {
+    if (!(await requireAdmin())) {
       return NextResponse.json(
         { error: "Admin access required" },
         { status: 403 }
       );
     }
 
+    const { start, end, stepDays = 7 } = await request.json();
+
     if (!start || !end) {
-      return NextResponse.json(
-        { error: "Missing start/end dates" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing start/end dates" }, { status: 400 });
     }
 
     const startDate = new Date(start + "T00:00:00");
@@ -39,9 +38,6 @@ export const dynamic = 'force-dynamic';export async function POST(request: NextR
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("❌ Error in POST /api/dates/range:", error);
-    return NextResponse.json(
-      { error: "Failed to add date range" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to add date range" }, { status: 500 });
   }
 }

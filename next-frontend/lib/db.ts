@@ -10,7 +10,10 @@ const supabaseKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3Y3NjdGd6bnR4eWFkbXBzbGxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyNTY5MTIsImV4cCI6MjA3MTgzMjkxMn0.eavNz7m8wUSJYBGRLk5tpmR7JAomAfWD9egXdOu-ZVk";
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseServiceKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseKey;
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Database connection logging removed for production security
 

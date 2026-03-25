@@ -184,9 +184,7 @@ export function useBulkSetAvailability() {
  * Hook for adding events (admin)
  */
 export function useAddEvent() {
-  return useMutation((password: string, event: CreateEventForm) =>
-    BandApi.addEvent(password, event)
-  );
+  return useMutation((event: CreateEventForm) => BandApi.addEvent(event));
 }
 
 /**
@@ -209,14 +207,14 @@ export function useAddDateRange() {
  * Hook for admin verification
  */
 export function useVerifyAdmin() {
-  return useMutation((password: string) => BandApi.verifyAdmin(password));
+  return useMutation(() => BandApi.verifyAdmin());
 }
 
 /**
  * Hook for data reset (admin)
  */
 export function useResetData() {
-  return useMutation((password: string) => BandApi.resetData(password));
+  return useMutation(() => BandApi.resetData());
 }
 
 // ========== COMBINED HOOKS ==========

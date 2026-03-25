@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDates, addDate, verifyAdmin } from "@/lib/db";
+import { getDates, addDate } from "@/lib/db";
+import { requireAdmin } from "@/lib/supabase/admin-check";
 
 export const dynamic = "force-dynamic";
 
@@ -9,30 +10,23 @@ export async function GET() {
     return NextResponse.json(dates);
   } catch (error) {
     console.error("❌ Error in GET /api/dates:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch dates" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch dates" }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { date, adminPassword } = await request.json();
-
-    // Require admin access for creating dates
-    if (!adminPassword || !(await verifyAdmin(adminPassword))) {
+    if (!(await requireAdmin())) {
       return NextResponse.json(
         { error: "Admin access required" },
         { status: 403 }
       );
     }
 
+    const { date } = await request.json();
+
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      return NextResponse.json(
-        { error: "Invalid date format" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid date format" }, { status: 400 });
     }
 
     await addDate(date);

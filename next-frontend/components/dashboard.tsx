@@ -14,7 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useUser } from "@/hooks/use-user";
 import {
   formatDate,
   formatDateShort,
@@ -62,9 +63,17 @@ interface StatsData {
 export default function Dashboard() {
   const appData = useAppData();
   const isAdmin = useAdmin();
+  const { member: authMember } = useUser();
   const t = useTranslations();
   const router = useRouter();
   const [selectedMember, setSelectedMember] = useState<string>("");
+
+  // Auto-select the authenticated user's member record
+  useEffect(() => {
+    if (authMember && !selectedMember) {
+      setSelectedMember(authMember.id);
+    }
+  }, [authMember, selectedMember]);
 
   // Recent activity (last 5) - simplified version using availability data
   const recentActivity = useMemo(() => {

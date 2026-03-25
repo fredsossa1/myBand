@@ -7,105 +7,62 @@ import {
   useEffect,
   ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 interface AdminContextType {
   isAdmin: boolean;
-  setIsAdmin: (isAdmin: boolean) => void;
-  adminPassword: string;
-  setAdminPassword: (password: string) => void;
-  showAdminLogin: boolean;
-  setShowAdminLogin: (show: boolean) => void;
-  handleAdminLogin: () => Promise<void>;
+  isLoading: boolean;
   handleAdminLogout: () => void;
-  loginError: string | null;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
 export function AdminProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [adminPassword, setAdminPassword] = useState("");
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Check for existing admin session on mount
   useEffect(() => {
-    const savedAdminSession = localStorage.getItem("adminSession");
-    if (savedAdminSession) {
-      // Verify the session is still valid
-      fetch("/api/admin/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: savedAdminSession }),
-      })
-        .then((response) => {
-          if (response.ok) {
-            setIsAdmin(true);
-          } else {
-            // Session invalid, clear it
-            localStorage.removeItem("adminSession");
-          }
-        })
-        .catch(() => {
-          // Network error or other issue, clear session
-          localStorage.removeItem("adminSession");
-        });
+    async function checkAdminStatus() {
+      try {
+        const response = await fetch("/api/admin/verify", { method: "POST" });
+        if (response.ok) {
+          const data = await response.json();
+          setIsAdmin(data.isAdmin === true);
+        } else {
+          setIsAdmin(false);
+        }
+      } catch {
+        setIsAdmin(false);
+      } finally {
+        setIsLoading(false);
+      }
     }
+
+    checkAdminStatus();
+  }, [pathname]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      fetch("/api/admin/verify", { method: "POST" })
+        .then((r) => r.json())
+        .then((data) => setIsAdmin(data.isAdmin === true))
+        .catch(() => setIsAdmin(false));
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
-  const handleAdminLogin = async () => {
-    if (!adminPassword.trim()) {
-      setLoginError("Please enter a password");
-      return;
-    }
-
-    setLoginError(null);
-
-    try {
-      const response = await fetch("/api/admin/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: adminPassword }),
-      });
-
-      if (response.ok) {
-        setIsAdmin(true);
-        setShowAdminLogin(false);
-        localStorage.setItem("adminSession", adminPassword);
-        setAdminPassword("");
-        setLoginError(null);
-      } else {
-        setLoginError("Invalid admin password");
-        // Don't clear the password on failed attempt, let user correct it
-      }
-    } catch (error) {
-      console.error("Admin login error:", error);
-      setLoginError("Login failed - network error");
-    }
-  };
-
-  const handleAdminLogout = () => {
+  const handleAdminLogout = async () => {
+    const supabase = createClient();
     setIsAdmin(false);
-    setAdminPassword("");
-    setShowAdminLogin(false);
-    setLoginError(null);
-    localStorage.removeItem("adminSession");
+    await supabase.auth.signOut();
+    window.location.href = "/login";
   };
 
   return (
-    <AdminContext.Provider
-      value={{
-        isAdmin,
-        setIsAdmin,
-        adminPassword,
-        setAdminPassword,
-        showAdminLogin,
-        setShowAdminLogin,
-        handleAdminLogin,
-        handleAdminLogout,
-        loginError,
-      }}
-    >
+    <AdminContext.Provider value={{ isAdmin, isLoading, handleAdminLogout }}>
       {children}
     </AdminContext.Provider>
   );

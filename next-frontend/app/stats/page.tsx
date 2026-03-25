@@ -23,7 +23,7 @@ import { StatsService } from "@/lib/stats-service";
 
 export default function StatsPage() {
   const router = useRouter();
-  const { isAdmin } = useAdmin();
+  const { isAdmin, isLoading: adminLoading } = useAdmin();
   const [loading, setLoading] = useState(true);
   const {
     members,
@@ -34,15 +34,15 @@ export default function StatsPage() {
     refetch,
   } = useAppData();
 
-  // Check admin access
+  // Check admin access — wait for admin check to complete before redirecting
   useEffect(() => {
+    if (adminLoading) return;
     if (!isAdmin) {
-      // Redirect to home page if not admin
       router.push("/");
       return;
     }
     setLoading(false);
-  }, [isAdmin, router]);
+  }, [isAdmin, adminLoading, router]);
 
   const stats = useMemo(() => {
     if (!members || !events || !availability || !Array.isArray(availability)) {

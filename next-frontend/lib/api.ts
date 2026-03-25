@@ -192,27 +192,34 @@ export class BandApi {
   // ========== ADMIN OPERATIONS ==========
 
   /**
-   * Verify admin password
+   * Check if current session user is an admin
    */
-  static async verifyAdmin(password: string): Promise<{ isAdmin: boolean }> {
-    return post<{ isAdmin: boolean }>("/api/admin/verify", { password });
+  static async verifyAdmin(): Promise<{ isAdmin: boolean }> {
+    return post<{ isAdmin: boolean }>("/api/admin/verify");
   }
 
   /**
-   * Add a new event (admin only)
+   * Add a new event (admin only — auth via session cookie)
    */
-  static async addEvent(
-    password: string,
-    event: CreateEventForm
+  static async addEvent(event: CreateEventForm): Promise<{ ok: boolean }> {
+    return post<{ ok: boolean }>("/api/admin/events", { event });
+  }
+
+  /**
+   * Reset all data (admin only — auth via session cookie)
+   */
+  static async resetData(): Promise<{ ok: boolean }> {
+    return post<{ ok: boolean }>("/api/reset");
+  }
+
+  /**
+   * Invite a member by email (admin only)
+   */
+  static async inviteMember(
+    email: string,
+    memberId: string
   ): Promise<{ ok: boolean }> {
-    return post<{ ok: boolean }>("/api/admin/events", { password, event });
-  }
-
-  /**
-   * Reset all data (admin only)
-   */
-  static async resetData(password: string): Promise<{ ok: boolean }> {
-    return post<{ ok: boolean }>("/api/reset", { password });
+    return post<{ ok: boolean }>("/api/admin/invite", { email, memberId });
   }
 
   // ========== EXPORT ==========
