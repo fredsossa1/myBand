@@ -49,7 +49,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       fetch("/api/admin/verify", { method: "POST" })
         .then((r) => r.json())
         .then((data) => setIsAdmin(data.isAdmin === true))
-        .catch(() => setIsAdmin(false));
+        .catch((err) => {
+          if (process.env.NODE_ENV === "development") {
+            console.error("Admin verify failed:", err);
+          }
+          setIsAdmin(false);
+        });
     });
     return () => subscription.unsubscribe();
   }, []);
