@@ -1,7 +1,7 @@
 "use client";
 
-import Dashboard from "../components/dashboard";
+import { SchedulePage } from "@/components/schedule-page";
 
 export default function HomePage() {
-  return <Dashboard />;
+  return <SchedulePage />;
 }

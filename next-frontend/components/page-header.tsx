@@ -1,115 +1,61 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useTranslations } from "@/hooks/use-language";
 import { useAdmin } from "@/hooks/use-admin";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 export function PageHeader() {
   const pathname = usePathname();
-  const t = useTranslations();
   const { isAdmin } = useAdmin();
 
-  // Define page configurations
   const getPageInfo = () => {
     switch (pathname) {
       case "/":
-        return {
-          title: t.home,
-          icon: "🏠",
-          description: "Dashboard overview",
-        };
-      case "/availability":
-        return {
-          title: t.availability,
-          icon: "📅",
-          description: t.manageAvailabilityDescription,
-        };
+        return { title: "Schedule", description: "Your upcoming events" };
       case "/stats":
-        return {
-          title: t.statistics,
-          icon: "📊",
-          description: "Band statistics and analytics",
-          adminOnly: true,
-        };
+        return { title: "Analytics", description: "Band coverage and response rates", adminOnly: true };
       default:
-        return {
-          title: "Unknown Page",
-          icon: "📄",
-          description: "",
-        };
+        return { title: "Page", description: "" };
     }
   };
 
   const pageInfo = getPageInfo();
-
-  // If this is an admin-only page and user is not admin, show restricted message
-  const isRestrictedPage = pageInfo.adminOnly && !isAdmin;
+  const isRestricted = pageInfo.adminOnly && !isAdmin;
 
   return (
-    <Card className="glass border-white/20 mb-6">
-      <div className="p-4 lg:p-6">
-        <div className="flex items-center gap-3">
+    <div className="mb-8">
+      <div className="flex items-center gap-3">
+        <h1
+          className="text-xl font-semibold tracking-tight"
+          style={{ color: isRestricted ? "var(--app-text-muted)" : "var(--app-text)" }}
+        >
+          {pageInfo.title}
+        </h1>
+        {isRestricted && (
           <span
-            className={`text-2xl lg:text-3xl ${
-              isRestrictedPage ? "opacity-50" : ""
-            }`}
+            className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border"
+            style={{ borderColor: "rgba(248, 81, 73, 0.3)", color: "#f85149", backgroundColor: "rgba(248, 81, 73, 0.08)" }}
           >
-            {pageInfo.icon}
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+              <rect x="2" y="5" width="8" height="6" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+              <path d="M4 5V3.5C4 2.67 4.67 2 5.5 2H6.5C7.33 2 8 2.67 8 3.5V5" stroke="currentColor" strokeWidth="1.2"/>
+            </svg>
+            Admin Only
           </span>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3">
-              <h1
-                className={`text-white text-lg lg:text-xl font-semibold ${
-                  isRestrictedPage ? "opacity-50" : ""
-                }`}
-              >
-                {pageInfo.title}
-              </h1>
-              {isRestrictedPage && (
-                <Badge
-                  variant="outline"
-                  className="border-red-500/50 text-red-300 text-xs"
-                >
-                  🔒 Admin Only
-                </Badge>
-              )}
-              {pathname === "/stats" && isAdmin && (
-                <Badge
-                  variant="outline"
-                  className="border-green-500/50 text-green-300 text-xs"
-                >
-                  👑 Admin Access
-                </Badge>
-              )}
-            </div>
-            {pageInfo.description && (
-              <p
-                className={`text-white/70 text-sm lg:text-base mt-1 ${
-                  isRestrictedPage ? "opacity-50" : ""
-                }`}
-              >
-                {isRestrictedPage
-                  ? "This page requires admin access. Please log in as admin to view statistics."
-                  : pageInfo.description}
-              </p>
-            )}
-          </div>
-          {/* Breadcrumb trail */}
-          <div className="hidden sm:flex items-center text-white/60 text-sm">
-            <span>🎵</span>
-            <span className="mx-2">/</span>
-            <span
-              className={`text-white/80 ${
-                isRestrictedPage ? "opacity-50" : ""
-              }`}
-            >
-              {pageInfo.title}
-            </span>
-          </div>
-        </div>
+        )}
+        {pathname === "/stats" && isAdmin && (
+          <span
+            className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
+            style={{ backgroundColor: "rgba(45, 212, 191, 0.1)", color: "var(--app-accent)" }}
+          >
+            Admin
+          </span>
+        )}
       </div>
-    </Card>
+      {pageInfo.description && (
+        <p className="mt-1 text-sm" style={{ color: "var(--app-text-muted)" }}>
+          {isRestricted ? "This page requires admin access." : pageInfo.description}
+        </p>
+      )}
+    </div>
   );
 }

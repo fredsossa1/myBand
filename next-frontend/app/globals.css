@@ -23,7 +23,7 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
-    --radius: 0.75rem;
+    --radius: 0.5rem;
   }
 
   .dark {
@@ -58,41 +58,70 @@
   }
 }
 
-/* Glass morphism base styles */
+/* App-wide dark surface variables */
+:root {
+  --app-bg: #0d1117;
+  --app-surface: #161b22;
+  --app-surface-hover: #1c2128;
+  --app-border: #30363d;
+  --app-text: #e6edf3;
+  --app-text-muted: #8b949e;
+  --app-accent: #2dd4bf;
+  --app-accent-dim: rgba(45, 212, 191, 0.1);
+}
+
+/* Surface utility classes */
+.surface {
+  background-color: var(--app-surface);
+  border: 1px solid var(--app-border);
+}
+
+.surface-hover:hover {
+  background-color: var(--app-surface-hover);
+}
+
+/* Glass morphism (kept for backward compat, toned down) */
 .glass {
-  @apply backdrop-blur-lg bg-white/10 border border-white/20 shadow-lg;
+  background-color: rgba(22, 27, 34, 0.8);
+  border: 1px solid var(--app-border);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .glass-dark {
-  @apply backdrop-blur-lg bg-black/20 border border-white/10 shadow-lg;
+  background-color: rgba(13, 17, 23, 0.9);
+  border: 1px solid var(--app-border);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-transparent;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-white/20 rounded-full;
+  background-color: var(--app-border);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-white/30;
+  background-color: var(--app-text-muted);
 }
 
 /* Animation utilities */
 .fade-in {
-  animation: fadeIn 0.3s ease-in-out;
+  animation: fadeIn 0.2s ease-out;
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
