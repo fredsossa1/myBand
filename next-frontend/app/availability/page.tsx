@@ -246,30 +246,18 @@ export default function AvailabilityPage() {
       return;
     }
 
-    const adminSession = localStorage.getItem("adminSession");
-    if (!adminSession) {
-      alert(t.adminSessionExpired);
-      handleAdminLogout();
-      return;
-    }
-
     try {
       const response = await fetch("/api/admin/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          password: adminSession,
-          event: eventData,
-        }),
+        body: JSON.stringify({ event: eventData }),
       });
 
       if (response.ok) {
-        await refetch(); // Refresh events list
+        await refetch();
       } else {
         const error = await response.json();
         alert(error.error || t.failedToAddEvent);
-
-        // If admin access is denied, logout
         if (response.status === 403) {
           handleAdminLogout();
         }
@@ -375,43 +363,25 @@ export default function AvailabilityPage() {
 
   return (
     <div className={`space-y-6 ${hasUnsavedChanges ? "pb-32" : ""}`}>
-      {/* Header */}
-      <Card className="glass border-white/20">
-        <CardHeader className="pb-4">
-          <div className="space-y-4">
-            {/* Title Section */}
-            <div className="text-center sm:text-left">
-              <CardTitle className="text-white text-xl sm:text-2xl flex items-center justify-center sm:justify-start gap-3">
-                <span className="text-2xl sm:text-3xl">🎵</span>
-                {t.appTitle}
-              </CardTitle>
-              <p className="text-white/70 mt-2 text-sm sm:text-base">
-                {t.appSubtitle}
-              </p>
-            </div>
-
-            {/* Button Section */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
-              <Button
-                variant="outline"
-                size="default"
-                onClick={refetch}
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20 w-full sm:w-auto"
-              >
-                🔄 {t.refresh}
-              </Button>
-              <Button
-                variant="outline"
-                size="default"
-                onClick={() => setShowKeyboardHelp(true)}
-                className="hidden sm:flex bg-white/10 border-white/20 text-white hover:bg-white/20"
-              >
-                ⌨️ {t.keyboardShortcuts}
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
+      {/* Action Buttons */}
+      <div className="flex gap-3 justify-end">
+        <Button
+          variant="outline"
+          size="default"
+          onClick={refetch}
+          className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+        >
+          🔄 {t.refresh}
+        </Button>
+        <Button
+          variant="outline"
+          size="default"
+          onClick={() => setShowKeyboardHelp(true)}
+          className="hidden sm:flex bg-white/10 border-white/20 text-white hover:bg-white/20"
+        >
+          ⌨️ {t.keyboardShortcuts}
+        </Button>
+      </div>
 
       {/* Admin Add Event Button - Desktop */}
       {isAdmin && (

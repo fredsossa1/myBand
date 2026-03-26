@@ -1,16 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
-import { verifyAdmin } from "@/lib/db";
+import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/supabase/admin-check";
 
-export const dynamic = 'force-dynamic';export async function POST(request: NextRequest) {
+export const dynamic = "force-dynamic";
+
+export async function POST() {
   try {
-    const { password } = await request.json();
-    const isAdmin = await verifyAdmin(password);
-    return NextResponse.json({ isAdmin });
+    const adminId = await requireAdmin();
+    return NextResponse.json({ isAdmin: adminId !== null });
   } catch (error) {
     console.error("❌ Error in /api/admin/verify:", error);
-    return NextResponse.json(
-      { error: "Failed to verify admin" },
-      { status: 500 }
-    );
+    return NextResponse.json({ isAdmin: false }, { status: 500 });
   }
 }

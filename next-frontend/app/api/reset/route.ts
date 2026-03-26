@@ -1,34 +1,28 @@
-import { NextRequest, NextResponse } from "next/server";
-import { verifyAdmin, resetData } from "@/lib/db";
+import { NextResponse } from "next/server";
+import { resetData } from "@/lib/db";
+import { requireAdmin } from "@/lib/supabase/admin-check";
 import fs from "fs";
-export const dynamic = "force-dynamic";
 import path from "path";
 
-export async function POST(request: NextRequest) {
-  try {
-    const { password } = await request.json();
+export const dynamic = "force-dynamic";
 
-    if (!(await verifyAdmin(password))) {
+export async function POST() {
+  try {
+    if (!(await requireAdmin())) {
       return NextResponse.json(
         { error: "Admin access required" },
         { status: 403 }
       );
     }
 
-    // Load default members from data directory
     const membersConfigPath = path.join(process.cwd(), "data", "members.json");
     const membersData = JSON.parse(fs.readFileSync(membersConfigPath, "utf8"));
 
-    // Flatten the members data structure
-    const defaultMembers: any[] = [];
-    Object.entries(membersData).forEach(([role, members]: [string, any]) => {
+    const defaultMembers: { id: string; name: string; role: string }[] = [];
+    Object.entries(membersData).forEach(([role, members]) => {
       if (Array.isArray(members)) {
-        members.forEach((member) => {
-          defaultMembers.push({
-            id: member.id,
-            name: member.name,
-            role: role,
-          });
+        members.forEach((member: { id: string; name: string }) => {
+          defaultMembers.push({ id: member.id, name: member.name, role });
         });
       }
     });
@@ -37,9 +31,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("❌ Error in /api/reset:", error);
-    return NextResponse.json(
-      { error: "Failed to reset data" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to reset data" }, { status: 500 });
   }
 }

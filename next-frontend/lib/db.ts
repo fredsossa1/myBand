@@ -1,16 +1,13 @@
+import "server-only";
 import { createClient } from "@supabase/supabase-js";
 
-// Use environment variables for Supabase credentials
-const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ||
-  process.env.SUPABASE_URL ||
-  "https://rwcsctgzntxyadmpsllj.supabase.co";
-const supabaseKey =
-  process.env.SUPABASE_ANON_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3Y3NjdGd6bnR4eWFkbXBzbGxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyNTY5MTIsImV4cCI6MjA3MTgzMjkxMn0.eavNz7m8wUSJYBGRLk5tpmR7JAomAfWD9egXdOu-ZVk";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+if (!supabaseUrl) throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
+if (!supabaseServiceKey) throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Database connection logging removed for production security
 

@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Sidebar } from "../components/sidebar";
-import { MobileMenu } from "../components/mobile-menu";
-import { PageHeader } from "../components/page-header";
+import { AppShell } from "../components/app-shell";
 import { DatabaseInitializer } from "../components/database-initializer";
 import { LanguageProvider } from "@/hooks/use-language";
 import { AdminProvider } from "@/hooks/use-admin";
+import { UserProvider } from "@/hooks/use-user";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,28 +23,12 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <LanguageProvider>
-          <AdminProvider>
-            <DatabaseInitializer />
-            <div className="min-h-screen bg-gradient-to-br from-blue-900 via-teal-900 to-cyan-900">
-              {/* Mobile Menu Button */}
-              <MobileMenu />
-
-              <div className="container mx-auto px-4 py-4">
-                <div className="flex flex-col lg:flex-row gap-6">
-                  {/* Desktop Sidebar (hidden on mobile) */}
-                  <div className="w-full lg:w-64 flex-shrink-0 hidden lg:block">
-                    <Sidebar />
-                  </div>
-
-                  {/* Main Content */}
-                  <div className="flex-1 min-w-0">
-                    <PageHeader />
-                    <main>{children}</main>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </AdminProvider>
+          <UserProvider>
+            <AdminProvider>
+              <DatabaseInitializer />
+              <AppShell>{children}</AppShell>
+            </AdminProvider>
+          </UserProvider>
         </LanguageProvider>
       </body>
     </html>

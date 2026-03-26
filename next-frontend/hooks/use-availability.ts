@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useAppData, useSetAvailability } from "@/lib/api-hooks";
+import { useUser } from "@/hooks/use-user";
 import {
   AvailabilityState,
   Member,
@@ -102,9 +103,17 @@ export function useAvailability(): UseAvailabilityReturn {
     useAppData();
   const { mutate: setAvailabilityAPI, loading: settingAvailability } =
     useSetAvailability();
+  const { member: authMember } = useUser();
 
   // Local state
   const [currentUser, setCurrentUser] = useState<Member | null>(null);
+
+  // Auto-set current user from auth when member record loads
+  useEffect(() => {
+    if (authMember && !currentUser) {
+      setCurrentUser(authMember);
+    }
+  }, [authMember, currentUser]);
   const [pendingChanges, setPendingChanges] = useState<
     Map<string, PendingChange>
   >(new Map());
