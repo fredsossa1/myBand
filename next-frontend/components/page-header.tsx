@@ -12,11 +12,9 @@ export function PageHeader() {
   const getPageInfo = () => {
     switch (pathname) {
       case "/":
-        return { title: t.home as string, description: "Dashboard overview" };
-      case "/availability":
-        return { title: t.availability as string, description: t.manageAvailabilityDescription as string };
+        return { title: "Schedule", description: "Your upcoming events" };
       case "/stats":
-        return { title: t.statistics as string, description: "Band statistics and analytics", adminOnly: true };
+        return { title: "Analytics", description: "Band coverage and response rates", adminOnly: true };
       default:
         return { title: "Page", description: "" };
     }

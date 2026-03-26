@@ -61,9 +61,8 @@ export function Sidebar() {
   const { member } = useUser();
 
   const navItems = [
-    { href: "/", label: t.home as string, icon: <HomeIcon /> },
-    { href: "/availability", label: t.availability as string, icon: <CalendarIcon /> },
-    { href: "/stats", label: t.statistics as string, icon: <ChartIcon />, adminOnly: true },
+    { href: "/", label: "Schedule", icon: <CalendarIcon /> },
+    { href: "/stats", label: "Analytics", icon: <ChartIcon />, adminOnly: true },
   ];
 
   return (

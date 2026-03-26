@@ -32,9 +32,8 @@ export function MobileMenu() {
   useEffect(() => { setIsOpen(false); }, [pathname]);
 
   const navItems = [
-    { href: "/", label: t.home as string },
-    { href: "/availability", label: t.availability as string },
-    { href: "/stats", label: t.statistics as string, adminOnly: true },
+    { href: "/", label: "Schedule" },
+    { href: "/stats", label: "Analytics", adminOnly: true },
   ];
 
   return (

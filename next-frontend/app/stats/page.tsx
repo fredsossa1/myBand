@@ -4,462 +4,230 @@ import { useMemo, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppData } from "@/lib/api-hooks";
 import { useAdmin } from "@/hooks/use-admin";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { groupMembersByRole, groupAvailabilityByDate } from "@/lib/utils";
-import {
-  getAvailabilityIcon,
-  getRoleDisplayName,
-  formatDate,
-} from "@/lib/constants";
-import {
-  Role,
-  AvailabilityState,
-  Member,
-  AvailabilityRecord,
-} from "@/lib/types";
+import { calculateEventCoverage, groupAvailabilityByDate } from "@/lib/utils";
+import { getRoleDisplayName, formatDateShort } from "@/lib/constants";
 import { StatsService } from "@/lib/stats-service";
+import { Role, AvailabilityRecord } from "@/lib/types";
+
+const ROLE_ORDER: Role[] = ["lead", "bv", "bassist", "pianist", "drummer", "violinist"];
+
+function Bar({ value, max = 100, color }: { value: number; max?: number; color: string }) {
+  const pct = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0;
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex-1 rounded-full h-2" style={{ backgroundColor: "var(--app-border)" }}>
+        <div className="h-2 rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: color }} />
+      </div>
+      <span className="text-sm tabular-nums w-10 text-right" style={{ color }}>{value}%</span>
+    </div>
+  );
+}
+
+function StatCard({ value, label, color }: { value: string | number; label: string; color?: string }) {
+  return (
+    <div className="rounded-xl border p-5" style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}>
+      <p className="text-3xl font-bold tracking-tight" style={{ color: color ?? "var(--app-text)" }}>{value}</p>
+      <p className="text-sm mt-1" style={{ color: "var(--app-text-muted)" }}>{label}</p>
+    </div>
+  );
+}
 
 export default function StatsPage() {
   const router = useRouter();
   const { isAdmin, isLoading: adminLoading } = useAdmin();
-  const [loading, setLoading] = useState(true);
-  const {
-    members,
-    events,
-    availability,
-    loading: dataLoading,
-    error,
-    refetch,
-  } = useAppData();
+  const [ready, setReady] = useState(false);
+  const { members, events, availability, loading, error, refetch } = useAppData();
 
-  // Check admin access — wait for admin check to complete before redirecting
   useEffect(() => {
     if (adminLoading) return;
-    if (!isAdmin) {
-      router.push("/");
-      return;
-    }
-    setLoading(false);
+    if (!isAdmin) { router.push("/"); return; }
+    setReady(true);
   }, [isAdmin, adminLoading, router]);
 
   const stats = useMemo(() => {
-    if (!members || !events || !availability || !Array.isArray(availability)) {
-      return {
-        totalMembers: 0,
-        totalEvents: 0,
-        totalResponses: 0,
-        responseRate: 0,
-        byRole: {},
-        byEvent: [],
-        recentActivity: [],
-      };
-    }
+    if (!members || !events || !availability) return null;
 
-    // Use the centralized stats service
     const overallStats = StatsService.calculateOverallStats(members, events, availability);
     const roleStats = StatsService.calculateRoleStats(members, events, availability);
-    const eventStats = StatsService.calculateAllEventStats(events, members, availability);
 
-    // Recent activity (last 10 availability records)
-    const recentActivity = (availability || [])
-      .filter((record) => record.created_at)
-      .sort(
-        (a, b) =>
-          new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime()
-      )
-      .slice(0, 10)
-      .map((record: AvailabilityRecord) => {
-        const member = members.find((m) => m.id === record.person_id);
-        const event = events.find((e) => e.id.toString() === record.event_id.toString());
-        return {
-          ...record,
-          memberName: member?.name || "Unknown",
-          memberRole: member?.role || "unknown",
-          eventTitle: event?.title || "Unknown Event",
-          eventDate: event?.date || "Unknown Date",
-        };
-      });
+    // Coverage per event (upcoming only)
+    const todayStr = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Montreal" }))
+      .toISOString().split("T")[0];
+    const upcomingEvents = events.filter(e => e.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date));
+    const availByDate = groupAvailabilityByDate(availability, events);
 
-    // Convert stats to the format expected by the UI
-    const byRole: Record<string, any> = {};
-    Object.entries(roleStats).forEach(([role, stats]) => {
-      byRole[role] = {
-        members: stats.members,
-        totalPossible: stats.expectedResponses,
-        responses: stats.actualResponses,
-        available: stats.availableCount,
-        unavailable: stats.unavailableCount,
-        uncertain: stats.uncertainCount,
-        responseRate: stats.responseRate,
-      };
-    });
-
-    const byEvent = eventStats.map((eventStat) => ({
-      ...eventStat.event,
-      responses: eventStat.actualResponses,
-      available: eventStat.availableCount,
-      unavailable: eventStat.unavailableCount,
-      uncertain: eventStat.uncertainCount,
-      responseRate: eventStat.responseRate,
-      coverage: eventStat.coverage,
+    const eventCoverages = upcomingEvents.map(e => ({
+      event: e,
+      coverage: calculateEventCoverage(e, members, availByDate),
     }));
+
+    const atRisk = eventCoverages.filter(ec => ec.coverage.coverageScore < 70);
+    const fullyMet = eventCoverages.filter(ec => ec.coverage.coverageScore >= 100).length;
+
+    // Member response rates (all events)
+    const memberRates = members.map(m => {
+      const responses = availability.filter(a => a.person_id === m.id);
+      const rate = events.length > 0 ? Math.round((responses.length / events.length) * 100) : 0;
+      return { member: m, rate, responded: responses.length, total: events.length };
+    }).sort((a, b) => a.rate - b.rate);
 
     return {
       totalMembers: overallStats.totalMembers,
       totalEvents: overallStats.totalEvents,
       totalResponses: overallStats.totalActualResponses,
       responseRate: overallStats.overallResponseRate,
-      byRole,
-      byEvent,
-      recentActivity,
+      roleStats,
+      atRisk,
+      fullyMet,
+      memberRates,
+      upcomingCount: upcomingEvents.length,
     };
   }, [members, events, availability]);
 
-  // Show loading while checking admin access
-  if (loading) {
+  if (!ready || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-teal-900 to-cyan-900 p-4">
-        <div className="container mx-auto max-w-7xl">
-          <Card className="glass border-white/20">
-            <CardContent className="p-12 text-center">
-              <div className="text-white">
-                <div className="text-4xl mb-4">⏳</div>
-                <p className="text-xl">Checking access...</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="flex items-center justify-center py-24">
+        <p className="text-sm" style={{ color: "var(--app-text-muted)" }}>Loading…</p>
       </div>
     );
   }
 
-  // Don't render anything if not admin (will redirect)
-  if (!isAdmin) {
-    return null;
-  }
-
-  if (dataLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-teal-900 to-cyan-900 p-4">
-        <div className="container mx-auto max-w-7xl">
-          <Card className="glass border-white/20">
-            <CardContent className="p-12 text-center">
-              <div className="text-white">
-                <div className="text-4xl mb-4">⏳</div>
-                <p className="text-xl">Loading statistics...</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
+  if (!isAdmin) return null;
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-teal-900 to-cyan-900 p-4">
-        <div className="container mx-auto max-w-7xl">
-          <Card className="glass border-red-500/20">
-            <CardContent className="p-12 text-center">
-              <div className="text-red-400">
-                <div className="text-4xl mb-4">❌</div>
-                <p className="text-xl">Error loading data: {error}</p>
-                <Button onClick={refetch} className="mt-4" variant="outline">
-                  Try Again
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="flex flex-col items-center justify-center py-24 gap-3">
+        <p className="text-sm" style={{ color: "#f85149" }}>{error}</p>
+        <button onClick={refetch} className="px-3 py-1.5 rounded-lg border text-sm hover:bg-white/5"
+          style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}>Retry</button>
       </div>
     );
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <Card className="glass border-white/20">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-white text-2xl flex items-center gap-3">
-                <span className="text-3xl">📊</span>
-                Band Statistics & Overview
-              </CardTitle>
-              <p className="text-white/70 mt-2">
-                Comprehensive overview of availability and response patterns
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              onClick={refetch}
-              className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-            >
-              🔄 Refresh
-            </Button>
-          </div>
-        </CardHeader>
-      </Card>
+  if (!stats) return null;
 
-      {/* Overall Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="glass border-white/20">
-          <CardContent className="p-6 text-center">
-            <div className="text-3xl font-bold text-white">
-              {stats.totalMembers}
-            </div>
-            <div className="text-white/60">Band Members</div>
-          </CardContent>
-        </Card>
-        <Card className="glass border-white/20">
-          <CardContent className="p-6 text-center">
-            <div className="text-3xl font-bold text-white">
-              {stats.totalEvents}
-            </div>
-            <div className="text-white/60">Upcoming Events</div>
-          </CardContent>
-        </Card>
-        <Card className="glass border-white/20">
-          <CardContent className="p-6 text-center">
-            <div className="text-3xl font-bold text-white">
-              {stats.totalResponses}
-            </div>
-            <div className="text-white/60">Total Responses</div>
-          </CardContent>
-        </Card>
-        <Card className="glass border-white/20">
-          <CardContent className="p-6 text-center">
-            <div
-              className={`text-3xl font-bold ${
-                stats.responseRate >= 80
-                  ? "text-green-400"
-                  : stats.responseRate >= 60
-                  ? "text-yellow-400"
-                  : "text-red-400"
-              }`}
-            >
-              {stats.responseRate}%
-            </div>
-            <div className="text-white/60">Response Rate</div>
-          </CardContent>
-        </Card>
+  const atRiskColor = stats.atRisk.length === 0 ? "#3fb950" : stats.atRisk.length <= 2 ? "#d29922" : "#f85149";
+
+  return (
+    <div className="space-y-8 max-w-4xl">
+      {/* Refresh action — title rendered by PageHeader */}
+      <div className="flex justify-end -mt-2">
+        <button onClick={refetch} className="p-2 rounded-lg border transition-colors hover:bg-white/5"
+          style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }} title="Refresh">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M12.5 7C12.5 9.76 10.26 12 7.5 12C4.74 12 2.5 9.76 2.5 7C2.5 4.24 4.74 2 7.5 2C9.1 2 10.52 2.73 11.5 3.86" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+            <path d="M11.5 2V4H9.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
       </div>
 
-      {/* Stats by Role */}
-      <Card className="glass border-white/20">
-        <CardHeader>
-          <CardTitle className="text-white text-xl">
-            🎵 Statistics by Role
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Object.entries(stats.byRole).map(([role, roleStats]) => (
-              <Card key={role} className="glass-dark border-white/10">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-white text-sm sm:text-lg">
-                    {getRoleDisplayName(role as Role)}
-                  </CardTitle>
-                  <Badge
-                    variant="outline"
-                    className={`w-fit text-xs ${
-                      roleStats.responseRate >= 80
-                        ? "border-green-500/50 text-green-300"
-                        : roleStats.responseRate >= 60
-                        ? "border-yellow-500/50 text-yellow-300"
-                        : "border-red-500/50 text-red-300"
-                    }`}
-                  >
-                    {roleStats.responseRate}% Response Rate
-                  </Badge>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="grid grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm">
-                    <div>
-                      <div className="text-white font-medium">
-                        {roleStats.members.length}
-                      </div>
-                      <div className="text-white/60">Members</div>
-                    </div>
-                    <div>
-                      <div className="text-white font-medium">
-                        {roleStats.responses}/{roleStats.totalPossible}
-                      </div>
-                      <div className="text-white/60">Responses</div>
-                    </div>
-                  </div>
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <StatCard value={stats.totalMembers} label="Members" />
+        <StatCard value={stats.upcomingCount} label="Upcoming events" />
+        <StatCard value={`${stats.responseRate}%`} label="Response rate" />
+        <StatCard value={stats.atRisk.length} label="Events at risk" color={atRiskColor} />
+      </div>
 
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-xs sm:text-sm">
-                      <span className="text-green-300">
-                        {getAvailabilityIcon("A")} Available
-                      </span>
-                      <span className="text-white">{roleStats.available}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs sm:text-sm">
-                      <span className="text-red-300">
-                        {getAvailabilityIcon("U")} Unavailable
-                      </span>
-                      <span className="text-white">
-                        {roleStats.unavailable}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs sm:text-sm">
-                      <span className="text-gray-300">
-                        {getAvailabilityIcon("?")} Uncertain
-                      </span>
-                      <span className="text-white">{roleStats.uncertain}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Event Coverage */}
-      <Card className="glass border-white/20">
-        <CardHeader>
-          <CardTitle className="text-white text-xl">
-            📅 Event Coverage Analysis
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {stats.byEvent.map((event) => (
-              <Card key={event.id} className="glass-dark border-white/10">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-white font-medium">{event.title}</h3>
-                      <p className="text-white/60 text-sm">
-                        {formatDate(event.date)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant="outline"
-                        className={`${
-                          event.coverage
-                            ? "border-green-500/50 text-green-300"
-                            : "border-red-500/50 text-red-300"
-                        }`}
-                      >
-                        {event.coverage
-                          ? "✅ Good Coverage"
-                          : "⚠️ Low Coverage"}
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className="border-white/20 text-white"
-                      >
-                        {event.responseRate}% responded
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 text-xs sm:text-sm">
-                    <div className="text-center">
-                      <div className="text-white font-medium">
-                        {event.responses}
-                      </div>
-                      <div className="text-white/60">Total</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-green-300 font-medium">
-                        {event.available}
-                      </div>
-                      <div className="text-white/60">Available</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-red-300 font-medium">
-                        {event.unavailable}
-                      </div>
-                      <div className="text-white/60">Unavailable</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-gray-300 font-medium">
-                        {event.uncertain}
-                      </div>
-                      <div className="text-white/60">Uncertain</div>
-                    </div>
-                  </div>
-
-                  {/* Response bar */}
-                  <div className="mt-4">
-                    <div className="w-full bg-white/10 rounded-full h-2">
-                      <div
-                        className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${event.responseRate}%` }}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Recent Activity */}
-      <Card className="glass border-white/20">
-        <CardHeader>
-          <CardTitle className="text-white text-xl">
-            🕒 Recent Activity
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {stats.recentActivity.length > 0 ? (
-            <div className="space-y-3">
-              {stats.recentActivity.map((activity, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="text-2xl">
-                      {getAvailabilityIcon(activity.state as AvailabilityState)}
-                    </div>
-                    <div>
-                      <div className="text-white font-medium">
-                        {activity.memberName} • {activity.eventTitle}
-                      </div>
-                      <div className="text-white/60 text-sm">
-                        {getRoleDisplayName(activity.memberRole as Role)} •{" "}
-                        {formatDate(activity.eventDate)}
-                      </div>
-                    </div>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className={`${
-                      activity.state === "A"
-                        ? "border-green-500/50 text-green-300"
-                        : activity.state === "U"
-                        ? "border-red-500/50 text-red-300"
-                        : "border-gray-500/50 text-gray-300"
-                    }`}
-                  >
-                    {activity.state === "A"
-                      ? "Available"
-                      : activity.state === "U"
-                      ? "Unavailable"
-                      : "Uncertain"}
-                  </Badge>
+      {/* Coverage by role */}
+      <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}>
+        <div className="px-5 py-4 border-b" style={{ borderColor: "var(--app-border)" }}>
+          <h2 className="text-sm font-semibold" style={{ color: "var(--app-text)" }}>Coverage by Role</h2>
+          <p className="text-xs mt-0.5" style={{ color: "var(--app-text-muted)" }}>Average response rate across all events</p>
+        </div>
+        <div className="px-5 py-4 space-y-4">
+          {ROLE_ORDER.map(role => {
+            const rs = stats.roleStats[role];
+            if (!rs || rs.members.length === 0) return null;
+            const memberCount = rs.members.length;
+            const rate = rs.responseRate ?? 0;
+            const color = rate >= 80 ? "#3fb950" : rate >= 50 ? "#d29922" : "#f85149";
+            return (
+              <div key={role} className="flex items-center gap-4">
+                <div className="w-28 flex-shrink-0">
+                  <p className="text-sm font-medium" style={{ color: "var(--app-text)" }}>{getRoleDisplayName(role)}</p>
+                  <p className="text-xs" style={{ color: "var(--app-text-muted)" }}>{memberCount} member{memberCount !== 1 ? "s" : ""}</p>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-white/60">
-              <div className="text-2xl mb-2">📭</div>
-              <p>No recent activity</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                <div className="flex-1">
+                  <Bar value={rate} color={color} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Events at risk */}
+      {stats.atRisk.length > 0 && (
+        <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--app-surface)", borderColor: "rgba(248,81,73,0.2)" }}>
+          <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: "rgba(248,81,73,0.15)" }}>
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#f85149" }} />
+            <h2 className="text-sm font-semibold" style={{ color: "var(--app-text)" }}>Events at Risk</h2>
+            <span className="ml-auto text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: "rgba(248,81,73,0.1)", color: "#f85149" }}>
+              {stats.atRisk.length} event{stats.atRisk.length !== 1 ? "s" : ""} below 70%
+            </span>
+          </div>
+          <div className="divide-y" style={{ borderColor: "var(--app-border)" }}>
+            {stats.atRisk.map(({ event, coverage }) => {
+              const missingRoles = Object.entries(coverage.coverageByRole)
+                .filter(([role, rc]) => role !== "violinist" && rc && rc.available < rc.required)
+                .map(([role]) => getRoleDisplayName(role as Role));
+              const color = coverage.coverageScore >= 50 ? "#d29922" : "#f85149";
+              return (
+                <div key={event.id} className="px-5 py-3 flex items-center gap-4">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate" style={{ color: "var(--app-text)" }}>{event.title}</p>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--app-text-muted)" }}>
+                      {formatDateShort(event.date)}
+                      {missingRoles.length > 0 && (
+                        <span className="ml-2" style={{ color: "#f85149" }}>Missing: {missingRoles.join(", ")}</span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="w-20 rounded-full h-1.5" style={{ backgroundColor: "var(--app-border)" }}>
+                      <div className="h-1.5 rounded-full" style={{ width: `${coverage.coverageScore}%`, backgroundColor: color }} />
+                    </div>
+                    <span className="text-sm tabular-nums w-10 text-right" style={{ color }}>{coverage.coverageScore}%</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Member response rates */}
+      <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--app-surface)", borderColor: "var(--app-border)" }}>
+        <div className="px-5 py-4 border-b" style={{ borderColor: "var(--app-border)" }}>
+          <h2 className="text-sm font-semibold" style={{ color: "var(--app-text)" }}>Member Response Rates</h2>
+          <p className="text-xs mt-0.5" style={{ color: "var(--app-text-muted)" }}>Sorted by rate — lowest first</p>
+        </div>
+        <div className="divide-y" style={{ borderColor: "var(--app-border)" }}>
+          {stats.memberRates.map(({ member, rate, responded, total }) => {
+            const color = rate >= 80 ? "#3fb950" : rate >= 50 ? "#d29922" : "#f85149";
+            const needsFollowUp = rate < 50;
+            return (
+              <div key={member.id} className="px-5 py-3 flex items-center gap-4">
+                <div className="w-36 flex-shrink-0 min-w-0">
+                  <p className="text-sm truncate" style={{ color: "var(--app-text)" }}>{member.name}</p>
+                  <p className="text-xs" style={{ color: "var(--app-text-muted)" }}>{getRoleDisplayName(member.role)}</p>
+                </div>
+                <div className="flex-1 rounded-full h-1.5" style={{ backgroundColor: "var(--app-border)" }}>
+                  <div className="h-1.5 rounded-full transition-all" style={{ width: `${rate}%`, backgroundColor: color }} />
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="text-sm tabular-nums w-10 text-right" style={{ color }}>{rate}%</span>
+                  <span className="text-xs w-16 text-right" style={{ color: "var(--app-text-muted)" }}>{responded}/{total}</span>
+                  {needsFollowUp && (
+                    <span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: "rgba(248,81,73,0.1)", color: "#f85149" }}>follow up</span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
