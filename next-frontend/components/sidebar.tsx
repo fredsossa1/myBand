@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -8,6 +9,7 @@ import { useTranslations } from "@/hooks/use-language";
 import { useAdmin } from "@/hooks/use-admin";
 import { useUser } from "@/hooks/use-user";
 import { getRoleDisplayName } from "@/lib/constants";
+import { MembersModal } from "./members-modal";
 
 function CalendarIcon() {
   return (
@@ -29,6 +31,17 @@ function ChartIcon() {
   );
 }
 
+function PeopleIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+      <circle cx="5.5" cy="4" r="2.5" stroke="currentColor" strokeWidth="1.3"/>
+      <path d="M1 13C1 10.79 3.01 9 5.5 9C7.99 9 10 10.79 10 13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+      <circle cx="11" cy="5" r="1.8" stroke="currentColor" strokeWidth="1.2"/>
+      <path d="M13 13C13 11.34 12.1 10 11 10" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
 function LogoutIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
@@ -44,6 +57,7 @@ export function Sidebar() {
   const t = useTranslations();
   const { isAdmin, handleAdminLogout } = useAdmin();
   const { member } = useUser();
+  const [showMembers, setShowMembers] = useState(false);
 
   const navItems = [
     { href: "/", label: "Schedule", icon: <CalendarIcon /> },
@@ -140,6 +154,17 @@ export function Sidebar() {
           )}
         </div>
 
+        {isAdmin && (
+          <button
+            onClick={() => setShowMembers(true)}
+            className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm transition-colors duration-150 hover:bg-white/5"
+            style={{ color: "var(--app-text-muted)" }}
+          >
+            <PeopleIcon />
+            <span>Members</span>
+          </button>
+        )}
+
         <button
           onClick={handleAdminLogout}
           className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm transition-colors duration-150 hover:bg-white/5"
@@ -159,6 +184,8 @@ export function Sidebar() {
           <LanguageToggle />
         </div>
       </div>
+
+      {showMembers && <MembersModal onClose={() => setShowMembers(false)} />}
     </div>
   );
 }
