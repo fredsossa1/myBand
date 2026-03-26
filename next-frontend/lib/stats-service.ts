@@ -129,7 +129,7 @@ export class StatsService {
       };
     }
 
-    const availabilityByDate = this.groupAvailabilityByDate(availability || []);
+    const availabilityByDate = this.groupAvailabilityByDate(availability || [], events);
     let totalExpectedResponses = 0;
     let totalActualResponses = 0;
 
@@ -178,8 +178,8 @@ export class StatsService {
     }
 
     const memberAvailability = availability.filter(a => a.person_id === member.id);
-    const availabilityByDate = this.groupAvailabilityByDate(memberAvailability);
-    
+    const availabilityByDate = this.groupAvailabilityByDate(memberAvailability, events);
+
     let expectedResponses = 0;
     let actualResponses = 0;
     let availableCount = 0;
@@ -287,7 +287,7 @@ export class StatsService {
       };
     }
 
-    const availabilityByDate = this.groupAvailabilityByDate(availability || []);
+    const availabilityByDate = this.groupAvailabilityByDate(availability || [], [event]);
     const dayAvail = availabilityByDate[event.date] || {};
     
     let expectedResponses = 0;
@@ -348,7 +348,7 @@ export class StatsService {
     shouldRespond: boolean;
   }> {
     const memberAvailability = availability.filter(a => a.person_id === member.id);
-    const availabilityByDate = this.groupAvailabilityByDate(memberAvailability);
+    const availabilityByDate = this.groupAvailabilityByDate(memberAvailability, upcomingEvents);
 
     return upcomingEvents.map((event) => ({
       event,
