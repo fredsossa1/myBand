@@ -324,16 +324,10 @@ export default function AvailabilityPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-teal-900 to-cyan-900 p-4">
-        <div className="container mx-auto max-w-6xl">
-          <Card className="glass border-white/20">
-            <CardContent className="p-12 text-center">
-              <div className="text-white">
-                <div className="text-4xl mb-4">⏳</div>
-                <p className="text-xl">{t.loadingAvailabilityData}</p>
-              </div>
-            </CardContent>
-          </Card>
+      <div className="flex items-center justify-center py-24">
+        <div className="text-center" style={{ color: "var(--app-text-muted)" }}>
+          <div className="text-3xl mb-3">⏳</div>
+          <p>{t.loadingAvailabilityData}</p>
         </div>
       </div>
     );
@@ -341,21 +335,19 @@ export default function AvailabilityPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-teal-900 to-cyan-900 p-4">
-        <div className="container mx-auto max-w-6xl">
-          <Card className="glass border-red-500/20">
-            <CardContent className="p-12 text-center">
-              <div className="text-red-400">
-                <div className="text-4xl mb-4">❌</div>
-                <p className="text-xl">
-                  {t.errorLoadingData}: {error}
-                </p>
-                <Button onClick={refetch} className="mt-4" variant="outline">
-                  {t.tryAgain}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+      <div className="flex items-center justify-center py-24">
+        <div className="text-center">
+          <div className="text-3xl mb-3">❌</div>
+          <p className="text-sm mb-4" style={{ color: "#f85149" }}>
+            {t.errorLoadingData}: {error}
+          </p>
+          <button
+            onClick={refetch}
+            className="px-4 py-2 rounded-lg border text-sm transition-colors hover:bg-white/5"
+            style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
+          >
+            {t.tryAgain}
+          </button>
         </div>
       </div>
     );
@@ -364,62 +356,43 @@ export default function AvailabilityPage() {
   return (
     <div className={`space-y-6 ${hasUnsavedChanges ? "pb-32" : ""}`}>
       {/* Action Buttons */}
-      <div className="flex gap-3 justify-end">
-        <Button
-          variant="outline"
-          size="default"
+      <div className="flex items-center gap-2 justify-end">
+        <button
           onClick={refetch}
-          className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm transition-colors hover:bg-white/5"
+          style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
         >
-          🔄 {t.refresh}
-        </Button>
-        <Button
-          variant="outline"
-          size="default"
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <path d="M11.5 6.5C11.5 9.26 9.26 11.5 6.5 11.5C3.74 11.5 1.5 9.26 1.5 6.5C1.5 3.74 3.74 1.5 6.5 1.5C8.1 1.5 9.52 2.23 10.5 3.36" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+            <path d="M10.5 1.5V3.5H8.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          {t.refresh}
+        </button>
+        <button
           onClick={() => setShowKeyboardHelp(true)}
-          className="hidden sm:flex bg-white/10 border-white/20 text-white hover:bg-white/20"
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm transition-colors hover:bg-white/5"
+          style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
         >
-          ⌨️ {t.keyboardShortcuts}
-        </Button>
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <rect x="1" y="3" width="11" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.2"/>
+            <path d="M3.5 7H4.5M6.5 7H7.5M9.5 7H10.5M3.5 5.5H4.5M6.5 5.5H7.5M9.5 5.5H10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+          </svg>
+          {t.keyboardShortcuts}
+        </button>
+        {isAdmin && (
+          <button
+            onClick={() => setAddEventModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-opacity hover:opacity-90"
+            style={{ backgroundColor: "var(--app-accent)", color: "#0d1117" }}
+          >
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+              <path d="M6.5 2V11M2 6.5H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            {t.addEvent}
+          </button>
+        )}
       </div>
 
-      {/* Admin Add Event Button - Desktop */}
-      {isAdmin && (
-        <Card className="glass border-green-500/30 hidden sm:block">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between gap-4">
-              <div className="text-white">
-                <div className="font-semibold text-green-300 text-base">
-                  🔑 {t.adminControls}
-                </div>
-                <div className="text-sm text-white/70">
-                  {t.adminManageDescription}
-                </div>
-              </div>
-              <Button
-                onClick={() => setAddEventModal(true)}
-                className="bg-green-600 hover:bg-green-700 text-white"
-                size="sm"
-              >
-                📅 {t.addEvent}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Admin Add Event Button - Mobile FAB */}
-      {isAdmin && (
-        <div className="fixed bottom-6 right-6 z-50 sm:hidden">
-          <Button
-            onClick={() => setAddEventModal(true)}
-            className="h-14 w-14 rounded-full shadow-lg bg-green-600 hover:bg-green-700 text-white border-2 border-white/20"
-            size="sm"
-          >
-            <span className="text-2xl">📅</span>
-          </Button>
-        </div>
-      )}
 
       {/* User Selection */}
       <Card className="glass border-white/20">
@@ -516,68 +489,49 @@ export default function AvailabilityPage() {
 
       {/* Pending Changes - Sticky Bottom Bar */}
       {hasUnsavedChanges && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-black/80 to-transparent">
-          <Card className="glass border-orange-500/20 bg-orange-500/20 backdrop-blur-xl max-w-4xl mx-auto">
-            <CardContent className="p-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">⏳</span>
-                  <div className="text-white">
-                    <div className="font-semibold text-sm sm:text-base">
-                      {pendingChanges.size} {t.unsavedChanges}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={discardAllChanges}
-                    className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-                  >
-                    {t.discardAll}
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={submitAllChanges}
-                    className="bg-orange-600 hover:bg-orange-700 text-white"
-                  >
-                    {t.submitAllChanges}
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-4">
+          <div className="max-w-2xl mx-auto rounded-xl border p-3 flex items-center justify-between gap-4 shadow-2xl backdrop-blur-xl" style={{ backgroundColor: "var(--app-surface)", borderColor: "rgba(210, 153, 34, 0.3)" }}>
+            <div className="flex items-center gap-2.5">
+              <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+              <p className="text-sm font-medium" style={{ color: "var(--app-text)" }}>
+                {pendingChanges.size} {t.unsavedChanges}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={discardAllChanges}
+                className="px-3 py-1.5 rounded-lg border text-xs transition-colors hover:bg-white/5"
+                style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
+              >
+                {t.discardAll}
+              </button>
+              <button
+                onClick={submitAllChanges}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold"
+                style={{ backgroundColor: "#d29922", color: "#0d1117" }}
+              >
+                {t.submitAllChanges}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Undo */}
       {lastAction && (
-        <Card className="glass border-blue-500/20 bg-blue-500/10">
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">↶</span>
-                <div className="text-white">
-                  <div className="font-semibold text-sm sm:text-base">
-                    {t.undoAvailable}
-                  </div>
-                  <div className="text-xs sm:text-sm text-white/70">
-                    {t.undoDescription}
-                  </div>
-                </div>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={undoLastAction}
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20 self-start sm:self-auto text-xs sm:text-sm"
-              >
-                ↶ {t.undoAction}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border p-3 flex items-center justify-between gap-4" style={{ backgroundColor: "var(--app-surface)", borderColor: "rgba(88, 166, 255, 0.2)" }}>
+          <div className="flex items-center gap-2.5">
+            <span style={{ color: "var(--app-text-muted)" }}>↶</span>
+            <p className="text-sm font-medium" style={{ color: "var(--app-text)" }}>{t.undoAvailable}</p>
+          </div>
+          <button
+            onClick={undoLastAction}
+            className="px-3 py-1.5 rounded-lg border text-xs transition-colors hover:bg-white/5"
+            style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
+          >
+            ↶ {t.undoAction}
+          </button>
+        </div>
       )}
 
       {/* Events */}
