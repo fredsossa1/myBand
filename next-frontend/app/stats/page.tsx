@@ -7,7 +7,7 @@ import { useAdmin } from "@/hooks/use-admin";
 import { calculateEventCoverage, groupAvailabilityByDate } from "@/lib/utils";
 import { getRoleDisplayName, formatDateShort } from "@/lib/constants";
 import { StatsService } from "@/lib/stats-service";
-import { Role, AvailabilityRecord } from "@/lib/types";
+import { Role } from "@/lib/types";
 
 const ROLE_ORDER: Role[] = ["lead", "bv", "bassist", "pianist", "drummer", "violinist"];
 
@@ -167,7 +167,7 @@ export default function StatsPage() {
               {stats.atRisk.length} event{stats.atRisk.length !== 1 ? "s" : ""} below 70%
             </span>
           </div>
-          <div className="divide-y" style={{ borderColor: "var(--app-border)" }}>
+          <div className="divide-y divide-[var(--app-border)]">
             {stats.atRisk.map(({ event, coverage }) => {
               const missingRoles = Object.entries(coverage.coverageByRole)
                 .filter(([role, rc]) => role !== "violinist" && rc && rc.available < rc.required)
@@ -186,7 +186,7 @@ export default function StatsPage() {
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <div className="w-20 rounded-full h-1.5" style={{ backgroundColor: "var(--app-border)" }}>
-                      <div className="h-1.5 rounded-full" style={{ width: `${coverage.coverageScore}%`, backgroundColor: color }} />
+                      <div className="h-1.5 rounded-full" style={{ width: `${Math.min(100, coverage.coverageScore)}%`, backgroundColor: color }} />
                     </div>
                     <span className="text-sm tabular-nums w-10 text-right" style={{ color }}>{coverage.coverageScore}%</span>
                   </div>
@@ -203,7 +203,7 @@ export default function StatsPage() {
           <h2 className="text-sm font-semibold" style={{ color: "var(--app-text)" }}>Member Response Rates</h2>
           <p className="text-xs mt-0.5" style={{ color: "var(--app-text-muted)" }}>Sorted by rate — lowest first</p>
         </div>
-        <div className="divide-y" style={{ borderColor: "var(--app-border)" }}>
+        <div className="divide-y divide-[var(--app-border)]">
           {stats.memberRates.map(({ member, rate, responded, total }) => {
             const color = rate >= 80 ? "#3fb950" : rate >= 50 ? "#d29922" : "#f85149";
             const needsFollowUp = rate < 50;

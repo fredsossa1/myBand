@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { Event, AvailabilityRecord, Member, AvailabilityState } from "@/lib/types";
 import { calculateEventCoverage, groupAvailabilityByDate } from "@/lib/utils";
-import { formatDate, formatDateShort } from "@/lib/constants";
+import { formatDateShort } from "@/lib/constants";
 
 interface EventListProps {
   events: Event[];
@@ -72,7 +72,10 @@ function EventRow({
   return (
     <div
       onClick={onClick}
-      className="px-4 py-3 cursor-pointer transition-colors border-b flex flex-col gap-1.5"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } }}
+      className="px-4 py-3 cursor-pointer transition-colors border-b flex flex-col gap-1.5 outline-none focus-visible:ring-1 focus-visible:ring-teal-500"
       style={{
         borderColor: "var(--app-border)",
         backgroundColor: isSelected ? "var(--app-accent-dim)" : undefined,
@@ -146,14 +149,18 @@ export function EventList({
     return map;
   }, [events, members, availabilityByDate]);
 
+  // Precomputed map for O(1) lookups instead of per-row O(n) scans
+  const availabilityMap = useMemo(() => {
+    const map = new Map<string, AvailabilityState>();
+    availability.forEach((a) => map.set(`${a.event_id}-${a.person_id}`, a.state));
+    return map;
+  }, [availability]);
+
   const getUserState = (event: Event): AvailabilityState | null => {
     if (!currentUser) return null;
     const key = `${event.id}-${currentUser.id}`;
     if (pendingChanges.has(key)) return pendingChanges.get(key)!.state;
-    const rec = availability.find(
-      (a) => a.event_id.toString() === event.id.toString() && a.person_id === currentUser.id
-    );
-    return rec?.state ?? null;
+    return availabilityMap.get(key) ?? null;
   };
 
   const renderGroup = (label: string, groupEvents: Event[], isToday = false) => {

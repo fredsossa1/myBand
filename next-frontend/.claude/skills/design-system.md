@@ -160,7 +160,8 @@ Sidebar (components/sidebar.tsx):
 ### `/` — Schedule
 Split-panel. Left: compact event list grouped TODAY / UPCOMING / PAST. Right: event detail with 3-button availability selector + coverage grid (admin) + response list (admin).
 
-### `/stats` → `/analytics` — Analytics (admin only)
+### `/stats` — Analytics (admin only)
+
 Summary row → Coverage by role (horizontal bars) → Events at risk (< 70%) → Member response rates (sorted asc).
 
 ---

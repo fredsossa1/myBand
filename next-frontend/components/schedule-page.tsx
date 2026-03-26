@@ -3,10 +3,9 @@
 import { useState, useMemo, useEffect } from "react";
 import { useAvailability } from "@/hooks/use-availability";
 import { useAdmin } from "@/hooks/use-admin";
-import { useTranslations } from "@/hooks/use-language";
 import { EventList } from "./schedule/event-list";
 import { EventDetail } from "./schedule/event-detail";
-import { Event, AvailabilityState } from "@/lib/types";
+import { AvailabilityState } from "@/lib/types";
 
 // ---------- Add Event Modal ----------
 interface AddEventModalProps {
@@ -18,7 +17,7 @@ function AddEventModal({ onClose, onAdd }: AddEventModalProps) {
   const [form, setForm] = useState({ date: "", title: "Service", description: "", type: "service" });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Montreal" })).toISOString().split("T")[0];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,7 +116,6 @@ export function SchedulePage() {
   } = useAvailability();
 
   const { isAdmin } = useAdmin();
-  const t = useTranslations();
 
   const [selectedEventId, setSelectedEventId] = useState<string | number | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -127,7 +125,7 @@ export function SchedulePage() {
   useEffect(() => {
     if (selectedEventId || !events?.length) return;
     const todayStr = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Montreal" }))
-      .toISOString().split("T")[0];
+      .toISOString().split("T")[0]!;
     const first = [...(events ?? [])].sort((a, b) => a.date.localeCompare(b.date)).find(e => e.date >= todayStr);
     if (first) setSelectedEventId(first.id);
   }, [events, selectedEventId]);
@@ -138,9 +136,19 @@ export function SchedulePage() {
   );
 
   const handleSetAvailability = async (eventId: string | number, personId: string, state: AvailabilityState) => {
-    // Optimistic update
-    setAvailabilityLocal(eventId, personId, state);
-    await setAvailabilityRemote(eventId, personId, state);
+    const numericId = typeof eventId === "number" ? eventId : Number(eventId);
+    setAvailabilityLocal(numericId, personId, state);
+    try {
+      await setAvailabilityRemote(numericId, personId, state);
+    } catch {
+      // Revert optimistic update on failure
+      const previous = availability?.find(
+        a => a.event_id.toString() === numericId.toString() && a.person_id === personId
+      );
+      if (previous) {
+        setAvailabilityLocal(numericId, personId, previous.state);
+      }
+    }
   };
 
   const handleAddEvent = async (data: { date: string; title: string; description?: string; type: string }) => {

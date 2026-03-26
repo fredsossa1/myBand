@@ -117,10 +117,17 @@ function ResponseTable({
 }) {
   const membersByRole = groupMembersByRole(members);
 
+  // Precomputed map for O(1) lookups
+  const availabilityMap = useMemo(() => {
+    const map = new Map<string, AvailabilityState>();
+    availability.forEach((a) => map.set(`${a.event_id}-${a.person_id}`, a.state));
+    return map;
+  }, [availability]);
+
   const getState = (member: Member): AvailabilityState | null => {
     const key = `${event.id}-${member.id}`;
     if (pendingChanges.has(key)) return pendingChanges.get(key)!.state;
-    return availability.find(a => a.event_id.toString() === event.id.toString() && a.person_id === member.id)?.state ?? null;
+    return availabilityMap.get(key) ?? null;
   };
 
   const stateConfig = {
@@ -256,9 +263,6 @@ export function EventDetail({
                 />
               ))}
             </div>
-            {!currentUser && (
-              <p className="mt-2 text-xs" style={{ color: "var(--app-text-muted)" }}>Sign in to mark your availability</p>
-            )}
           </div>
         )}
 

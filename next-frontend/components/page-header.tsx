@@ -1,12 +1,10 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useTranslations } from "@/hooks/use-language";
 import { useAdmin } from "@/hooks/use-admin";
 
 export function PageHeader() {
   const pathname = usePathname();
-  const t = useTranslations();
   const { isAdmin } = useAdmin();
 
   const getPageInfo = () => {

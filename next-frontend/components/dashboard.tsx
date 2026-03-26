@@ -272,7 +272,7 @@ export default function Dashboard() {
           <div className="px-5 py-4 border-b" style={{ borderColor: "var(--app-border)" }}>
             <h2 className="text-sm font-semibold" style={{ color: "var(--app-text)" }}>{t.upcomingEvents as string}</h2>
           </div>
-          <div className="divide-y" style={{ borderColor: "var(--app-border)" }}>
+          <div className="divide-y divide-[var(--app-border)]">
             {stats.upcomingEvents.length > 0 ? stats.upcomingEvents.map((event) => (
               <div key={event.id} className="px-5 py-3 flex items-center gap-3 hover:bg-white/3 transition-colors">
                 <div className="text-lg flex-shrink-0">{getEventTypeIcon(event.type as any)}</div>
@@ -300,7 +300,7 @@ export default function Dashboard() {
             <div className="px-5 py-4 border-b" style={{ borderColor: "var(--app-border)" }}>
               <h2 className="text-sm font-semibold" style={{ color: "var(--app-text)" }}>{t.recentActivity as string}</h2>
             </div>
-            <div className="divide-y" style={{ borderColor: "var(--app-border)" }}>
+            <div className="divide-y divide-[var(--app-border)]">
               {stats.recentActivity.length > 0 ? stats.recentActivity.map((activity, i) => (
                 <div key={i} className="px-5 py-3 flex items-center gap-3 hover:bg-white/3 transition-colors">
                   <div className="text-base flex-shrink-0">{getAvailabilityIcon(activity.state)}</div>

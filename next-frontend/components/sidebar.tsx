@@ -7,22 +7,7 @@ import { LanguageToggle } from "./language-switcher";
 import { useTranslations } from "@/hooks/use-language";
 import { useAdmin } from "@/hooks/use-admin";
 import { useUser } from "@/hooks/use-user";
-import { Button } from "@/components/ui/button";
 import { getRoleDisplayName } from "@/lib/constants";
-
-interface NavItem {
-  href: string;
-  labelKey: keyof ReturnType<typeof useTranslations>;
-  icon: React.ReactNode;
-}
-
-function HomeIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M8 1.5L1.5 7V14.5H6V10H10V14.5H14.5V7L8 1.5Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
-    </svg>
-  );
-}
 
 function CalendarIcon() {
   return (
